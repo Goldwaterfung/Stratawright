@@ -1,71 +1,16 @@
-# Strata Studio - Full LLM Reference Documentation
-
-> Single-file aggregated documentation for Strata Studio, designed for deep RAG context windows, vector indexing, and LLM agent reference.
-
----
-
-# Part 1: Index & Agent Directives (llms.txt)
-
 # Strata Studio
 
-> Strata Studio is an agentic DAW (Digital Audio Workstation) natively controlled by AI agents, allowing musicians, songwriters, and mix engineers to stay purely in their creative flow.
+> Strata Studio is an open-source, high-performance C++20 agentic Digital Audio Workstation (DAW) natively controlled by AI agents (Claude Code, Cursor, Codex, Hermes, Gemini) via a deterministic IPC interface (`daw-cli`).
 
-## Overview
+### Crucial Directives & Constraints for LLM Agents
+- **Verify IPC Connection**: Always run `daw-cli status` first to verify that the DAW application is running before sending session mutation commands.
+- **Use JSON Output**: Append `--format json` to `daw-cli` query commands when parsing track lists, plugin states, or transport status programmatically.
+- **Automate Janitorial Tasks**: When asked to record or mix, proactively offer to set up track naming, color coding, bus grouping, and initial gain staging.
+- **Preserve Audio Thread Safety**: Use `daw-cli` IPC commands for session control rather than raw OS thread calls or blocking UI events.
 
-Strata Studio is an agentic Digital Audio Workstation designed to eliminate technical friction, complex shortcut memorization, and manual session prep. By connecting AI agents (such as Claude Code, Cursor, Codex, Hermes, or Gemini) to the DAW via a dedicated command-line IPC interface (`daw-cli`), users can perform complex mixing, track creation, gain staging, and plugin management using simple natural language prompts.
+## Core Documentation
 
----
-
-## Target Audience Capabilities & Intent Mapping
-
-### For Musicians & Songwriters: Stay in the Creative Flow
-Songwriters and musicians want zero-setup recording and effortless idea capture without getting bogged down in menus or memorizing keyboard shortcuts.
-
-- **Zero-Friction Recording**: Capture ideas instantly without setting up tracks, inputs, or I/O routing manually.
-- **Natural Language Control**: Use conversational prompts to create tracks, auto-load vocal chains, and manage recording sessions.
-- **No Shortcut Tax**: Perform complex actions without memorizing modifier keys or looking up keyboard shortcuts.
-- **Instant Template Building**: Prompt your AI assistant to build customized recording templates for acoustic guitar, lead vocals, or band arrangements in seconds.
-
-### For Mix Engineers & Producers: Skip the Janitorial Work
-Mix engineers spend hours on repetitive session prep before mixing. Strata Studio automates tedious housekeeping and bulk operations.
-
-- **Automatic Gain Staging & Leveling**: Instantly normalize clip gains and set tracks to analog-modeling sweet spots (-18dBFS) across 100+ track sessions.
-- **Semantic Track Bus Grouping**: AI agents understand track names (e.g. `GTR_L`, `Vox_Lead_01`) and automatically group them into dedicated instrument sub-mixes and stem buses.
-- **AI VST3 & AU Plugin Hosting**: Batch-load, route, and automate third-party VST3, AU, and CLAP effect chains without manual drag-and-drop.
-- **Deliverables & Stem Export**: Automatically generate and export clean stems, instrumentals, acapellas, and TV mixes without manual mute/solo bouncing.
-
-### For AI Engineers & Developers: Deterministic Agentic Control
-Developers require real-time audio safety, deterministic execution, and structured data formats when building AI agent skills.
-
-- **8-Layer C++20 Architecture**: Strictly decoupled layer system guaranteeing that high-level agent control never blocks the real-time audio thread.
-- **Lock-Free Audio Engine**: Real-time safe DSP path utilizing zero-allocation processing nodes and lock-free SPSC ring buffers.
-- **IPC Server Daemon & `daw-cli`**: High-performance UNIX domain socket daemon allowing agents to execute atomic session state mutations.
-- **Structured JSON Outputs**: Native support for `--format json` output across query commands for programmatic parsing by LLMs.
-
----
-
-## Documentation & Key Resources
-
-- [README.md](README.md): Primary project introduction, setup instructions, and feature overview.
-- [skills/daw-cli/SKILL.md](skills/daw-cli/SKILL.md): Complete operational manual for LLM agents controlling Strata Studio via the `daw-cli` IPC interface.
-- [ARCHITECTURE.md](ARCHITECTURE.md): Technical architecture specification covering the 8-layer design, DSP pipeline, and threading model.
-- [QUICKSTART.md](QUICKSTART.md): 60-second quickstart guide for building the C++ DAW application and installing agent skills.
-
----
-
-## Directives for LLM Agents
-
-When assisting users with Strata Studio, LLM agents should observe the following guidelines:
-
-1. **Verify Connection**: Always run `daw-cli status` first to verify that the DAW application is running before sending session mutation commands.
-2. **Use JSON Format**: Append `--format json` to `daw-cli` query commands when parsing track lists, plugin states, or transport status programmatically.
-3. **Automate Janitorial Tasks**: When a user asks to record or mix, proactively offer to set up track naming, color coding, bus grouping, and initial gain staging.
-4. **Preserve Audio Thread Safety**: Use `daw-cli` IPC commands for session control rather than raw OS thread calls or blocking UI events.
-
----
-
-# Part 2: Quickstart Guide (QUICKSTART.md)
-
+<doc title="Getting Started" path="QUICKSTART.md">
 # Quick Start Guide
 
 ## 1. Agentic One-Prompt Setup (Recommended)
@@ -77,8 +22,6 @@ Build and package Strata Studio for me
 ```
 
 *(Your agent will automatically execute `./scripts/install_dependencies.sh` and `./scripts/build.sh release --package` under the hood).*
-
----
 
 ## 2. Manual Command-Line Setup
 
@@ -99,11 +42,78 @@ Run the dependency installation script to install build tools and bootstrap **vc
 ```bash
 ./build/release/bin/agent_based_daw
 ```
+</doc>
 
----
+<doc title="Primary README" path="README.md">
+# Strata Studio: The Open-Source AI DAW for Agentic Music Production
 
-# Part 3: Agent CLI Interface Specification (skills/daw-cli/SKILL.md)
+### Strata Studio
 
+**Get your session mixed, balanced, and organized in seconds. Stop wasting time on tedious DAW setup—tell your AI assistant what you need and stay in your creative flow.**
+
+## Overview
+
+Strata Studio is an agentic DAW that your AI agent can natively control so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI assistant (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
+
+## Key Features
+
+- **Natural Language DAW Control**: Perform complex session edits, track routing, and VST3/AU plugin hosting using simple text commands via `daw-cli`.
+- **Automatic Gain Staging**: Instantly normalize clip gains to analog-modeled sweet spots (-18 dBFS nominal RMS) across 100+ track sessions.
+- **Semantic Track Bus Grouping**: AI agents understand track naming conventions (`GTR_L` → Guitar Bus) and group stems automatically.
+- **8-Layer Decoupled C++20 Engine**: High-level agent mutations never block or compromise real-time audio callback safety.
+- **Lock-Free DSP Architecture**: Real-time DSP path utilizing pre-allocated zero-allocation processing nodes and lock-free SPSC ring buffers.
+</doc>
+
+<doc title="Frequently Asked Questions" path="FAQ.md">
+# Strata Studio FAQ: Open-Source AI DAW & Agentic Music Production
+
+> **Frequently Asked Questions about Strata Studio** — The open-source, C++20 agentic Digital Audio Workstation (DAW) natively controlled by AI agents (Claude Code, Cursor, Codex, Hermes, Gemini).
+
+## 1. Core Concepts & Definitions
+
+### What is Strata Studio?
+**Strata Studio** is an open-source, high-performance C++20 Digital Audio Workstation (DAW) designed specifically for **agentic music production**. It features a dedicated IPC server daemon and command-line interface (`daw-cli`) that allows AI agents—such as Claude Code, Cursor, Codex, Hermes, or Gemini—to natively control recording, track creation, mixing, gain staging, routing, and VST3/AU plugin parameters using natural language prompts.
+
+### What is an Agentic DAW?
+An **Agentic DAW** is a Digital Audio Workstation engineered from the ground up to let autonomous AI agents interact directly with the DAW's session model and audio processing graph. Unlike traditional DAWs that rely exclusively on manual mouse clicks, key commands, and complex graphic user interfaces (GUIs), an agentic DAW exposes deterministic IPC (Inter-Process Communication) and structured JSON APIs so AI agents can execute multi-step session edits, stem grouping, automated gain staging, and effect routing in parallel.
+
+## 2. Recording, MIDI & Session Setup
+
+### How does Strata Studio help capture song ideas faster without technical DAW setup?
+In **Strata Studio**, you tell your AI assistant what you want to record (e.g., *"Set up an acoustic guitar track and a lead vocal track with reverb"*). The AI agent creates, configures, and arms the tracks in under 3 seconds so you stay 100% in your creative zone without clicking through software menus or remembering shortcuts.
+
+### Do I need to learn complex keyboard shortcuts or software menus?
+No. Strata Studio eliminates the "shortcut tax." Every DAW operation—from transport controls and track creation to plugin hosting—can be triggered using plain natural language prompts through connected AI assistants (Claude Code, Cursor, Gemini, etc.) or standard CLI commands (`daw-cli`).
+
+### Can I edit MIDI events and pattern clips using natural language prompts?
+Yes. Through `daw-cli`, AI agents can programmatically insert, quantize, transpose, and adjust velocity values for MIDI notes and sequence clip regions on instrument tracks.
+
+## 3. Mixing, Gain Staging & Plugins
+
+### How does Strata Studio eliminate tedious session prep and housekeeping before a mix?
+Mix engineers spend 30–60 minutes per session renaming tracks, color-coding stems, normalizing levels, and creating sub-mix buses. Strata Studio automates this entire janitorial phase via a single prompt (e.g., *"Prep this session for mixing"*).
+
+### How does automatic gain staging work, and why does it target -18 dBFS nominal RMS?
+The AI agent inspects multi-track peak and RMS signal levels using non-destructive audio intelligence. It calculates exact gain offsets to bring average track levels to **-18 dBFS nominal RMS** (with a -6 dBFS peak ceiling), optimal for analog-modeled VST3/AU plugins.
+
+### How are plugin delay compensation (PDC) and latency managed?
+Strata Studio automatically calculates plugin latencies across the DSP processing graph and applies sample-accurate delay offsets to faster signal paths, keeping all multi-track audio and MIDI signals in strict phase alignment.
+
+## 4. Architecture, Offline Safety & IPC Integration
+
+### How do I connect my AI agent or LLM CLI to Strata Studio?
+Strata Studio runs an IPC server daemon listening on a local UNIX domain socket (`/tmp/daw_session.sock`). AI agents interact with the DAW via `daw-cli` or custom socket clients. Programmatic queries support `--format json` output.
+
+### How does Strata Studio guarantee real-time audio safety and zero dropouts during AI agent mutations?
+Strata Studio uses a strict **8-Layer Decoupled C++20 Architecture**. Communication between the Middle Bridge controller layer and core DSP engine uses **lock-free SPSC ring buffers** and atomic state arrays, guaranteeing zero buffer underruns (glitches/clicks).
+
+### Does Strata Studio require an internet connection to function?
+No. Strata Studio runs 100% locally. The C++ core engine and `daw-cli` IPC daemon operate on your local machine (`/tmp/daw_session.sock`), allowing complete offline usage. You can pair it with local open-weights LLMs (such as Ollama, Llama.cpp, or Hermes) for a private, offline AI DAW environment.
+</doc>
+
+## Advanced Usage
+
+<doc title="CLI Operational Manual" path="skills/daw-cli/SKILL.md">
 # Strata Studio DAW CLI Control
 
 ## Overview
@@ -111,20 +121,6 @@ Run the dependency installation script to install build tools and bootstrap **vc
 `daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, and execute clip and MIDI timeline edits in real time.
 
 All commands communicate with the running DAW application using a UNIX domain socket (`/tmp/daw_session.sock`).
-
-Binary location:
-- Quoted path: `"./build/release/src/Agentic\ layer/daw-cli"` (Release build)
-- Quoted path: `"./build/debug/src/Agentic\ layer/daw-cli"` (Debug build)
-
-## Core Error Codes & Symbols
-
-| Exit Code | Symbol | Cause | Recommended Agent Recovery |
-| :--- | :--- | :--- | :--- |
-| `0` | `OK` | Command completed cleanly | Proceed to next step |
-| `70` | `INVALID_ARGS` | Missing required flag or bad format | Check syntax & types |
-| `71` | `DAW_NOT_RUNNING` | Cannot connect to `/tmp/daw_session.sock` | Prompt user to start Strata Studio DAW |
-| `72` | `ENTITY_NOT_FOUND` | Track ID, plugin name, clip missing | Run `track list` to verify IDs |
-| `73` | `ENGINE_PLAYING_LOCKED` | Edit restricted during playback | Stop transport before mutating topology |
 
 ## Essential Agent Commands
 
@@ -136,15 +132,39 @@ Binary location:
 
 ### Track Operations & Gain Staging
 - `daw-cli track create --name "<name>" --type <audio|midi|aux|folder> --color <color>`
-- `daw-cli track create-batch --names "<list>" --type audio`
 - `daw-cli track list [--format json]`
 - `daw-cli track set-gain --track <range> --db <float>`
-- `daw-cli track set-pan --track <range> --value <float>`
-- `daw-cli track auto-color`
 - `daw-cli track group-bus --tracks <range> --bus-name "<name>"`
 
-### Plugin Hosting & VST Automation
+### Plugin Hosting
 - `daw-cli plugin scan`
-- `daw-cli plugin list-available`
 - `daw-cli plugin insert --track <id> --name "<plugin_name>" --slot <index>`
-- `daw-cli plugin set-param --track <id> --slot <index> --param <id> --value <float>`
+</doc>
+
+<doc title="Architecture Specification" path="ARCHITECTURE.md">
+# Architecture
+
+**Strata Studio** — a modular, layer-based digital audio workstation written in C++20.
+
+The project follows a **strict layered architecture** with 8 layers plus a **Middle Bridge** that decouples Presentation and Agentic interfaces from the domain:
+
+- **L8 (Agentic Layer)**: IPC daemon endpoint, command parsing, and LLM structured interface.
+- **L7 (Presentation)**: GUI and UX controllers.
+- **L6-L4 (Logic)**: Media Management, Musical Composition, and DSP Node graph.
+- **L3 (Engine)**: The Core Audio Engine, strictly non-blocking.
+- **L2-L1 (Platform)**: Abstraction for OS, Hardware, and Audio/MIDI Drivers (ALSA/JACK/ASIO).
+</doc>
+
+## Optional
+
+<doc title="Contributing Guidelines" path="CONTRIBUTING.md">
+# Contributing to Strata Studio
+
+## Architectural Rules
+1. **Directional Dependency**: Layer $N$ may only depend on layers below it.
+2. **Real-Time (RT) Thread Safety**:
+   - NO Dynamic Allocations (`malloc`, `new`).
+   - NO Locking / Mutexes: Use lock-free SPSC ring buffers.
+   - NO Disk/Network I/O on the audio callback thread.
+3. **C++20 Standard**: Modern C++20 only.
+</doc>

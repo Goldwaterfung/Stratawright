@@ -1,6 +1,6 @@
 <div align="center">
 
-# ![Strata](asset/strata.png) Strata Studio
+# ![Strata](asset/strata.png) Strata Studio: The Open-Source AI DAW for Agentic Music Production
 
 ### Strata Studio
 
@@ -18,6 +18,7 @@
 <p align="center">
   <a href="#why-an-agentic-daw">Why Agentic DAW</a> •
   <a href="#quick-start--agentic-setup">Quick Start</a> •
+  <a href="FAQ.md">FAQ</a> •
   <a href="#showcase-use-cases">Showcase Use Cases</a> •
   <a href="#what-your-ai-agent-can-do-in-strata-studio">Agent Capabilities</a> •
   <a href="#key-features">Key Features</a> •
