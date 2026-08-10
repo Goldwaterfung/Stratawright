@@ -1,6 +1,6 @@
 <div align="center">
 
-# ![Strata](asset/strata.png) Strata Studio: The Open-Source AI DAW for Agentic Music Production
+# ![Strata](asset/strata.png) Strata Studio：面向 Agentic 音樂製作的開源 AI DAW
 
 ### Strata Studio
 
@@ -106,7 +106,7 @@ cd Strata-Studio
 | **Gemini CLI** | `.gemini/skills/daw-cli` | `~/.gemini/skills/daw-cli` |
 | **OpenCode** | `.opencode/skills/daw-cli` | `~/.config/opencode/skills/daw-cli` |
 
-安裝裝完成後，Agent 會將 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 作為其操作手冊。
+安裝完成後，Agent 會將 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 作為其操作手冊。
 
 </details>
 

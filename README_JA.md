@@ -1,6 +1,6 @@
 <div align="center">
 
-# ![Strata](asset/strata.png) Strata Studio: The Open-Source AI DAW for Agentic Music Production
+# ![Strata](asset/strata.png) Strata Studio：Agentic 音楽制作のためのオープンソース AI DAW
 
 ### Strata Studio
 
