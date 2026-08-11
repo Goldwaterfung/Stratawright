@@ -87,7 +87,7 @@ void SplashScreen::setupUI() {
     m_titleLabel->setStyleSheet(QString("color: %1; letter-spacing: 2px;").arg(theme::Color::AccentGlow.name()));
     m_titleLabel->setAlignment(Qt::AlignCenter);
 
-    m_subtitleLabel = new QLabel("STRATA STUDIO", this);
+    m_subtitleLabel = new QLabel("STRATAWRIGHT", this);
     m_subtitleLabel->setFont(theme::Font::primary(9, QFont::Bold)); // Bold for better readability
     m_subtitleLabel->setStyleSheet(QString("color: %1; letter-spacing: 5px;").arg(theme::Color::TextPrimary.name())); // Higher contrast
     m_subtitleLabel->setAlignment(Qt::AlignCenter);

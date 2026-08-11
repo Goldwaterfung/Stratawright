@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Strata Studio Third-Party SDK Downloader Script
+# Stratawright Third-Party SDK Downloader Script
 # Automatically fetches required third-party C++ libraries and plugin SDKs into src/third_party
 
 set -e

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Strata Studio Dependency Installation Script
+# Stratawright Dependency Installation Script
 # Supports macOS, Ubuntu/Debian, and Fedora/RHEL
 
 set -e
@@ -28,7 +28,7 @@ case "$OS" in
         ;;
 
     Linux*)
-        echo "Linux platform is not supported in Strata Studio."
+        echo "Linux platform is not supported in Stratawright."
         exit 1
         ;;
 

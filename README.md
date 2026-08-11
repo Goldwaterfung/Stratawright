@@ -1,8 +1,8 @@
 <div align="center">
 
-# ![Strata](asset/strata.png) Strata Studio: The Open-Source AI DAW for Agentic Music Production
+# ![Strata](asset/strata.png) Stratawright: The Open-Source AI DAW for Agentic Music Production
 
-### Strata Studio
+### Stratawright
 
 <p align="center">
   <b>Get your session mixed, balanced, and organized in seconds.<br>Stop wasting time on tedious DAW setup—tell your AI assistant what you need and stay in your creative flow.</b>
@@ -20,7 +20,7 @@
   <a href="#quick-start--agentic-setup">Quick Start</a> •
   <a href="FAQ.md">FAQ</a> •
   <a href="#showcase-use-cases">Showcase Use Cases</a> •
-  <a href="#what-your-ai-agent-can-do-in-strata-studio">Agent Capabilities</a> •
+  <a href="#what-your-ai-agent-can-do-in-stratawright">Agent Capabilities</a> •
   <a href="#key-features">Key Features</a> •
   <a href="#developer-guide--building-from-source">Developer Guide</a> •
   <a href="#license">License</a>
@@ -42,7 +42,7 @@
 
 You opened your DAW to create music—not to burn half your brain on shortcuts, modifier keys, and complex control interfaces. **Let tools serve your creativity, not your memory.**
 
-**Strata Studio** is an agentic DAW that your AI agent can natively control so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI agent (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
+**Stratawright** is an agentic DAW that your AI agent can natively control so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI agent (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
 
 ---
 
@@ -50,7 +50,7 @@ You opened your DAW to create music—not to burn half your brain on shortcuts, 
 
 Traditional DAWs were built for a keyboard-and-mouse era where every single operation required manual labor. As sessions grow to 100+ tracks, your creative energy gets drained by repetitive mechanical tasks.
 
-| Traditional DAW Workflow | Strata Studio Agentic Workflow |
+| Traditional DAW Workflow | Stratawright Agentic Workflow |
 | :--- | :--- |
 | **Hundreds of Clicks & Manual Edits**: Manually selecting, gain-staging, color-coding, and routing 100 tracks one-by-one. | **One Single Command**: A single natural language prompt controls 100+ tracks deterministically in a split second. |
 | **The Shortcut Tax**: Searching online for forgotten keyboard shortcuts and complex modifier keys. | **Natural Language**: Just tell your AI agent what you want in plain English. |
@@ -67,30 +67,37 @@ No terminal commands or manual compilation required. Open your AI agent (**Claud
 Clone the project repository to your local system:
 
 ```bash
-git clone https://github.com/Goldwaterfung/Strata-Studio.git
-cd Strata-Studio
+git clone https://github.com/Goldwaterfung/Stratawright.git
+cd Stratawright
 ```
 
 Or tell your AI agent:
 
 ```text
-Clone https://github.com/Goldwaterfung/Strata-Studio and set up the project for me
+Clone https://github.com/Goldwaterfung/Stratawright and set up the project for me
 ```
 
-### 2. Build & Setup Strata Studio (Agent compiles the app)
+### 2. Build & Setup Stratawright (Agent compiles the app)
 Tell your agent:
 
 ```text
-Build and package Strata Studio for me
+Build and package Stratawright for me
 ```
 
 *(Your agent will automatically run `./scripts/install_dependencies.sh` and `./scripts/build.sh release --package` under the hood).*
 
 ### 3. Install the Skill (Teaches your agent how to control DAW)
-Tell your agent:
+
+Install directly via **[skills.sh](https://skills.sh)** (Vercel Agent Skills Registry):
+
+```bash
+npx skills add Goldwaterfung/Stratawright/skills/daw-cli
+```
+
+Or tell your AI agent in chat:
 
 ```text
-Install the daw-cli skill from https://github.com/Goldwaterfung/Strata-Studio
+Install the daw-cli skill from https://github.com/Goldwaterfung/Stratawright
 ```
 
 <details>
@@ -116,7 +123,7 @@ Once installed, your agent uses [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL
 
 ## Showcase Use Cases
 
-Below are real-time demonstrations of `daw-cli` executing agentic workflows in Strata Studio.
+Below are real-time demonstrations of `daw-cli` executing agentic workflows in Stratawright.
 
 ### 🎬 Use Case 1: Instant Multi-Track Ingestion, Clip Placement & Auto-Coloring
 
@@ -153,7 +160,7 @@ Below are real-time demonstrations of `daw-cli` executing agentic workflows in S
 
 ## Agentic Command Examples
 
-Here is what working in Strata Studio with an AI assistant looks like:
+Here is what working in Stratawright with an AI assistant looks like:
 
 ```text
 User    ❯ Set tempo to 128 BPM, set up tracks for Kick, Snare, HH, and Tom, and balance their volume levels.
@@ -203,7 +210,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ---
 
-## What Your AI Agent Can Do in Strata Studio
+## What Your AI Agent Can Do in Stratawright
 
 Instead of manually clicking through complex menus, searching for shortcuts, or tweaking individual knobs, you command your AI assistant (**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini**, etc.) in plain English. Here is what your assistant can do in your session right now:
 
@@ -253,7 +260,7 @@ Instead of manually clicking through complex menus, searching for shortcuts, or 
 
 ## Developer Guide & Building from Source
 
-Strata Studio is an open-source, high-performance C++20 DAW engine built for AI-driven music production. AI agents control the DAW via the [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) skill definition.
+Stratawright is an open-source, high-performance C++20 DAW engine built for AI-driven music production. AI agents control the DAW via the [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) skill definition.
 
 <details>
 <summary><b>Building & Compiling from Source</b></summary>
@@ -281,8 +288,8 @@ Run the setup script to install dependencies and libraries (RtAudio, RtMidi, lib
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Goldwaterfung/Strata-Studio.git
-   cd Strata-Studio
+   git clone https://github.com/Goldwaterfung/Stratawright.git
+   cd Stratawright
    ```
 
 2. **Configure and build**:
@@ -294,7 +301,7 @@ Run the setup script to install dependencies and libraries (RtAudio, RtMidi, lib
 
 3. **Run application**:
    ```bash
-   ./bin/strata_studio
+   ./bin/stratawright
    ```
 
 ---

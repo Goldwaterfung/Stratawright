@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Strata Studio Build Script
+# Stratawright Build Script
 # Usage: ./build.sh [debug|release|profile] [options]
 
 set -e
@@ -20,7 +20,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 print_help() {
-    echo "Strata Studio Build Script"
+    echo "Stratawright Build Script"
     echo ""
     echo "Usage: ./build.sh [CONFIGURATION] [OPTIONS]"
     echo ""
@@ -110,7 +110,7 @@ done
 # Set build directory
 BUILD_DIR="build/$(echo "$BUILD_TYPE" | tr '[:upper:]' '[:lower:]')"
 
-echo -e "${GREEN}Building Strata Studio${NC}"
+echo -e "${GREEN}Building Stratawright${NC}"
 echo "=================================="
 echo "Configuration: $BUILD_TYPE"
 echo "Build directory: $BUILD_DIR"
@@ -192,12 +192,12 @@ fi
 # Print summary
 echo ""
 echo -e "${GREEN}Build complete!${NC}"
-echo "Executable: $BUILD_DIR/bin/strata_studio"
+echo "Executable: $BUILD_DIR/bin/stratawright"
 if [ $RUN_PACKAGE -eq 1 ]; then
     echo "Packages created in: $BUILD_DIR/"
 fi
 echo ""
 echo "To run the application:"
 echo "  cd $BUILD_DIR"
-echo "  ./bin/strata_studio"
+echo "  ./bin/stratawright"
 

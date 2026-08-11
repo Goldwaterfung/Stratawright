@@ -202,7 +202,7 @@ TEST_CASE("Project V3 Serialization & Deserialization Loop", "[Layer5][Serializa
 
     ProjectMetadata meta{};
     meta.projectName = "My Serialization Project";
-    meta.author = "Strata Studio";
+    meta.author = "Stratawright";
     meta.sampleRate = 48000;
     meta.initialTempoBPM = 135.0f;
     meta.timeSignatureNumerator = 3;
@@ -239,7 +239,7 @@ TEST_CASE("Project V3 Serialization & Deserialization Loop", "[Layer5][Serializa
     // Verify metadata
     const auto& meta2 = session2->getMetadata();
     CHECK(meta2.projectName == "My Serialization Project");
-    CHECK(meta2.author == "Strata Studio");
+    CHECK(meta2.author == "Stratawright");
     CHECK(meta2.sampleRate == 48000);
     CHECK(meta2.initialTempoBPM == 135.0f);
     CHECK(meta2.timeSignatureNumerator == 3);

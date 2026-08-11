@@ -1,8 +1,8 @@
 <div align="center">
 
-# ![Strata](asset/strata.png) Strata Studio: 에이전틱 음악 제작을 위한 오픈소스 AI DAW
+# ![Strata](asset/strata.png) Stratawright: 에이전틱 음악 제작을 위한 오픈소스 AI DAW
 
-### Strata Studio
+### Stratawright
 
 <p align="center">
   <b>몇 초 만에 세션 믹싱, 밸런스 조절, 정돈을 완료하세요.<br>번거로운 DAW 설정으로 시간을 허비하지 마세요. AI 어시스턴트에게 필요한 것을 말하고 창작의 흐름을 유지하세요.</b>
@@ -19,7 +19,7 @@
   <a href="#왜-agentic-daw인가">왜 Agentic DAW인가</a> •
   <a href="#빠른-시작--에이전트-설정">빠른 시작</a> •
   <a href="#유스케이스-시연">유스케이스 시연</a> •
-  <a href="#strata-studio에서-ai-에이전트가-할-수-있는-일">에이전트 기능</a> •
+  <a href="#stratawright에서-ai-에이전트가-할-수-있는-일">에이전트 기능</a> •
   <a href="#주요-기능">주요 기능</a> •
   <a href="#개발자-가이드--소스-컴파일">개발자 가이드</a> •
   <a href="#라이선스">라이선스</a>
@@ -40,7 +40,7 @@
 
 여러분은 음악을 만들기 위해 DAW를 열었습니다. 단축키, 조합키, 복잡한 제어 인터페이스를 외우느라 뇌의 절반을 소모하기 위해서가 아닙니다. **도구가 여러분의 기억이 아닌, 창의성을 돕도록 하세요.**
 
-**Strata Studio**는 AI 에이전트가 네이티브로 제어할 수 있는 Agentic DAW로, 여러분이 순수하게 음악 제작에만 집중할 수 있도록 합니다. 스트리밍용 트랙 볼륨 조절, 녹음 음원의 배경 노이즈 제거, 모든 트랙에 이펙트 플러그인 라우팅을 위해 30분씩 수동 작업을 하는 대신, AI 어시스턴트(**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini**)에게 자연어로 원하는 내용을 말하세요. 몇 초 만에 세션 준비와 밸런스 조절이 완료되어 프로덕션에 들어갈 수 있습니다.
+**Stratawright**는 AI 에이전트가 네이티브로 제어할 수 있는 Agentic DAW로, 여러분이 순수하게 음악 제작에만 집중할 수 있도록 합니다. 스트리밍용 트랙 볼륨 조절, 녹음 음원의 배경 노이즈 제거, 모든 트랙에 이펙트 플러그인 라우팅을 위해 30분씩 수동 작업을 하는 대신, AI 어시스턴트(**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini**)에게 자연어로 원하는 내용을 말하세요. 몇 초 만에 세션 준비와 밸런스 조절이 완료되어 프로덕션에 들어갈 수 있습니다.
 
 ---
 
@@ -48,7 +48,7 @@
 
 기존 DAW는 모든 작업을 수동으로 처리하던 키보드와 마우스 시대에 맞춰 설계되었습니다. 100개 이상의 트랙으로 세션이 커지면 반복적인 기계적 작업으로 인해 창작 에너지가 고갈됩니다.
 
-| 기존 DAW 워크플로우 | Strata Studio Agentic 워크플로우 |
+| 기존 DAW 워크플로우 | Stratawright Agentic 워크플로우 |
 | :--- | :--- |
 | **수백 번의 클릭과 수동 편집**: 100개 이상의 트랙을 하나씩 선택, 게인 스태이징, 색상 지정 및 라우팅. | **단 하나의 명령**: 자연어 프롬프트 하나로 0.1초 만에 100개 이상의 트랙을 확정적으로 제어. |
 | **단축키 부담**: 잊어버린 단축키와 복잡한 조합키를 인터넷에서 검색. | **자연어 대화**: 평소 사용하는 언어로 AI 에이전트에게 필요한 내용을 말하기만 하면 완료. |
@@ -65,30 +65,37 @@
 프로젝트 리포지토리를 로컬 환경에 클론합니다:
 
 ```bash
-git clone https://github.com/Goldwaterfung/Strata-Studio.git
-cd Strata-Studio
+git clone https://github.com/Goldwaterfung/Stratawright.git
+cd Stratawright
 ```
 
-또는 AI 에이전트에게 입력:
+또는 AI 에이전트에게 말하세요:
 
 ```text
-https://github.com/Goldwaterfung/Strata-Studio 를 클론하고 프로젝트를 설정해 줘
+https://github.com/Goldwaterfung/Stratawright 를 클론하고 프로젝트를 설정해 줘
 ```
 
-### 2. Strata Studio 빌드 및 설정 (에이전트가 앱 컴파일)
-에이전트에게 입력:
+### 2. Stratawright 빌드 및 설정 (에이전트가 앱 컴파일)
+에이전트에게 말하세요:
 
 ```text
-Strata Studio를 빌드하고 패키징해 줘
+Stratawright를 빌드하고 패키징해 줘
 ```
 
-*(에이전트가 백그라운드에서 `./scripts/install_dependencies.sh` 및 `./scripts/build.sh release --package`를 자동으로 실행합니다)*.
+*(에이전트가 자동으로 `./scripts/install_dependencies.sh` 및 `./scripts/build.sh release --package`를 실행합니다)*.
 
-### 3. 스킬 설치 (에이전트에게 DAW 제어법 학습)
-에이전트에게 입력:
+### 3. Skill 설치 (에이전트에게 DAW 제어 방법 학습)
+
+**[skills.sh](https://skills.sh)** (Vercel Agent Skills Registry)를 통해 직접 설치:
+
+```bash
+npx skills add Goldwaterfung/Stratawright/skills/daw-cli
+```
+
+또는 채팅으로 AI 에이전트에게 부탁하세요:
 
 ```text
-https://github.com/Goldwaterfung/Strata-Studio 에서 daw-cli 스킬을 설치해 줘
+https://github.com/Goldwaterfung/Stratawright 에서 daw-cli 스킬을 설치해 줘
 ```
 
 <details>
@@ -114,7 +121,7 @@ https://github.com/Goldwaterfung/Strata-Studio 에서 daw-cli 스킬을 설치�
 
 ## 유스케이스 시연
 
-Strata Studio에서 `daw-cli`를 통해 에이전틱 자동화 워크플로우를 실행하는 실시간 시연입니다.
+Stratawright에서 `daw-cli`를 통해 에이전틱 자동화 워크플로우를 실행하는 실시간 시연입니다.
 
 ### 🎬 유스케이스 1: 멀티트랙 즉시 가져오기, 클립 배치 및 자동 컬러링
 
@@ -151,7 +158,7 @@ Strata Studio에서 `daw-cli`를 통해 에이전틱 자동화 워크플로우�
 
 ## 에이전트 명령 예시
 
-Strata Studio에서 AI 어시스턴트와 함께 작업하는 실제 모습입니다：
+Stratawright에서 AI 어시스턴트와 함께 작업하는 실제 모습입니다：
 
 ```text
 User    ❯ 템포를 128 BPM으로 설정하고 Kick, Snare, HH, Tom 트랙을 생성한 다음 볼륨 레벨 밸런스를 맞춰 줘.
@@ -201,7 +208,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ---
 
-## Strata Studio에서 AI 에이전트가 할 수 있는 일
+## Stratawright에서 AI 에이전트가 할 수 있는 일
 
 복잡한 메뉴를 클릭하거나 단축키를 외우고 노브를 수동으로 조작하는 대신, AI 어시스턴트(**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini** 등)에 자연어로 명령하기만 하면 됩니다:
 
@@ -251,7 +258,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ## 개발자 가이드 & 소스 컴파일
 
-Strata Studio는 AI 기반 음악 제작을 위해 구축된 오픈 소스 고성능 C++20 DAW 엔진입니다. AI 에이전트는 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 스킬 정의를 통해 DAW와 통신합니다.
+Stratawright는 AI 기반 음악 제작을 위해 구축된 오픈 소스 고성능 C++20 DAW 엔진입니다. AI 에이전트는 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 스킬 정의를 통해 DAW와 통신합니다.
 
 <details>
 <summary><b>소스 코드 빌드 및 컴파일</b></summary>
@@ -277,10 +284,10 @@ Strata Studio는 AI 기반 음악 제작을 위해 구축된 오픈 소스 고�
 
 ### 빌드 단계
 
-1. **리포지토리 클론**:
+1. **저장소 클론**:
    ```bash
-   git clone https://github.com/Goldwaterfung/Strata-Studio.git
-   cd Strata-Studio
+   git clone https://github.com/Goldwaterfung/Stratawright.git
+   cd Stratawright
    ```
 
 2. **설정 및 빌드**:
@@ -292,7 +299,7 @@ Strata Studio는 AI 기반 음악 제작을 위해 구축된 오픈 소스 고�
 
 3. **애플리케이션 실행**:
    ```bash
-   ./bin/strata_studio
+   ./bin/stratawright
    ```
 
 ---

@@ -1,8 +1,8 @@
 <div align="center">
 
-# ![Strata](asset/strata.png) Strata Studio：面向 Agentic 音乐制作的开源 AI DAW
+# ![Strata](asset/strata.png) Stratawright：面向 Agentic 音乐制作的开源 AI DAW
 
-### Strata Studio
+### Stratawright
 
 <p align="center">
   <b>在几秒钟内完成 Session 混音、平衡与整理。<br>不再把时间浪费在繁琐的 DAW 配置上—直接告诉你的 AI 助手，保持专注在音乐灵感中。</b>
@@ -19,7 +19,7 @@
   <a href="#为什么选择-agentic-daw">为什么选择 Agentic DAW</a> •
   <a href="#快速开始--agentic-配置">快速开始</a> •
   <a href="#展示用例">展示用例</a> •
-  <a href="#ai-agent-在-strata-studio-中能为你做些什么">Agent 功能</a> •
+  <a href="#ai-agent-在-stratawright-中能为你做些什么">Agent 功能</a> •
   <a href="#核心特性">核心特性</a> •
   <a href="#开发者指南与源码编译">开发者指南</a> •
   <a href="#许可证">许可证</a>
@@ -40,7 +40,7 @@
 
 你打开 DAW 是为了创作音乐——而不是把一半的脑力耗费在记忆快捷键、修饰键和复杂的控制界面上。**让工具服务于你的创意，而非你的记忆。**
 
-**Strata Studio** 是一款支持 AI 原生掌控的 Agentic DAW，让你能够纯粹专注于音乐创作。无需再花费 30 分钟手动调节流媒体音量、移除录音背景噪音，或者为每条轨道挂载效果插件，只需用自然语言向你的 AI 代理（**Claude Code**、**Cursor**、**Codex**、**Hermes** 或 **Gemini**）表达需求，你的工程即可在几秒钟内完成准备、平衡并进入制作状态。
+**Stratawright** 是一款支持 AI 原生掌控的 Agentic DAW，让你能够纯粹专注于音乐创作。无需再花费 30 分钟手动调节流媒体音量、移除录音背景噪音，或者为每条轨道挂载效果插件，只需用自然语言向你的 AI 代理（**Claude Code**、**Cursor**、**Codex**、**Hermes** 或 **Gemini**）表达需求，你的工程即可在几秒钟内完成准备、平衡并进入制作状态。
 
 ---
 
@@ -48,7 +48,7 @@
 
 传统的 DAW 是为键盘与鼠标时代设计的，每一个细节操作都需要手动完成。当工程庞大至 100+ 轨道时，你的创作精力会被大量重复的机械劳动消耗殆尽。
 
-| 传统 DAW 工作流 | Strata Studio Agentic 工作流 |
+| 传统 DAW 工作流 | Stratawright Agentic 工作流 |
 | :--- | :--- |
 | **数百次点击与手动编辑**：逐一选择、调整增益、着色并路由 100+ 轨道。 | **一条简单命令**：一句自然语言指令，瞬间精准控制 100+ 轨道。 |
 | **快捷键负担**：上网查找被遗忘的键盘快捷键与复杂修饰键。 | **自然语言交互**：直接用日常语言告诉 AI Agent 你的需求。 |
@@ -65,30 +65,37 @@
 将项目代码库克隆到本地环境：
 
 ```bash
-git clone https://github.com/Goldwaterfung/Strata-Studio.git
-cd Strata-Studio
+git clone https://github.com/Goldwaterfung/Stratawright.git
+cd Stratawright
 ```
 
 或者告诉你的 AI Agent：
 
 ```text
-帮我克隆 https://github.com/Goldwaterfung/Strata-Studio 并配置该项目
+帮我克隆 https://github.com/Goldwaterfung/Stratawright 并配置该项目
 ```
 
-### 2. 编译并安装 Strata Studio（Agent 自动编译应用）
+### 2. 编译并安装 Stratawright（Agent 自动编译应用）
 告诉你的 Agent：
 
 ```text
-帮我编译并打包 Strata Studio
+帮我编译并打包 Stratawright
 ```
 
-*(你的 Agent 会在后台自动运行 `./scripts/install_dependencies.sh` 和 `./scripts/build.sh release --package`)*。
+*(你的 Agent 将在后台自动运行 `./scripts/install_dependencies.sh` 和 `./scripts/build.sh release --package`)*。
 
-### 3. 安装 Skill（让 Agent 学会控制 DAW）
-告诉你的 Agent：
+### 3. 安装 Skill（教授 Agent 如何控制 DAW）
+
+直接通过 **[skills.sh](https://skills.sh)**（Vercel Agent Skills 注册表）安装：
+
+```bash
+npx skills add Goldwaterfung/Stratawright/skills/daw-cli
+```
+
+或者在对话中告诉你的 AI Agent：
 
 ```text
-从 https://github.com/Goldwaterfung/Strata-Studio 安装 daw-cli skill
+从 https://github.com/Goldwaterfung/Stratawright 安装 daw-cli skill
 ```
 
 <details>
@@ -114,7 +121,7 @@ cd Strata-Studio
 
 ## 展示用例
 
-以下是在 Strata Studio 中由 `daw-cli` 驱动 Agentic 自动化工作流的实时演示：
+以下是在 Stratawright 中由 `daw-cli` 驱动 Agentic 自动化工作流的实时演示：
 
 ### 🎬 用例 1：瞬间多音轨导入、剪辑放置与自动着色
 
@@ -151,7 +158,7 @@ cd Strata-Studio
 
 ## Agentic 命令示例
 
-以下是在 Strata Studio 中与 AI 助手协同工作的实际场景：
+以下是在 Stratawright 中与 AI 助手协同工作的实际场景：
 
 ```text
 User    ❯ 设置 Tempo 为 128 BPM，创建 Kick、Snare、HH 和 Tom 轨道，并平衡它们的音量层级。
@@ -201,7 +208,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ---
 
-## AI Agent 在 Strata Studio 中能为你做些什么
+## AI Agent 在 Stratawright 中能为你做些什么
 
 无需繁琐地点击菜单、记忆快捷键或手动调节每一个旋钮，你只需用自然语言命令你的 AI 助手（**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini** 等）。以下是你的 AI 助手目前能为你完成的工作：
 
@@ -251,7 +258,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ## 开发者指南与源码编译
 
-Strata Studio 是一款专为 AI 驱动音乐制作打造的开源高性能 C++20 DAW 引擎。AI Agent 通过 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 技能规范与 DAW 进行交互。
+Stratawright 是一款专为 AI 驱动音乐制作打造的开源高性能 C++20 DAW 引擎。AI Agent 通过 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 技能规范与 DAW 进行交互。
 
 <details>
 <summary><b>从源码构建与编译</b></summary>
@@ -279,8 +286,8 @@ Strata Studio 是一款专为 AI 驱动音乐制作打造的开源高性能 C++2
 
 1. **克隆仓库**:
    ```bash
-   git clone https://github.com/Goldwaterfung/Strata-Studio.git
-   cd Strata-Studio
+   git clone https://github.com/Goldwaterfung/Stratawright.git
+   cd Stratawright
    ```
 
 2. **配置与构建**:
@@ -292,7 +299,7 @@ Strata Studio 是一款专为 AI 驱动音乐制作打造的开源高性能 C++2
 
 3. **运行应用**:
    ```bash
-   ./bin/strata_studio
+   ./bin/stratawright
    ```
 
 ---

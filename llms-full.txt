@@ -1,6 +1,6 @@
-# Strata Studio
+# Stratawright
 
-> Strata Studio is an open-source, high-performance C++20 agentic Digital Audio Workstation (DAW) natively controlled by AI agents (Claude Code, Cursor, Codex, Hermes, Gemini) via a deterministic IPC interface (`daw-cli`).
+> Stratawright is an open-source, high-performance C++20 agentic Digital Audio Workstation (DAW) natively controlled by AI agents (Claude Code, Cursor, Codex, Hermes, Gemini) via a deterministic IPC interface (`daw-cli`).
 
 ### Crucial Directives & Constraints for LLM Agents
 - **Verify IPC Connection**: Always run `daw-cli status` first to verify that the DAW application is running before sending session mutation commands.
@@ -18,7 +18,7 @@
 Open your AI agent (**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode**, etc.) inside this project directory and tell it:
 
 ```text
-Build and package Strata Studio for me
+Build and package Stratawright for me
 ```
 
 *(Your agent will automatically execute `./scripts/install_dependencies.sh` and `./scripts/build.sh release --package` under the hood).*
@@ -45,15 +45,15 @@ Run the dependency installation script to install build tools and bootstrap **vc
 </doc>
 
 <doc title="Primary README" path="README.md">
-# Strata Studio: The Open-Source AI DAW for Agentic Music Production
+# Stratawright: The Open-Source AI DAW for Agentic Music Production
 
-### Strata Studio
+### Stratawright
 
 **Get your session mixed, balanced, and organized in seconds. Stop wasting time on tedious DAW setup—tell your AI assistant what you need and stay in your creative flow.**
 
 ## Overview
 
-Strata Studio is an agentic DAW that your AI agent can natively control so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI assistant (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
+Stratawright is an agentic DAW that your AI agent can natively control so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI assistant (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
 
 ## Key Features
 
@@ -65,60 +65,60 @@ Strata Studio is an agentic DAW that your AI agent can natively control so you c
 </doc>
 
 <doc title="Frequently Asked Questions" path="FAQ.md">
-# Strata Studio FAQ: Open-Source AI DAW & Agentic Music Production
+# Stratawright FAQ: Open-Source AI DAW & Agentic Music Production
 
-> **Frequently Asked Questions about Strata Studio** — The open-source, C++20 agentic Digital Audio Workstation (DAW) natively controlled by AI agents (Claude Code, Cursor, Codex, Hermes, Gemini).
+> **Frequently Asked Questions about Stratawright** — The open-source, C++20 agentic Digital Audio Workstation (DAW) natively controlled by AI agents (Claude Code, Cursor, Codex, Hermes, Gemini).
 
 ## 1. Core Concepts & Definitions
 
-### What is Strata Studio?
-**Strata Studio** is an open-source, high-performance C++20 Digital Audio Workstation (DAW) designed specifically for **agentic music production**. It features a dedicated IPC server daemon and command-line interface (`daw-cli`) that allows AI agents—such as Claude Code, Cursor, Codex, Hermes, or Gemini—to natively control recording, track creation, mixing, gain staging, routing, and VST3/AU plugin parameters using natural language prompts.
+### What is Stratawright?
+**Stratawright** is an open-source, high-performance C++20 Digital Audio Workstation (DAW) designed specifically for **agentic music production**. It features a dedicated IPC server daemon and command-line interface (`daw-cli`) that allows AI agents—such as Claude Code, Cursor, Codex, Hermes, or Gemini—to natively control recording, track creation, mixing, gain staging, routing, and VST3/AU plugin parameters using natural language prompts.
 
 ### What is an Agentic DAW?
 An **Agentic DAW** is a Digital Audio Workstation engineered from the ground up to let autonomous AI agents interact directly with the DAW's session model and audio processing graph. Unlike traditional DAWs that rely exclusively on manual mouse clicks, key commands, and complex graphic user interfaces (GUIs), an agentic DAW exposes deterministic IPC (Inter-Process Communication) and structured JSON APIs so AI agents can execute multi-step session edits, stem grouping, automated gain staging, and effect routing in parallel.
 
 ## 2. Recording, MIDI & Session Setup
 
-### How does Strata Studio help capture song ideas faster without technical DAW setup?
-In **Strata Studio**, you tell your AI assistant what you want to record (e.g., *"Set up an acoustic guitar track and a lead vocal track with reverb"*). The AI agent creates, configures, and arms the tracks in under 3 seconds so you stay 100% in your creative zone without clicking through software menus or remembering shortcuts.
+### How does Stratawright help capture song ideas faster without technical DAW setup?
+In **Stratawright**, you tell your AI assistant what you want to record (e.g., *"Set up an acoustic guitar track and a lead vocal track with reverb"*). The AI agent creates, configures, and arms the tracks in under 3 seconds so you stay 100% in your creative zone without clicking through software menus or remembering shortcuts.
 
 ### Do I need to learn complex keyboard shortcuts or software menus?
-No. Strata Studio eliminates the "shortcut tax." Every DAW operation—from transport controls and track creation to plugin hosting—can be triggered using plain natural language prompts through connected AI assistants (Claude Code, Cursor, Gemini, etc.) or standard CLI commands (`daw-cli`).
+No. Stratawright eliminates the "shortcut tax." Every DAW operation—from transport controls and track creation to plugin hosting—can be triggered using plain natural language prompts through connected AI assistants (Claude Code, Cursor, Gemini, etc.) or standard CLI commands (`daw-cli`).
 
 ### Can I edit MIDI events and pattern clips using natural language prompts?
 Yes. Through `daw-cli`, AI agents can programmatically insert, quantize, transpose, and adjust velocity values for MIDI notes and sequence clip regions on instrument tracks.
 
 ## 3. Mixing, Gain Staging & Plugins
 
-### How does Strata Studio eliminate tedious session prep and housekeeping before a mix?
-Mix engineers spend 30–60 minutes per session renaming tracks, color-coding stems, normalizing levels, and creating sub-mix buses. Strata Studio automates this entire janitorial phase via a single prompt (e.g., *"Prep this session for mixing"*).
+### How does Stratawright eliminate tedious session prep and housekeeping before a mix?
+Mix engineers spend 30–60 minutes per session renaming tracks, color-coding stems, normalizing levels, and creating sub-mix buses. Stratawright automates this entire janitorial phase via a single prompt (e.g., *"Prep this session for mixing"*).
 
 ### How does automatic gain staging work, and why does it target -18 dBFS nominal RMS?
 The AI agent inspects multi-track peak and RMS signal levels using non-destructive audio intelligence. It calculates exact gain offsets to bring average track levels to **-18 dBFS nominal RMS** (with a -6 dBFS peak ceiling), optimal for analog-modeled VST3/AU plugins.
 
 ### How are plugin delay compensation (PDC) and latency managed?
-Strata Studio automatically calculates plugin latencies across the DSP processing graph and applies sample-accurate delay offsets to faster signal paths, keeping all multi-track audio and MIDI signals in strict phase alignment.
+Stratawright automatically calculates plugin latencies across the DSP processing graph and applies sample-accurate delay offsets to faster signal paths, keeping all multi-track audio and MIDI signals in strict phase alignment.
 
 ## 4. Architecture, Offline Safety & IPC Integration
 
-### How do I connect my AI agent or LLM CLI to Strata Studio?
-Strata Studio runs an IPC server daemon listening on a local UNIX domain socket (`/tmp/daw_session.sock`). AI agents interact with the DAW via `daw-cli` or custom socket clients. Programmatic queries support `--format json` output.
+### How do I connect my AI agent or LLM CLI to Stratawright?
+Stratawright runs an IPC server daemon listening on a local UNIX domain socket (`/tmp/daw_session.sock`). AI agents interact with the DAW via `daw-cli` or custom socket clients. Programmatic queries support `--format json` output.
 
-### How does Strata Studio guarantee real-time audio safety and zero dropouts during AI agent mutations?
-Strata Studio uses a strict **8-Layer Decoupled C++20 Architecture**. Communication between the Middle Bridge controller layer and core DSP engine uses **lock-free SPSC ring buffers** and atomic state arrays, guaranteeing zero buffer underruns (glitches/clicks).
+### How does Stratawright guarantee real-time audio safety and zero dropouts during AI agent mutations?
+Stratawright uses a strict **8-Layer Decoupled C++20 Architecture**. Communication between the Middle Bridge controller layer and core DSP engine uses **lock-free SPSC ring buffers** and atomic state arrays, guaranteeing zero buffer underruns (glitches/clicks).
 
-### Does Strata Studio require an internet connection to function?
-No. Strata Studio runs 100% locally. The C++ core engine and `daw-cli` IPC daemon operate on your local machine (`/tmp/daw_session.sock`), allowing complete offline usage. You can pair it with local open-weights LLMs (such as Ollama, Llama.cpp, or Hermes) for a private, offline AI DAW environment.
+### Does Stratawright require an internet connection to function?
+No. Stratawright runs 100% locally. The C++ core engine and `daw-cli` IPC daemon operate on your local machine (`/tmp/daw_session.sock`), allowing complete offline usage. You can pair it with local open-weights LLMs (such as Ollama, Llama.cpp, or Hermes) for a private, offline AI DAW environment.
 </doc>
 
 ## Advanced Usage
 
 <doc title="CLI Operational Manual" path="skills/daw-cli/SKILL.md">
-# Strata Studio DAW CLI Control
+# Stratawright DAW CLI Control
 
 ## Overview
 
-`daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, and execute clip and MIDI timeline edits in real time.
+`daw-cli` is the command-line IPC client for **Stratawright DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, and execute clip and MIDI timeline edits in real time.
 
 All commands communicate with the running DAW application using a UNIX domain socket (`/tmp/daw_session.sock`).
 
@@ -144,7 +144,7 @@ All commands communicate with the running DAW application using a UNIX domain so
 <doc title="Architecture Specification" path="ARCHITECTURE.md">
 # Architecture
 
-**Strata Studio** — a modular, layer-based digital audio workstation written in C++20.
+**Stratawright** — a modular, layer-based digital audio workstation written in C++20.
 
 The project follows a **strict layered architecture** with 8 layers plus a **Middle Bridge** that decouples Presentation and Agentic interfaces from the domain:
 
@@ -158,7 +158,7 @@ The project follows a **strict layered architecture** with 8 layers plus a **Mid
 ## Optional
 
 <doc title="Contributing Guidelines" path="CONTRIBUTING.md">
-# Contributing to Strata Studio
+# Contributing to Stratawright
 
 ## Architectural Rules
 1. **Directional Dependency**: Layer $N$ may only depend on layers below it.

@@ -1,8 +1,8 @@
 <div align="center">
 
-# ![Strata](asset/strata.png) Strata Studio：面向 Agentic 音樂製作的開源 AI DAW
+# ![Strata](asset/strata.png) Stratawright：面向 Agentic 音樂製作的開源 AI DAW
 
-### Strata Studio
+### Stratawright
 
 <p align="center">
   <b>在幾秒鐘內完成 Session 混音、平衡與整理。<br>不再把時間浪費在繁瑣的 DAW 設定上—直接告訴你的 AI 助手，保持專注在音樂靈感中。</b>
@@ -19,7 +19,7 @@
   <a href="#為什麼選擇-agentic-daw">為什麼選擇 Agentic DAW</a> •
   <a href="#快速開始--agentic-設定">快速開始</a> •
   <a href="#展示用例">展示用例</a> •
-  <a href="#ai-agent-在-strata-studio-中能為你做些什麼">Agent 功能</a> •
+  <a href="#ai-agent-在-stratawright-中能為你做些什麼">Agent 功能</a> •
   <a href="#核心特性">核心特性</a> •
   <a href="#開發者指南與原始碼編譯">開發者指南</a> •
   <a href="#許可證">許可證</a>
@@ -40,7 +40,7 @@
 
 你打開 DAW 是為了創作音樂——而不是把一半的腦力耗費在記憶快捷鍵、修飾鍵和複雜的控制介面上。**讓工具服務於你的創意，而非你的記憶。**
 
-**Strata Studio** 是一款支援 AI 原生掌控的 Agentic DAW，讓你能夠純粹專注於音樂創作。無需再花費 30 分鐘手動調節串流音量、移除錄音背景噪音，或者為每條軌道掛載效果外掛，只需用自然語言向你的 AI 代理（**Claude Code**、**Cursor**、**Codex**、**Hermes** 或 **Gemini**）表達需求，你的工程即可在幾秒鐘內完成準備、平衡並進入製作狀態。
+**Stratawright** 是一款支援 AI 原生掌控的 Agentic DAW，讓你能夠純粹專注於音樂創作。無需再花費 30 分鐘手動調節串流音量、移除錄音背景噪音，或者為每條軌道掛載效果外掛，只需用自然語言向你的 AI 代理（**Claude Code**、**Cursor**、**Codex**、**Hermes** 或 **Gemini**）表達需求，你的工程即可在幾秒鐘內完成準備、平衡並進入製作狀態。
 
 ---
 
@@ -48,7 +48,7 @@
 
 傳統的 DAW 是為鍵盤與滑鼠時代設計的，每一個細節操作都需要手動完成。當工程龐大至 100+ 軌道時，你的創作精力會被大量重複的機械勞動消耗殆盡。
 
-| 傳統 DAW 工作流 | Strata Studio Agentic 工作流 |
+| 傳統 DAW 工作流 | Stratawright Agentic 工作流 |
 | :--- | :--- |
 | **數百次點擊與手動編輯**：逐一選擇、調整增益、著色並路由 100+ 軌道。 | **一條簡單命令**：一句自然語言指令，瞬間精準控制 100+ 軌道。 |
 | **快捷鍵負擔**：上網尋找被遺忘的鍵盤快捷鍵與複雜修飾鍵。 | **自然語言互動**：直接用日常語言告訴 AI Agent 你的需求。 |
@@ -65,30 +65,37 @@
 將專案程式碼庫複製到本地環境：
 
 ```bash
-git clone https://github.com/Goldwaterfung/Strata-Studio.git
-cd Strata-Studio
+git clone https://github.com/Goldwaterfung/Stratawright.git
+cd Stratawright
 ```
 
 或者告訴你的 AI Agent：
 
 ```text
-幫我複製 https://github.com/Goldwaterfung/Strata-Studio 並設定該專案
+幫我複製 https://github.com/Goldwaterfung/Stratawright 並設定該專案
 ```
 
-### 2. 編譯並安裝 Strata Studio（Agent 自動編譯應用）
+### 2. 編譯並安裝 Stratawright（Agent 自動編譯應用）
 告訴你的 Agent：
 
 ```text
-幫我編譯並打包 Strata Studio
+幫我編譯並打包 Stratawright
 ```
 
-*(你的 Agent 會在背景自動執行 `./scripts/install_dependencies.sh` 和 `./scripts/build.sh release --package`)*。
+*(你的 Agent 會在背景自動運行 `./scripts/install_dependencies.sh` 和 `./scripts/build.sh release --package`)*。
 
 ### 3. 安裝 Skill（讓 Agent 學會控制 DAW）
-告訴你的 Agent：
+
+直接透過 **[skills.sh](https://skills.sh)** (Vercel Agent Skills Registry) 一鍵安裝：
+
+```bash
+npx skills add Goldwaterfung/Stratawright/skills/daw-cli
+```
+
+或在對話中直接告訴你的 Agent：
 
 ```text
-從 https://github.com/Goldwaterfung/Strata-Studio 安裝 daw-cli skill
+從 https://github.com/Goldwaterfung/Stratawright 安裝 daw-cli skill
 ```
 
 <details>
@@ -114,7 +121,7 @@ cd Strata-Studio
 
 ## 展示用例
 
-以下是在 Strata Studio 中由 `daw-cli` 驅動 Agentic 自動化工作流程的實時演示：
+以下是在 Stratawright 中由 `daw-cli` 驅動 Agentic 自動化工作流程的實時演示：
 
 ### 🎬 用例 1：瞬間多音軌匯入、剪輯放置與自動著色
 
@@ -151,7 +158,7 @@ cd Strata-Studio
 
 ## Agentic 命令範例
 
-以下是在 Strata Studio 中與 AI 助手協同工作的實際場景：
+以下是在 Stratawright 中與 AI 助手協同工作的實際場景：
 
 ```text
 User    ❯ 設定 Tempo 為 128 BPM，創建 Kick、Snare、HH 和 Tom 軌道，並平衡它們的音量層級。
@@ -201,7 +208,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ---
 
-## AI Agent 在 Strata Studio 中能為你做些什麼
+## AI Agent 在 Stratawright 中能為你做些什麼
 
 無需繁瑣地點擊選單、記憶快捷鍵或手動調節每一個旋鈕，你只需用自然語言命令你的 AI 助手（**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini** 等）。以下是你的 AI 助手目前能為你完成的工作：
 
@@ -251,7 +258,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ## 開發者指南與原始碼編譯
 
-Strata Studio 是一款專為 AI 驅動音樂製作打造的開源高性能 C++20 DAW 引擎。AI Agent 透過 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 技能規範與 DAW 進行互動。
+Stratawright 是一款專為 AI 驅動音樂製作打造的開源高性能 C++20 DAW 引擎。AI Agent 透過 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 技能規範與 DAW 進行互動。
 
 <details>
 <summary><b>從原始碼建置與編譯</b></summary>
@@ -277,22 +284,22 @@ Strata Studio 是一款專為 AI 驅動音樂製作打造的開源高性能 C++2
 
 ### 構建步驟
 
-1. **克隆倉庫**:
+1. **複製專案**：
    ```bash
-   git clone https://github.com/Goldwaterfung/Strata-Studio.git
-   cd Strata-Studio
+   git clone https://github.com/Goldwaterfung/Stratawright.git
+   cd Stratawright
    ```
 
-2. **配置與構建**:
+2. **設定與構建**：
    ```bash
    mkdir -p build/debug && cd build/debug
    cmake -DCMAKE_BUILD_TYPE=Debug ../../
    cmake --build . --parallel
    ```
 
-3. **運行應用**:
+3. **運行應用程式**：
    ```bash
-   ./bin/strata_studio
+   ./bin/stratawright
    ```
 
 ---

@@ -1,18 +1,16 @@
 ---
 name: daw-cli
 description: >-
-  Instructs agents to control Strata Studio DAW via the daw-cli command-line
+  Instructs agents to control Stratawright DAW via the daw-cli command-line
   IPC interface. Covers session state, transport, track management, gain
-  staging, VST3/AU plugin hosting, signal routing, clips, MIDI timeline editing,
-  and non-visual DSP analysis & audio intelligence.
-  Requires the DAW application to be running.
+  staging, VST3/AU plugin hosting, signal routing, clips, MIDI timeline editing, and non-visual DSP analysis & audio intelligence. Requires the DAW application to be running.
 ---
 
-# Strata Studio DAW CLI Control
+# Stratawright DAW CLI Control
 
 ## Overview
 
-`daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, configure signal routing & bus topology, execute clip and MIDI timeline edits, and perform non-visual DSP analysis & audio intelligence in real time.
+`daw-cli` is the command-line IPC client for **Stratawright DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, configure signal routing & bus topology, execute clip and MIDI timeline edits, and perform non-visual DSP analysis & audio intelligence in real time.
 
 All commands communicate with the running DAW application using a UNIX domain socket.
 
@@ -65,7 +63,7 @@ When a command fails, `daw-cli` writes to `stderr` formatted as: `ERROR <code> <
 | :--- | :--- | :--- | :--- |
 | `0` | `OK` | Command completed cleanly | Proceed to next step |
 | `70` | `INVALID_ARGS` | Missing required flag, bad value format, or unknown subcommand | Check command syntax, required flags, and numeric value types |
-| `71` | `DAW_NOT_RUNNING` | Cannot connect to `/tmp/daw_session.sock` | Prompt user to start Strata Studio DAW |
+| `71` | `DAW_NOT_RUNNING` | Cannot connect to `/tmp/daw_session.sock` | Prompt user to start Stratawright DAW |
 | `72` | `ENTITY_NOT_FOUND` | Track ID, plugin name, clip, or slot index missing | Run `track list` or `plugin list` to verify exact identifiers |
 | `73` | `ENGINE_PLAYING_LOCKED` | Attempted structural edit restricted during playback | Stop transport (`daw-cli transport stop`) before mutating topology |
 | `74` | `RESOURCE_BUSY_USER_TOUCH` | Destination slot is occupied or user is dragging control | Add `--overwrite` flag for plugin slots or retry after user edit |
@@ -568,7 +566,7 @@ daw-cli analyze window --track 10 --start 1.1.0 --dur 4.0.0
    Copying plugins (`plugin copy` or `plugin copy-chain`) to tracks with existing plugins in target slots without `--overwrite` will fail with error `74 RESOURCE_BUSY_USER_TOUCH`.
 
 3. **Not Checking `status` Before Issuing Commands**:
-   Attempting to execute commands when Strata Studio is closed returns error `71 DAW_NOT_RUNNING`. Always run `daw-cli status` first to confirm connectivity.
+   Attempting to execute commands when Stratawright is closed returns error `71 DAW_NOT_RUNNING`. Always run `daw-cli status` first to confirm connectivity.
 
 4. **Missing Comparison Target for Pairwise Analysis**:
    Commands like `daw-cli analyze masking` and `daw-cli analyze phase-align` require `--vs <target_track_id>`. Omitting `--vs` returns error `70 INVALID_ARGS`.

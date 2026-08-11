@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Post-install script for Strata Studio (.pkg)
+# Post-install script for Stratawright (.pkg)
 # This script runs automatically with root privileges after the user installs the .pkg
 # It creates a symlink in /usr/local/bin to the daw-cli executable.
 
@@ -8,8 +8,8 @@
 mkdir -p /usr/local/bin
 
 # The exact name of the application bundle
-APP_NAME="Strata Studio.app"
-ALT_APP_NAME="strata_studio.app"
+APP_NAME="Stratawright.app"
+ALT_APP_NAME="stratawright.app"
 
 CLI_PATH_1="/Applications/$APP_NAME/Contents/MacOS/daw-cli"
 CLI_PATH_2="/Applications/$ALT_APP_NAME/Contents/MacOS/daw-cli"

@@ -1,12 +1,12 @@
-# Contributing to Strata Studio
+# Contributing to Stratawright
 
-Thank you for your interest in contributing to **Strata Studio**! We welcome contributions from C++ developers, DSP engineers, audio UI designers, and AI agent developers.
+Thank you for your interest in contributing to **Stratawright**! We welcome contributions from C++ developers, DSP engineers, audio UI designers, and AI agent developers.
 
 ---
 
 ## Architectural Rules & Guidelines
 
-Strata Studio enforces a strict **8-Layer Architecture** to ensure real-time safety, maintainability, and deterministic performance:
+Stratawright enforces a strict **8-Layer Architecture** to ensure real-time safety, maintainability, and deterministic performance:
 
 1. **Directional Dependency**: Layer $N$ may only depend on layers below it ($N-1, N-2, \dots$). No upward imports are permitted.
 2. **Real-Time (RT) Thread Safety**:

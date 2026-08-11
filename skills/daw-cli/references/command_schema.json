@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Strata Studio DAW CLI Command Schema",
+  "title": "Stratawright DAW CLI Command Schema",
   "description": "Machine-readable definition of all verbs, subcommands, flags, option types, and output symbols in daw-cli.",
   "socketPath": "/tmp/daw_session.sock",
   "outputFormats": ["tsv", "kv", "json", "pretty"],

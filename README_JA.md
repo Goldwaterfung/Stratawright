@@ -1,8 +1,8 @@
 <div align="center">
 
-# ![Strata](asset/strata.png) Strata Studio：Agentic 音楽制作のためのオープンソース AI DAW
+# ![Strata](asset/strata.png) Stratawright: エージェンティック音楽制作のためのオープンソース AI DAW
 
-### Strata Studio
+### Stratawright
 
 <p align="center">
   <b>セッションのミキシング、バランス調整、整理を数秒で完了。<br>面倒なDAWのセットアップに時間を費やすのはやめましょう。AIアシスタントに指示を出し、クリエイティブなフローを維持できます。</b>
@@ -19,7 +19,7 @@
   <a href="#なぜ-agentic-daw-なのか">なぜ Agentic DAW なのか</a> •
   <a href="#クイックスタート--agenticセットアップ">クイックスタート</a> •
   <a href="#ユースケースの実演">ユースケースの実演</a> •
-  <a href="#strata-studio-で-ai-エージェントができること">エージェント機能</a> •
+  <a href="#stratawright-で-ai-エージェントができること">エージェント機能</a> •
   <a href="#主な機能">主な機能</a> •
   <a href="#開発者ガイド--ソースからのビルド">開発者ガイド</a> •
   <a href="#ライセンス">ライセンス</a>
@@ -40,7 +40,7 @@
 
 あなたがDAWを開いたのは音楽を制作するためであり、ショートカットキーや修飾キー、複雑な操作画面の記憶に脳の半分を使い果たすためではありません。**ツールを記憶のためではなく、あなたの創造性のために役立てましょう。**
 
-**Strata Studio**は、AIエージェントがネイティブに操作可能なAgentic DAWであり、あなたが純粋に音楽制作だけに集中できるようにします。ストリーミング用の音量調整、録音素材の背景ノイズ除去、全トラックへのエフェクトプラグイン設定に30分も費やす代わりに、AIエージェント（**Claude Code**、**Cursor**、**Codex**、**Hermes**、**Gemini**）に自然言語で希望を伝えるだけです。セッションの準備とバランス調整が数秒で完了し、すぐに楽曲制作を開始できます。
+**Stratawright** は、AI エージェントがネイティブに制御できる Agentic DAW であり、音楽制作に純粋に集中できるように設計されています。ストリーミング用のトラックレベルの調整、録音の背景ノイズの除去、全トラックへのエフェクトプラグインのルーティングに30分も手動で時間を費やす代わりに、AI アシスタント（**Claude Code**、**Cursor**、**Codex**、**Hermes**、**Gemini**）に自然言語で要件を伝えるだけです。セッションの準備とバランス調整が数秒で完了し、すぐに制作に入ることができます。
 
 ---
 
@@ -48,7 +48,7 @@
 
 従来の DAW は、すべての操作を手動で行うキーボード＆マウス時代に合わせて構築されていました。100 トラックを超える大型セッションでは、単調な作業によって創造的なエネルギーが損なわれてしまいます。
 
-| 従来の DAW ワークフロー | Strata Studio Agentic ワークフロー |
+| 従来の DAW ワークフロー | Stratawright Agentic ワークフロー |
 | :--- | :--- |
 | **数百回のクリックと手動編集**：100 以上のトラックを 1 つずつ手動で選択、ゲイン調整、色分け、ルーティング。 | **たった 1 つのコマンド**：自然言語による 1 つのプロンプトで、100 以上のトラックを一瞬で決定論的に制御。 |
 | **ショートカットキーの負担**：忘れてしまったショートカットや複雑な修飾キーをウェブで検索。 | **自然言語での対話**：普段の言葉で AI エージェントに希望を伝えるだけ。 |
@@ -65,30 +65,37 @@
 プロジェクトのリポジトリをローカル環境にクローンします：
 
 ```bash
-git clone https://github.com/Goldwaterfung/Strata-Studio.git
-cd Strata-Studio
+git clone https://github.com/Goldwaterfung/Stratawright.git
+cd Stratawright
 ```
 
 または AI エージェントに伝える：
 
 ```text
-https://github.com/Goldwaterfung/Strata-Studio をクローンしてプロジェクトをセットアップしてください
+https://github.com/Goldwaterfung/Stratawright をクローンしてプロジェクトをセットアップしてください
 ```
 
-### 2. Strata Studioのビルド＆セットアップ（エージェントがアプリをコンパイル）
+### 2. Stratawright のビルド＆セットアップ（エージェントがアプリをコンパイル）
 エージェントに伝える：
 
 ```text
-Strata Studio をビルドしてパッケージ化してください
+Stratawright をビルドしてパッケージ化してください
 ```
 
 *(エージェントがバックグラウンドで `./scripts/install_dependencies.sh` と `./scripts/build.sh release --package` を自動実行します)*。
 
 ### 3. スキルのインストール（エージェントにDAW操作を学習させる）
-エージェントに伝える：
+
+**[skills.sh](https://skills.sh)** (Vercel Agent Skills Registry) から直接インストール：
+
+```bash
+npx skills add Goldwaterfung/Stratawright/skills/daw-cli
+```
+
+またはチャットでエージェントに伝える：
 
 ```text
-https://github.com/Goldwaterfung/Strata-Studio から daw-cli スキルをインストールしてください
+https://github.com/Goldwaterfung/Stratawright から daw-cli スキルをインストールしてください
 ```
 
 <details>
@@ -114,7 +121,7 @@ https://github.com/Goldwaterfung/Strata-Studio から daw-cli スキルをイン
 
 ## ユースケースの実演
 
-Strata Studioで `daw-cli` を使用してエージェントワークフローを実行するリアルタイムのデモンストレーションです。
+以下は Stratawright で `daw-cli` を使用した Agentic ワークフローのリアルタイムデモです：
 
 ### 🎬 ユースケース 1: マルチトラックの即時取り込み、クリップ配置、自動カラーリング
 
@@ -151,7 +158,7 @@ Strata Studioで `daw-cli` を使用してエージェントワークフロー�
 
 ## エージェントコマンドの使用例
 
-Strata StudioでAIアシスタントと共同作業する実際の例です：
+以下は Stratawright で AI アシスタントと連携する実際の操作イメージです：
 
 ```text
 User    ❯ テンポを 128 BPM に設定し、Kick、Snare、HH、Tom のトラックを作成して、音量レベルのバランスを整えて。
@@ -201,7 +208,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ---
 
-## Strata Studio で AI エージェントができること
+## Stratawright で AI エージェントができること
 
 複雑なメニューの移動やショートカットキーの記憶、個別ノブの手動調整を行う代わりに、自然言語でお使いの AI アシスタント（**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini** など）に指示を出すだけです：
 
@@ -251,7 +258,7 @@ Agent   ❯ [Strata Agentic Engine]
 
 ## 開発者ガイド & ソースからのビルド
 
-Strata Studio は、AI 駆動の音楽制作のために構築されたオープンソースの高性能 C++20 DAW エンジンです。AI エージェントは [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) スキル定義を介して DAW と通信します。
+Stratawright は、AI 駆動の音楽制作のために構築されたオープンソースの高性能 C++20 DAW エンジンです。AI エージェントは [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) スキル定義を介して DAW と通信します。
 
 <details>
 <summary><b>ソースからのビルド & コンパイル</b></summary>
@@ -279,8 +286,8 @@ Strata Studio は、AI 駆動の音楽制作のために構築されたオープ
 
 1. **リポジトリのクローン**:
    ```bash
-   git clone https://github.com/Goldwaterfung/Strata-Studio.git
-   cd Strata-Studio
+   git clone https://github.com/Goldwaterfung/Stratawright.git
+   cd Stratawright
    ```
 
 2. **設定とビルド**:
@@ -292,7 +299,7 @@ Strata Studio は、AI 駆動の音楽制作のために構築されたオープ
 
 3. **アプリケーションの実行**:
    ```bash
-   ./bin/strata_studio
+   ./bin/stratawright
    ```
 
 ---

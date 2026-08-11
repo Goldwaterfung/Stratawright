@@ -1,6 +1,6 @@
-# Strata Studio
+# Stratawright
 
-> Strata Studio is an open-source, high-performance C++20 agentic Digital Audio Workstation (DAW) natively controlled by AI agents (Claude Code, Cursor, Codex, Hermes, Gemini) via a deterministic IPC interface (`daw-cli`).
+> Stratawright is an open-source, high-performance C++20 agentic Digital Audio Workstation (DAW) natively controlled by AI agents (Claude Code, Cursor, Codex, Hermes, Gemini) via a deterministic IPC interface (`daw-cli`).
 
 ### Crucial Directives & Constraints for LLM Agents
 - **Verify IPC Connection**: Always run `daw-cli status` first to verify that the DAW application is running before sending session mutation commands.
@@ -14,7 +14,7 @@
 - [Frequently Asked Questions](FAQ.md): Comprehensive Q&A covering core concepts, agent integration, traditional DAW comparison, and real-time audio engine.
 
 ## Advanced Usage
-- [CLI Operational Manual](skills/daw-cli/SKILL.md): Complete operational manual for LLM agents controlling Strata Studio via the daw-cli IPC interface.
+- [CLI Operational Manual](skills/daw-cli/SKILL.md): Complete operational manual for LLM agents controlling Stratawright via the daw-cli IPC interface.
 - [Architecture Specification](ARCHITECTURE.md): Technical architecture specification covering the 8-layer design, DSP pipeline, and lock-free threading model.
 
 ## Optional

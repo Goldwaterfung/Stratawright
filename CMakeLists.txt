@@ -5,12 +5,12 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 endif()
 
-project(StrataStudio VERSION 1.0.0 LANGUAGES CXX)
+project(Stratawright VERSION 1.0.0 LANGUAGES CXX)
 
 # Centralized Naming Variables
-set(PROJECT_DISPLAY_NAME "Strata Studio")
+set(PROJECT_DISPLAY_NAME "Stratawright")
 string(TOLOWER "${PROJECT_NAME}" PROJECT_NAME_LOWER)
-set(PROJECT_EXECUTABLE_NAME "strata_studio" CACHE STRING "Executable target name")
+set(PROJECT_EXECUTABLE_NAME "stratawright" CACHE STRING "Executable target name")
 set(PROJECT_NAMESPACE "${PROJECT_NAME_LOWER}" CACHE STRING "Target alias namespace")
 
 # Generate project_config.h from template
@@ -241,14 +241,14 @@ include(GNUInstallDirs)
 option(INSTALL_DEVELOPMENT_FILES "Install SDK headers and static libraries" OFF)
 
 if(INSTALL_DEVELOPMENT_FILES)
-    install(DIRECTORY src/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/strata-studio
+    install(DIRECTORY src/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/stratawright
             FILES_MATCHING PATTERN "*.h" COMPONENT Development)
 endif()
 
 # Packaging Configuration (CPack)
 set(CPACK_COMPONENTS_ALL Application)
 set(CPACK_PACKAGE_NAME "${PROJECT_DISPLAY_NAME}")
-set(CPACK_PACKAGE_VENDOR "Strata Studio Team")
+set(CPACK_PACKAGE_VENDOR "Stratawright Team")
 set(CPACK_PACKAGE_VERSION_MAJOR 1)
 set(CPACK_PACKAGE_VERSION_MINOR 0)
 set(CPACK_PACKAGE_VERSION_PATCH 0)
@@ -265,7 +265,7 @@ if(APPLE)
 
 elseif(WIN32)
     set(CPACK_GENERATOR "NSIS;INNOSETUP")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "Strata Studio")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "Stratawright")
     
     # Automatically add the installation directory to the Windows PATH 
     # so daw-cli.exe is instantly available in Command Prompt / PowerShell

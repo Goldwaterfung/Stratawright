@@ -1,4 +1,4 @@
-# Strata Studio DAW IPC Protocol Error Code Reference
+# Stratawright DAW IPC Protocol Error Code Reference
 
 Extracted from `src/Agentic layer/common/ipc_protocol.h` and `src/Agentic layer/client/main_client.cpp`.
 
@@ -18,9 +18,9 @@ Extracted from `src/Agentic layer/common/ipc_protocol.h` and `src/Agentic layer/
 - **Client Action**: Inspect command grammar and required options against `references/command_schema.json`.
 
 ### Error 71: `DAW_NOT_RUNNING`
-- **Description**: IPC socket connection to `/tmp/daw_session.sock` failed. The Strata Studio DAW main process is not active or server daemon failed to bind socket.
-- **Common Trigger**: Launching `daw-cli` when Strata Studio is closed.
-- **Client Action**: Inform user to launch Strata Studio GUI application before proceeding.
+- **Description**: IPC socket connection to `/tmp/daw_session.sock` failed. The Stratawright DAW main process is not active or server daemon failed to bind socket.
+- **Common Trigger**: Launching `daw-cli` when Stratawright is closed.
+- **Client Action**: Inform user to launch Stratawright GUI application before proceeding.
 
 ### Error 72: `ENTITY_NOT_FOUND`
 - **Description**: Target entity (Track ID, Plugin Name/ID, Clip, or Marker) does not exist in the session.

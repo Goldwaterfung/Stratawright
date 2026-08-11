@@ -38,7 +38,7 @@ target_compile_features(daw-cli PUBLIC cxx_std_20)
 # Install daw-cli
 if(APPLE)
     install(TARGETS daw-cli
-        RUNTIME DESTINATION "strata_studio.app/Contents/MacOS"
+        RUNTIME DESTINATION "stratawright.app/Contents/MacOS"
         COMPONENT Application
     )
 else()
