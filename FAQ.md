@@ -85,7 +85,6 @@ No. Stratawright runs 100% locally. The C++ core engine and `daw-cli` IPC daemon
 ### What audio drivers and operating systems are supported?
 Stratawright is built in cross-platform **Modern C++20**:
 - **macOS**: Native CoreAudio driver HAL with low-latency Apple Silicon (M1/M2/M3/M4) optimization.
-- **Linux**: ALSA, JACK, and PipeWire support.
 - **Windows**: Low-latency ASIO and WASAPI support.
 
 ### How does Stratawright handle CPU load during 100+ track sessions?
