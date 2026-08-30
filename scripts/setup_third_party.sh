@@ -48,7 +48,7 @@ clone_repo "rubberband-default" "https://github.com/breakfastquay/rubberband.git
 clone_repo "soundtouch" "https://codeberg.org/soundtouch/soundtouch.git"
 
 # 8. ASIO SDK (Windows Low-Latency Audio Driver)
-clone_repo "ASIOSDK" "https://github.com/steinbergmedia/asiosdk.git"
+clone_repo "ASIOSDK" "https://github.com/audiosdk/asio.git"
 
 echo ""
 echo "✓ All third-party SDKs are successfully configured in $THIRD_PARTY_DIR!"
