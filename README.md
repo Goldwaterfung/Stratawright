@@ -9,8 +9,6 @@
 </p>
 
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by/4.0/)
-[![CI](https://github.com/Goldwaterfung/Stratawright/actions/workflows/ci.yml/badge.svg)](https://github.com/Goldwaterfung/Stratawright/actions/workflows/ci.yml)
-[![Release](https://github.com/Goldwaterfung/Stratawright/actions/workflows/release.yml/badge.svg)](https://github.com/Goldwaterfung/Stratawright/actions/workflows/release.yml)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
 [![Multi-Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20Hermes%20·%20Gemini-blueviolet)](#quick-start--agentic-install)
 [![Plugin Host](https://img.shields.io/badge/Plugins-VST3%20%7C%20AU%20%7C%20CLAP-blue.svg)](#key-features)
