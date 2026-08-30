@@ -30,6 +30,7 @@ pipeline {
     }
 
     environment {
+        PATH = "/opt/homebrew/bin:/usr/local/bin:${env.PATH}"
         CMAKE_BUILD_DIR = "build/${params.BUILD_TYPE.toLowerCase()}"
         VCPKG_DEFAULT_BINARY_CACHE = "${WORKSPACE}/.vcpkg_cache"
     }
