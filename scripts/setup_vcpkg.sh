@@ -15,10 +15,14 @@ if [ ! -d "$VCPKG_DIR" ]; then
     git clone https://github.com/microsoft/vcpkg.git "$VCPKG_DIR"
 fi
 
-if [ ! -f "$VCPKG_DIR/vcpkg" ]; then
+if [ ! -f "$VCPKG_DIR/vcpkg" ] && [ ! -f "$VCPKG_DIR/vcpkg.exe" ]; then
     echo "Bootstrapping vcpkg..."
     cd "$VCPKG_DIR"
-    ./bootstrap-vcpkg.sh
+    if [ -f "./bootstrap-vcpkg.bat" ] && [[ "$(uname -s)" =~ MINGW|MSYS|CYGWIN ]]; then
+        cmd.exe /c "bootstrap-vcpkg.bat"
+    else
+        ./bootstrap-vcpkg.sh
+    fi
     cd "$PROJECT_ROOT"
 fi
 

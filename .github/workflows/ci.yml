@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-latest]
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/.vcpkg_cache
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache vcpkg binary artifacts
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: vcpkg-binary-${{ matrix.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-binary-${{ matrix.os }}-
+
+      - name: Cache third-party SDKs
+        uses: actions/cache@v4
+        with:
+          path: src/third_party
+          key: third-party-sdks-${{ hashFiles('scripts/setup_third_party.sh') }}
+          restore-keys: |
+            third-party-sdks-
+
+      - name: Setup Third-Party SDKs
+        run: |
+          bash scripts/setup_third_party.sh
+
+      - name: Setup vcpkg
+        run: |
+          mkdir -p "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
+          bash scripts/setup_vcpkg.sh
+
+      - name: Configure CMake (Debug)
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTS=ON \
+            -DENABLE_SIMD=ON \
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build
+        run: |
+          cmake --build build --config Debug --parallel
+
+      - name: Run Unit Tests
+        run: |
+          ctest --test-dir build --output-on-failure -C Debug
+

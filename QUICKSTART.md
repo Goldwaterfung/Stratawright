@@ -27,7 +27,7 @@ This script will:
 2. Bootstrap **vcpkg** in the project root.
 3. Automatically download and build `rtaudio`, `rtmidi`, `libsndfile`, `spdlog`, etc.
 
-## 2. Build the Project
+## 3. Build the Project
 
 ### Using the build script (recommended):
 ```bash
@@ -48,14 +48,14 @@ cmake -DCMAKE_BUILD_TYPE=Debug ../../
 cmake --build . --parallel
 ```
 
-## 3. Run the Application
+## 4. Run the Application
 
 ```bash
 cd build/debug
-./bin/agent_based_daw
+./bin/stratawright
 ```
 
-## 4. Run Tests
+## 5. Run Tests
 
 ```bash
 cd build/debug
