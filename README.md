@@ -91,7 +91,7 @@ Build and package Stratawright for me
 Install directly via **[skills.sh](https://skills.sh)** (Vercel Agent Skills Registry):
 
 ```bash
-npx skills add Goldwaterfung/Stratawright/skills/daw-cli
+npx skills add ./skills/daw-cli
 ```
 
 Or tell your AI agent in chat:
