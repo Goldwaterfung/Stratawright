@@ -89,6 +89,15 @@ PlaylistClipCanvas::PlaylistClipCanvas(
             update();
         }
     });
+
+    // Debounced wide prefetch for horizontal scrolling. Visible tiles are
+    // still requested on demand from paintEvent, so delaying the 3x-window
+    // warm-ahead keeps the 128-deep SPSC queue from filling with stale
+    // viewport tiles during continuous wheel/trackpad scrolls.
+    m_prefetchDebounceTimer.setSingleShot(true);
+    connect(&m_prefetchDebounceTimer, &QTimer::timeout, this, [this]() {
+        prefetchWaveformTiles();
+    });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -100,8 +109,19 @@ void PlaylistClipCanvas::setViewState(const ViewState& vs)
     const bool viewChanged = (vs.viewStartFrame != m_view.viewStartFrame || vs.viewEndFrame != m_view.viewEndFrame);
     const bool zoomChanged = (vs.zoomFactor != m_view.zoomFactor);
     const bool layoutChanged = (vs.trackLayouts != m_view.trackLayouts || vs.defaultTrackHeight != m_view.defaultTrackHeight);
+    const bool trackCountChanged = (vs.trackCount != m_view.trackCount);
+    const bool verticalChanged = (vs.verticalOffsetPx != m_view.verticalOffsetPx);
 
-    if (viewChanged || zoomChanged || vs.trackCount != m_view.trackCount || layoutChanged || vs.verticalOffsetPx != m_view.verticalOffsetPx)
+    // Fast horizontal-scroll path: zoom / layouts / tracks unchanged.
+    // Blit existing pixels via QWidget::scroll() like the vertical path
+    // instead of a full update() + synchronous wide prefetch.
+    if (viewChanged && !zoomChanged && !layoutChanged && !trackCountChanged && !verticalChanged)
+    {
+        setHorizontalView(vs.viewStartFrame, vs.viewEndFrame);
+        return;
+    }
+
+    if (viewChanged || zoomChanged || trackCountChanged || layoutChanged || verticalChanged)
     {
         // TileKey omits height: (mediaId, zoomTier, tileX, colorARGB, generation).
         // Cached tiles stretch/compress correctly via drawPixmap during height drag.
@@ -109,8 +129,12 @@ void PlaylistClipCanvas::setViewState(const ViewState& vs)
         // Clearing on layoutChanged would nuke tiles on every mouse-move during height
         // drag, causing continuous flicker as tiles never finish rendering.
 
+        const bool tracksChanged = (vs.trackLayouts.size() != m_view.trackLayouts.size());
         m_view = vs;
         m_cachedPlayheadX = frameToX(m_playheadFrame);
+        if (layoutChanged || tracksChanged) {
+            rebuildTrackIndexCache();
+        }
 
         // Debounced tile re-render after pure height-drag settles.
         // During drag, cached tiles (at old height) stretch via drawPixmap — no flicker.
@@ -131,7 +155,107 @@ void PlaylistClipCanvas::setViewState(const ViewState& vs)
 void PlaylistClipCanvas::setTrackList(const std::vector<bridge::TrackUIState>& tracks)
 {
     m_tracks = tracks;
+    rebuildTrackIndexCache();
     update();
+}
+
+void PlaylistClipCanvas::setVerticalOffset(int offsetPx)
+{
+    if (offsetPx == m_view.verticalOffsetPx) {
+        return;
+    }
+    const int dy = m_view.verticalOffsetPx - offsetPx;
+    m_view.verticalOffsetPx = offsetPx;
+    m_cachedPlayheadX = frameToX(m_playheadFrame);
+    if (dy != 0 && isVisible()) {
+        scroll(0, dy);
+    } else {
+        update();
+    }
+}
+
+void PlaylistClipCanvas::setHorizontalView(uint64_t viewStartFrame, uint64_t viewEndFrame)
+{
+    if (viewStartFrame == m_view.viewStartFrame && viewEndFrame == m_view.viewEndFrame) {
+        return;
+    }
+    // Pixel shift for the blit. Positive dx moves content right (scrolling
+    // back in time); negative dx moves content left. Computed before m_view
+    // is updated since frameToX() depends on viewStartFrame.
+    const double dxD = (static_cast<double>(m_view.viewStartFrame) - static_cast<double>(viewStartFrame))
+        * m_view.zoomFactor;
+    m_view.viewStartFrame = viewStartFrame;
+    m_view.viewEndFrame = viewEndFrame;
+    m_cachedPlayheadX = frameToX(m_playheadFrame);
+
+    if (isVisible() && dxD != 0.0 && std::abs(dxD) < static_cast<double>(width())) {
+        scroll(static_cast<int>(std::lround(dxD)), 0);
+    } else {
+        update();
+    }
+    // Visible tiles missing after the blit are requested on demand from
+    // paintEvent. Defer the 3x-window warm-ahead so rapid wheel events do
+    // not flood the 128-deep worker queue with stale viewports.
+    if (!m_prefetchDebounceTimer.isActive()) {
+        m_prefetchDebounceTimer.start(120);
+    }
+}
+
+void PlaylistClipCanvas::rebuildTrackIndexCache()
+{
+    m_trackRowById.clear();
+    m_trackRowById.reserve(m_tracks.size() * 2 + 1);
+    for (size_t i = 0; i < m_tracks.size(); ++i) {
+        m_trackRowById[m_tracks[i].trackId.toRaw()] = static_cast<int>(i);
+    }
+    m_trackYOffsets.assign(m_view.trackLayouts.size() + 1, 0.0);
+    for (size_t i = 0; i < m_view.trackLayouts.size(); ++i) {
+        m_trackYOffsets[i + 1] = m_trackYOffsets[i] + m_view.trackLayouts[i].totalHeight;
+    }
+}
+
+int PlaylistClipCanvas::trackRowForId(uint64_t rawTrackId) const
+{
+    const auto it = m_trackRowById.find(rawTrackId);
+    if (it == m_trackRowById.end()) {
+        return -1;
+    }
+    return it->second;
+}
+
+void PlaylistClipCanvas::visibleTrackRange(int& outFirst, int& outLast) const
+{
+    const int layoutCount = static_cast<int>(m_view.trackLayouts.size());
+    if (layoutCount == 0 || m_trackYOffsets.size() != static_cast<size_t>(layoutCount + 1)) {
+        outFirst = 0;
+        outLast = 0;
+        return;
+    }
+    const double topPx = static_cast<double>(m_view.verticalOffsetPx);
+    const double bottomPx = topPx + static_cast<double>(height());
+    // Binary search over prefix sums: first layout with end > top
+    int lo = 0, hi = layoutCount;
+    while (lo < hi) {
+        const int mid = (lo + hi) / 2;
+        if (m_trackYOffsets[static_cast<size_t>(mid + 1)] <= topPx) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    outFirst = lo;
+    // Last layout with start < bottom
+    lo = outFirst;
+    hi = layoutCount;
+    while (lo < hi) {
+        const int mid = (lo + hi) / 2;
+        if (m_trackYOffsets[static_cast<size_t>(mid)] < bottomPx) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    outLast = lo;
 }
 
 void PlaylistClipCanvas::setPlayheadFrame(uint64_t frame)
@@ -160,6 +284,8 @@ void PlaylistClipCanvas::setPlayheadFrame(uint64_t frame)
 void PlaylistClipCanvas::clearAll()
 {
     m_tracks.clear();
+    m_trackRowById.clear();
+    m_trackYOffsets.clear();
     m_playheadFrame    = 0;
     m_cachedPlayheadX  = -1.0;
     m_dragState        = CanvasDragState::Idle;
@@ -209,15 +335,21 @@ bool PlaylistClipCanvas::event(QEvent* event)
 // paintEvent — zero allocation, reads member vars only
 // ─────────────────────────────────────────────────────────────────────────────
 
-void PlaylistClipCanvas::paintEvent(QPaintEvent* /*event*/)
+void PlaylistClipCanvas::paintEvent(QPaintEvent* event)
 {
     QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing);
+    // Antialiasing is enabled only for curve / rounded-border passes.
+    // Lane fills, grid lines and pixmap blits stay aliased for throughput.
+    p.setRenderHint(QPainter::Antialiasing, false);
 
     // --- 1. Background and track lane rows ---
+    // Full-background fill is cheap; lanes/grid cull to the exposed rect.
     drawBackground(p);
     drawTrackLanes(p);
     drawGridLines(p);
+    if (event) {
+        (void)event->rect();
+    }
 
     // --- 2. Fetch and draw visible clips (stack buffer, no heap) ---
     if (m_arrangement && m_view.viewEndFrame > m_view.viewStartFrame) {
@@ -240,14 +372,8 @@ void PlaylistClipCanvas::paintEvent(QPaintEvent* /*event*/)
 
                 if (m_dragDestTrackIndex >= 0 && m_dragDestTrackIndex < static_cast<int>(m_tracks.size()) &&
                     m_dragOrigTrackIndex >= 0 && m_dragOrigTrackIndex < static_cast<int>(m_tracks.size()) && !m_dragHoveringEmptySpace) {
-                    
-                    int rTrackIdx = -1;
-                    for (size_t t = 0; t < m_tracks.size(); ++t) {
-                        if (m_tracks[t].trackId == drawRegion.trackId) {
-                            rTrackIdx = static_cast<int>(t);
-                            break;
-                        }
-                    }
+
+                    const int rTrackIdx = trackRowForId(drawRegion.trackId.toRaw());
                     if (rTrackIdx != -1) {
                         int newTrackIdx = std::clamp(rTrackIdx + (m_dragDestTrackIndex - m_dragOrigTrackIndex), 0, static_cast<int>(m_tracks.size()) - 1);
                         drawRegion.trackId = m_tracks[static_cast<size_t>(newTrackIdx)].trackId;
@@ -312,7 +438,14 @@ void PlaylistClipCanvas::paintEvent(QPaintEvent* /*event*/)
             }
 
             const QRectF clipRect = regionToRect(drawRegion);
-            if (clipRect.width() < 1.0) {
+            if (clipRect.width() < 1.0 || clipRect.height() < 1.0) {
+                continue;
+            }
+            // Vertical cull: regionToRect is already offset-adjusted
+            if (clipRect.bottom() < 0.0 || clipRect.top() > static_cast<double>(height())) {
+                continue;
+            }
+            if (clipRect.right() < 0.0 || clipRect.left() > static_cast<double>(width())) {
                 continue;
             }
 
@@ -341,14 +474,8 @@ void PlaylistClipCanvas::paintEvent(QPaintEvent* /*event*/)
         const uint32_t recCount = m_arrangement->getActiveRecordings(recordings, 32);
         for (uint32_t i = 0; i < recCount; ++i) {
             const auto& rec = recordings[i];
-            
-            int row = -1;
-            for (int r = 0; r < static_cast<int>(m_tracks.size()); ++r) {
-                if (m_tracks[static_cast<size_t>(r)].trackId.toRaw() == rec.trackId.toRaw()) {
-                    row = r;
-                    break;
-                }
-            }
+
+            const int row = trackRowForId(rec.trackId.toRaw());
             if (row < 0 || row >= static_cast<int>(m_view.trackLayouts.size())) {
                 continue;
             }
@@ -441,16 +568,28 @@ void PlaylistClipCanvas::drawBackground(QPainter& p)
 
 void PlaylistClipCanvas::drawTrackLanes(QPainter& p)
 {
-    const uint32_t trackCount = m_view.trackCount;
-    const double   w          = static_cast<double>(width());
+    const double w = static_cast<double>(width());
+    const double widgetH = static_cast<double>(height());
 
-    double y = -static_cast<double>(m_view.verticalOffsetPx);
-    for (uint32_t i = 0; i < trackCount; ++i) {
-        if (i >= m_view.trackLayouts.size()) {
-            break;
+    int firstRow = 0;
+    int lastRow = 0;
+    visibleTrackRange(firstRow, lastRow);
+    if (firstRow >= lastRow) {
+        return;
+    }
+
+    for (int i = firstRow; i < lastRow; ++i) {
+        if (i < 0 || static_cast<size_t>(i) >= m_view.trackLayouts.size()) {
+            continue;
         }
-        const auto& layout = m_view.trackLayouts[i];
+        const auto& layout = m_view.trackLayouts[static_cast<size_t>(i)];
         const double laneH = layout.totalHeight;
+        const double y = m_trackYOffsets.size() == m_view.trackLayouts.size() + 1
+            ? m_trackYOffsets[static_cast<size_t>(i)] - static_cast<double>(m_view.verticalOffsetPx)
+            : getTrackYOffset(i);
+        if (y + laneH < 0.0 || y > widgetH) {
+            continue;
+        }
         QRectF lane(0.0, y, w, laneH);
 
         // Alternate row shading for visual separation
@@ -467,8 +606,8 @@ void PlaylistClipCanvas::drawTrackLanes(QPainter& p)
         p.drawLine(QPointF(0.0, y + laneH - 0.5),
                    QPointF(w,   y + laneH - 0.5));
 
-        if (i < m_tracks.size()) {
-            const auto& track = m_tracks[i];
+        if (static_cast<size_t>(i) < m_tracks.size()) {
+            const auto& track = m_tracks[static_cast<size_t>(i)];
             
             if (layout.isTakesExpanded && layout.audioLanesCount > 1) {
                 double takesOffset = layout.mainLaneHeight;
@@ -539,12 +678,14 @@ void PlaylistClipCanvas::drawTrackLanes(QPainter& p)
                         if (innerRect.height() > 4.0) {
                             p.save();
                             p.setClipRect(subLane);
+                            p.setRenderHint(QPainter::Antialiasing, true);
                             AutomationClipItem::drawCurve(p, innerRect, autoPts, autoPtsCount,
                                                           startFrame, durationFrames, editable, defaultVal);
                             if (editable) {
                                 AutomationClipItem::drawControlPoints(p, innerRect, autoPts, autoPtsCount,
                                                                       startFrame, durationFrames);
                             }
+                            p.setRenderHint(QPainter::Antialiasing, false);
                             p.restore();
                         }
                     }
@@ -553,7 +694,7 @@ void PlaylistClipCanvas::drawTrackLanes(QPainter& p)
         }
 
         // Draw glowing highlights on compatible lanes if active drag is happening
-        if (m_activeDragType != -1 && i < m_tracks.size()) {
+        if (m_activeDragType != -1 && static_cast<size_t>(i) < m_tracks.size()) {
             const auto& track = m_tracks[static_cast<size_t>(i)];
             bool compatible = false;
             if (m_activeDragType == static_cast<int>(bridge::BrowserItemType::AudioFile)) {
@@ -571,7 +712,6 @@ void PlaylistClipCanvas::drawTrackLanes(QPainter& p)
             }
         }
 
-        y += laneH;
     }
 
     // Draw ghost track row below all tracks if dragging compatible items in empty space
@@ -584,7 +724,11 @@ void PlaylistClipCanvas::drawTrackLanes(QPainter& p)
 
         if (showGhost) {
             const double ghostH = 72.0;
-            QRectF ghostLane(0.0, y, w, ghostH);
+            const double contentEndY = m_trackYOffsets.empty()
+                ? 0.0
+                : m_trackYOffsets.back() - static_cast<double>(m_view.verticalOffsetPx);
+            if (contentEndY < widgetH) {
+            QRectF ghostLane(0.0, contentEndY, w, ghostH);
 
             p.save();
             QColor ghostBg = theme::Color::AccentGlow;
@@ -601,6 +745,7 @@ void PlaylistClipCanvas::drawTrackLanes(QPainter& p)
             p.setFont(theme::Font::primary(9, QFont::Bold));
             p.drawText(ghostLane, Qt::AlignCenter, QStringLiteral("Drop here to create a new track"));
             p.restore();
+            }
         }
     }
 }
@@ -774,8 +919,16 @@ void PlaylistClipCanvas::drawRubberBand(QPainter& p)
 
 double PlaylistClipCanvas::getTrackYOffset(int trackIndex) const
 {
+    if (trackIndex <= 0) {
+        return 0.0;
+    }
+    const int layoutCount = static_cast<int>(m_view.trackLayouts.size());
+    if (m_trackYOffsets.size() == static_cast<size_t>(layoutCount + 1) && layoutCount > 0) {
+        const int clamped = std::min(trackIndex, layoutCount);
+        return m_trackYOffsets[static_cast<size_t>(clamped)];
+    }
     double y = 0.0;
-    int limit = std::min(trackIndex, static_cast<int>(m_view.trackLayouts.size()));
+    const int limit = std::min(trackIndex, layoutCount);
     for (int i = 0; i < limit; ++i) {
         y += m_view.trackLayouts[static_cast<size_t>(i)].totalHeight;
     }
@@ -792,14 +945,8 @@ QRectF PlaylistClipCanvas::regionToRect(const bridge::VisualRegion& region) cons
     const double x = frameToX(region.startFrame);
     const double w = static_cast<double>(region.durationFrames) * m_view.zoomFactor;
 
-    // Find the track row
-    int trackRow = -1;
-    for (int t = 0; t < static_cast<int>(m_tracks.size()); ++t) {
-        if (m_tracks[static_cast<size_t>(t)].trackId == region.trackId) {
-            trackRow = t;
-            break;
-        }
-    }
+    // Find the track row via O(1) index cache
+    const int trackRow = trackRowForId(region.trackId.toRaw());
 
     if (trackRow < 0 || trackRow >= static_cast<int>(m_view.trackLayouts.size())) {
         return {};
@@ -840,6 +987,26 @@ QRectF PlaylistClipCanvas::regionToRect(const bridge::VisualRegion& region) cons
 
 int PlaylistClipCanvas::yToTrackIndex(double y) const
 {
+    const int layoutCount = static_cast<int>(m_view.trackLayouts.size());
+    if (layoutCount == 0) {
+        return -1;
+    }
+    if (m_trackYOffsets.size() == static_cast<size_t>(layoutCount + 1)) {
+        const double contentY = y + static_cast<double>(m_view.verticalOffsetPx);
+        if (contentY < 0.0 || contentY >= m_trackYOffsets[static_cast<size_t>(layoutCount)]) {
+            return -1;
+        }
+        int lo = 0, hi = layoutCount;
+        while (lo < hi) {
+            const int mid = (lo + hi) / 2;
+            if (m_trackYOffsets[static_cast<size_t>(mid + 1)] <= contentY) {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        return (lo < layoutCount) ? lo : -1;
+    }
     double accum = -static_cast<double>(m_view.verticalOffsetPx);
     for (size_t i = 0; i < m_view.trackLayouts.size(); ++i) {
         double h = m_view.trackLayouts[i].totalHeight;
@@ -853,6 +1020,35 @@ void PlaylistClipCanvas::yToTrackAndLayer(double y, int& outTrackIndex, uint32_t
 {
     outTrackIndex = -1;
     outLayer = 0xFFFFFFFF; // AUTO_LAYER
+
+    const int hitRow = yToTrackIndex(y);
+    if (hitRow < 0) {
+        return;
+    }
+    if (m_trackYOffsets.size() == m_view.trackLayouts.size() + 1) {
+        const auto& layout = m_view.trackLayouts[static_cast<size_t>(hitRow)];
+        const double accum = m_trackYOffsets[static_cast<size_t>(hitRow)]
+            - static_cast<double>(m_view.verticalOffsetPx);
+        outTrackIndex = hitRow;
+        if (layout.isTakesExpanded) {
+            const double laneAccum0 = accum + layout.mainLaneHeight;
+            if (y < laneAccum0) {
+                outLayer = 0;
+                return;
+            }
+            double laneAccum = laneAccum0;
+            for (size_t j = 1; j < layout.takesLaneHeights.size(); ++j) {
+                laneAccum += layout.takesLaneHeights[j];
+                if (y < laneAccum) {
+                    outLayer = static_cast<uint32_t>(j);
+                    return;
+                }
+            }
+        } else {
+            outLayer = 0;
+        }
+        return;
+    }
 
     double accum = -static_cast<double>(m_view.verticalOffsetPx);
     for (size_t i = 0; i < m_view.trackLayouts.size(); ++i) {
@@ -2783,12 +2979,82 @@ void PlaylistClipCanvas::onTileRendered(presentation::views::TileKey key, QImage
     if (image.isNull()) {
         QTimer::singleShot(300, this, [this, key]() {
             m_inFlightTiles.erase(key);
-            update();
+            // Repaint only the tile's clips instead of the full canvas so
+            // pending tiles do not flash already-rendered waveforms.
+            invalidateTileRect(key);
         });
     } else {
         m_inFlightTiles.erase(key);
         m_tileCache.insert(key, QPixmap::fromImage(image));
-        update();
+        invalidateTileRect(key);
+    }
+}
+
+void PlaylistClipCanvas::invalidateTileRect(const TileKey& key)
+{
+    if (!m_arrangement || m_view.viewEndFrame <= m_view.viewStartFrame || m_view.zoomFactor <= 0.0) {
+        return;
+    }
+    if (!isVisible()) {
+        return;
+    }
+    bridge::VisualRegion regions[MAX_VISIBLE];
+    const uint32_t count = m_arrangement->getRegionsInViewport(
+        m_view.viewStartFrame, m_view.viewEndFrame, regions, MAX_VISIBLE);
+    const double zoomFactor = m_view.zoomFactor;
+    const double spp_screen = 1.0 / zoomFactor;
+    QRect dirty;
+    for (uint32_t i = 0; i < count; ++i) {
+        const auto& region = regions[i];
+        if (region.clipType != composition::RegionType::AUDIO) {
+            continue;
+        }
+        if (region.mediaId != key.mediaId) {
+            continue;
+        }
+        const double ratio = (region.timelineToSourceRatio > 0.0)
+            ? region.timelineToSourceRatio : 1.0;
+        const double spp_file = spp_screen * ratio;
+        uint32_t quantizedZoom = 64;
+        if (spp_file < 64.0) {
+            quantizedZoom = 1;
+            while (quantizedZoom < spp_file && quantizedZoom < 64) {
+                quantizedZoom *= 2;
+            }
+        } else {
+            quantizedZoom = ((static_cast<uint32_t>(spp_file) + 63) / 64) * 64;
+        }
+        if (quantizedZoom != key.zoomTier) {
+            continue;
+        }
+        const QRectF clipRect = regionToRect(region);
+        if (clipRect.width() < 1.0 || clipRect.height() < 1.0) {
+            continue;
+        }
+        if (clipRect.right() < 0.0 || clipRect.left() > static_cast<double>(width())) {
+            continue;
+        }
+        const uint64_t tileFrameCount = 256ULL * quantizedZoom;
+        const uint64_t tileStartF = static_cast<uint64_t>(key.tileX) * tileFrameCount;
+        const uint64_t tileEndF = tileStartF + tileFrameCount;
+        const double fileOffset = static_cast<double>(region.fileOffsetFrames);
+        // Map tile file range back to timeline pixels (mirrors AudioClipItem).
+        const double timelineStartOffset = (static_cast<double>(tileStartF) / ratio) - fileOffset;
+        const double timelineEndOffset = (static_cast<double>(tileEndF) / ratio) - fileOffset;
+        const double destXStart = clipRect.left() + timelineStartOffset * zoomFactor;
+        const double destXEnd = clipRect.left() + timelineEndOffset * zoomFactor;
+        if (destXEnd < 0.0 || destXStart > static_cast<double>(width())) {
+            continue;
+        }
+        const int x = static_cast<int>(std::floor(std::max(0.0, destXStart))) - 1;
+        const int w = static_cast<int>(std::ceil(destXEnd) - std::floor(destXStart)) + 2;
+        const int y = static_cast<int>(std::floor(clipRect.top()));
+        const int h = static_cast<int>(std::ceil(clipRect.height())) + 1;
+        const QRect tileRect(x, y, std::max(1, w), std::max(1, h));
+        dirty = dirty.united(tileRect);
+    }
+    if (!dirty.isNull()) {
+        update(dirty.intersected(rect()));
     }
 }
 
@@ -2815,7 +3081,12 @@ void PlaylistClipCanvas::prefetchWaveformTiles()
             continue;
         }
 
-        const double ratio = static_cast<double>(region.playbackRatio > 0.0f ? region.playbackRatio : 1.0f);
+        // Use the same source-mapping ratio as the paint path
+        // (AudioClipItem uses timelineToSourceRatio, which folds in both
+        // Time Stretching playbackRatio and the src/project sample-rate
+        // ratio). Using playbackRatio alone warms the wrong tileX set.
+        const double ratio = (region.timelineToSourceRatio > 0.0)
+            ? static_cast<double>(region.timelineToSourceRatio) : 1.0;
         const double spp_file = spp_screen * ratio;
 
         // Quantize zoom factor
@@ -2851,14 +3122,8 @@ void PlaylistClipCanvas::prefetchWaveformTiles()
             const uint32_t tileX_min = static_cast<uint32_t>(fileStart / tileFrameCount);
             const uint32_t tileX_max = static_cast<uint32_t>(fileEnd / tileFrameCount);
 
-            // Determine lane/waveRect height
-            int trackRow = -1;
-            for (int t = 0; t < static_cast<int>(m_tracks.size()); ++t) {
-                if (m_tracks[static_cast<size_t>(t)].trackId == region.trackId) {
-                    trackRow = t;
-                    break;
-                }
-            }
+            // Determine lane/waveRect height via O(1) cache
+            const int trackRow = trackRowForId(region.trackId.toRaw());
             if (trackRow < 0) continue;
             if (trackRow >= static_cast<int>(m_view.trackLayouts.size())) continue;
             const double laneH = m_view.trackLayouts[static_cast<size_t>(trackRow)].mainLaneHeight - 1.0;

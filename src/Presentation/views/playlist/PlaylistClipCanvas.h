@@ -135,6 +135,20 @@ public:
     void setTrackList(const std::vector<bridge::TrackUIState>& tracks);
 
     /**
+     * @brief Fast vertical-scroll path: updates offset via QWidget::scroll()
+     *        blit instead of a full repaint. Layouts / index cache unchanged.
+     */
+    void setVerticalOffset(int offsetPx);
+
+    /**
+     * @brief Fast horizontal-scroll path: blits via QWidget::scroll(dx, 0)
+     *        instead of a full repaint. Zoom / layouts unchanged.
+     *        Wide prefetch is debounced; visible tiles are still requested
+     *        on demand from paintEvent.
+     */
+    void setHorizontalView(uint64_t viewStartFrame, uint64_t viewEndFrame);
+
+    /**
      * @brief Invalidate cache for a specific media ID.
      */
     void invalidateMedia(MediaID id) { m_tileCache.invalidateMedia(id); }
@@ -251,6 +265,7 @@ protected:
 private:
     uint32_t resolvePluginIdFromMime(const QMimeData* mime) const;
     void prefetchWaveformTiles();
+    void invalidateTileRect(const TileKey& key);
 
     // -------------------------------------------------------------------------
     // Paint helpers (read member vars only — no bridge calls)
@@ -268,9 +283,26 @@ private:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Get the cumulative Y offset for a track row (sum of heights above it).
+     * @brief Get the cumulative Y offset for a track row (cached prefix sum, O(1)).
      */
     double getTrackYOffset(int trackIndex) const;
+
+    /**
+     * @brief Rebuild trackId → row map + y-offset prefix sums.
+     *        Called whenever m_tracks or m_view.trackLayouts change.
+     */
+    void rebuildTrackIndexCache();
+
+    /**
+     * @brief O(1) row lookup by raw TrackID. Returns -1 if not present.
+     */
+    int trackRowForId(uint64_t rawTrackId) const;
+
+    /**
+     * @brief Compute first/last track indices intersecting the widget height.
+     *        Output clamped to [0, layoutCount]; first==last means nothing visible.
+     */
+    void visibleTrackRange(int& outFirst, int& outLast) const;
 
     /**
      * @brief Convert a VisualRegion to its screen QRectF using m_view.
@@ -348,6 +380,8 @@ private:
     // -------------------------------------------------------------------------
     ViewState                          m_view;
     std::vector<bridge::TrackUIState>  m_tracks;    ///< Track order for row mapping
+    std::unordered_map<uint64_t, int>  m_trackRowById; ///< Raw TrackID → row index (O(1) geometry)
+    std::vector<double>                m_trackYOffsets; ///< Prefix sums, size = layouts+1
     uint64_t                           m_playheadFrame{0};
     double                             m_cachedPlayheadX{-1.0}; ///< Pixels; <0 = off-screen
 
@@ -435,6 +469,7 @@ private:
     std::unordered_set<TileKey> m_inFlightTiles;
     QTimer m_retryTimer;
     QTimer m_heightDebounceTimer;
+    QTimer m_prefetchDebounceTimer;
 };
 
 } // namespace presentation::views

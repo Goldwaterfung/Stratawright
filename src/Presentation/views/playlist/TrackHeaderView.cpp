@@ -216,12 +216,65 @@ void TrackHeaderView::updateMeters(const std::vector<bridge::MeterLevel>& levels
     }
 }
 
+namespace {
+
+/// Shift every widget-space rect cached in a RowLayout by dy.
+/// RowLayout::localY/height are content-space and stay untouched.
+inline void shiftRowRects(presentation::views::RowLayout& row, double dy)
+{
+    row.rect.moveTop(row.rect.top() + dy);
+    row.muteRect.moveTop(row.muteRect.top() + dy);
+    row.soloRect.moveTop(row.soloRect.top() + dy);
+    row.armRect.moveTop(row.armRect.top() + dy);
+    row.monitorRect.moveTop(row.monitorRect.top() + dy);
+    row.autoComboRect.moveTop(row.autoComboRect.top() + dy);
+    row.autoExpandRect.moveTop(row.autoExpandRect.top() + dy);
+    row.takesExpandRect.moveTop(row.takesExpandRect.top() + dy);
+    row.nameRect.moveTop(row.nameRect.top() + dy);
+    row.promoteRect.moveTop(row.promoteRect.top() + dy);
+}
+
+} // namespace
+
 void TrackHeaderView::setVerticalOffset(int offsetPx)
 {
-    if (m_verticalOffsetPx != offsetPx) {
-        m_verticalOffsetPx = offsetPx;
-        rebuildLayouts();
+    if (m_verticalOffsetPx == offsetPx) {
+        return;
     }
+    const int delta = offsetPx - m_verticalOffsetPx;
+    m_verticalOffsetPx = offsetPx;
+    // Fast path: shift cached rects and repaint.
+    // Full rebuildLayouts() is O(T) with child-widget churn; skip it for
+    // pure scroll. Deliberately uses update(), not QWidget::scroll():
+    // scroll() repositions child widgets itself, so combining it with
+    // manual moves (or with stale control rects) double-shifts content.
+    if (!m_layoutGeometries.empty()) {
+        const double dy = -static_cast<double>(delta);
+        for (auto& row : m_layoutGeometries) {
+            shiftRowRects(row, dy);
+        }
+        for (auto& pair : m_instrumentWidgets) {
+            if (pair.second) {
+                pair.second->move(pair.second->x(), pair.second->y() - delta);
+            }
+        }
+        for (auto& pair : m_audioInputWidgets) {
+            if (pair.second) {
+                pair.second->move(pair.second->x(), pair.second->y() - delta);
+            }
+        }
+        if (m_renameEditor && m_renameEditor->isVisible()) {
+            m_renameEditor->move(m_renameEditor->x(), m_renameEditor->y() - delta);
+        }
+        if (m_dropAction != DropAction::None) {
+            m_dropIndicatorY -= static_cast<double>(delta);
+            m_dropRect.moveTop(m_dropRect.top() + dy);
+        }
+        updateAddTrackButtonGeometry();
+        update();
+        return;
+    }
+    rebuildLayouts();
 }
 
 void TrackHeaderView::clearAll()

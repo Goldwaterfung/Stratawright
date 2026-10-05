@@ -105,8 +105,11 @@ void AudioClipItem::paint(
                     const double timelineStartOffset = (static_cast<double>(intersectStart) / ratio) - static_cast<double>(region.fileOffsetFrames);
                     const double timelineEndOffset = (static_cast<double>(intersectEnd) / ratio) - static_cast<double>(region.fileOffsetFrames);
 
-                    const double destXStart = clipRect.left() + timelineStartOffset * zoomFactor;
-                    const double destXEnd = clipRect.left() + timelineEndOffset * zoomFactor;
+                    // Snap to integer pixels: keeps the blit 1:1 with the
+                    // cached 256px tile and avoids resampling shimmer when
+                    // viewStartFrame moves by fractional pixels during scroll.
+                    const double destXStart = std::round(clipRect.left() + timelineStartOffset * zoomFactor);
+                    const double destXEnd = std::round(clipRect.left() + timelineEndOffset * zoomFactor);
 
                     const QRectF destRect(
                         destXStart,
@@ -136,16 +139,17 @@ void AudioClipItem::paint(
                         );
                         p.drawPixmap(destRect, *pixmap, srcRect);
                     } else {
-                        const QRectF srcRect(
-                            srcXStart,
-                            0.0,
-                            srcXEnd - srcXStart,
-                            waveRect.height()
-                        );
-                        // 1. Draw shimmer as base while tile is loading
-                        p.drawPixmap(destRect, tileWorker->getShimmerPixmap(), srcRect);
+                        // Stable placeholder: keep the clip background and draw
+                        // a faint center line instead of blitting the (fully
+                        // transparent) shimmer pixmap with a resampled srcRect.
+                        // This removes per-miss scaling cost and avoids a
+                        // transparent↔waveform blink on every scroll step.
+                        const double midY = waveRect.top() + waveRect.height() * 0.5;
+                        p.setPen(QPen(QColor(r, g, b, 60), 1.0));
+                        p.drawLine(QPointF(destXStart, midY),
+                                   QPointF(destXEnd, midY));
 
-                        // 2. Request asynchronous rendering of correct tile
+                        // Request asynchronous rendering of correct tile
                         if (inFlightTiles.find(key) == inFlightTiles.end()) {
                             TileRequest req{
                                 .key = key,
@@ -215,23 +219,28 @@ void AudioClipItem::drawClipBackground(
     const QRectF bRect = clipRect.adjusted(0.5, 0.5, -0.5, -0.5);
     p.setPen(Qt::NoPen);
     p.setBrush(base);
+    // Single rounded path per clip; gradient + top bar use aliased fills.
+    const bool useAA = p.testRenderHint(QPainter::Antialiasing);
+    p.setRenderHint(QPainter::Antialiasing, true);
     p.drawRoundedRect(bRect, 3.0, 3.0);
+    p.setRenderHint(QPainter::Antialiasing, useAA);
 
-    // Subtle vertical gradient to give depth
+    // Subtle vertical gradient to give depth (aliased fill, no extra rounded path)
     QLinearGradient grad(clipRect.topLeft(), clipRect.bottomLeft());
     grad.setColorAt(0.0, QColor(255, 255, 255, 18));
     grad.setColorAt(1.0, QColor(0, 0, 0, 22));
     p.setBrush(grad);
-    p.drawRoundedRect(bRect, 3.0, 3.0);
+    p.fillRect(bRect, grad);
 
-    // Distinct darker top bar (15px) for move handle
-    if (clipRect.height() > 15.0) {
+    // Distinct darker top bar for move handle
+    static constexpr double kTopBarHeightPx = 15.0;
+    if (clipRect.height() > kTopBarHeightPx) {
         QRectF topBarRect = clipRect;
-        topBarRect.setHeight(15.0);
+        topBarRect.setHeight(kTopBarHeightPx);
         QColor topBarColor = base.darker(150);
         topBarColor.setAlpha(180);
         p.setBrush(topBarColor);
-        p.drawRoundedRect(topBarRect.adjusted(0.5, 0.5, -0.5, 0.0), 3.0, 3.0);
+        p.fillRect(topBarRect.adjusted(0.5, 0.5, -0.5, 0.0), topBarColor);
     }
 }
 

@@ -567,10 +567,8 @@ void PlaylistWindow::wireSignals()
     // Phase 10 — MiniPlaylistPreview seek:
     if (m_preview) {
         connect(m_preview, &MiniPlaylistPreview::viewportSeekRequested, this, [this](uint64_t newStart) {
-            uint64_t range = m_viewport.endFrame - m_viewport.startFrame;
-            m_viewport.startFrame = newStart;
-            m_viewport.endFrame = newStart + range;
-            applyViewport();
+            // Same fast path as horizontal scroll: zoom/layouts unchanged.
+            onZoomScrollChanged(newStart, m_viewport.zoomFactor);
         });
     }
 }
@@ -1225,6 +1223,27 @@ void PlaylistWindow::onSeekRequested(uint64_t frame)
 
 void PlaylistWindow::onZoomScrollChanged(uint64_t newStart, double newZoom)
 {
+    // Fast horizontal-scroll path: zoom unchanged, so track layouts are
+    // unchanged. Skip the O(T) buildTrackLayouts + full-canvas update in
+    // applyViewport(); the canvas blits via QWidget::scroll() and debounces
+    // its wide tile prefetch internally.
+    if (newZoom == m_viewport.zoomFactor && newStart != m_viewport.startFrame) {
+        m_viewport.startFrame = newStart;
+        recalculateViewportEndFrame();
+        if (m_ruler) {
+            m_ruler->setViewState(m_viewport.startFrame, m_viewport.endFrame, m_viewport.zoomFactor);
+        }
+        if (m_canvas) {
+            m_canvas->setHorizontalView(m_viewport.startFrame, m_viewport.endFrame);
+        }
+        if (m_preview) {
+            m_preview->setViewport(m_viewport.startFrame, m_viewport.endFrame);
+        }
+        if (m_tempoCanvas) {
+            m_tempoCanvas->setViewState(m_viewport.startFrame, m_viewport.endFrame, m_viewport.zoomFactor);
+        }
+        return;
+    }
     m_viewport.startFrame = newStart;
     m_viewport.zoomFactor = newZoom;
     recalculateViewportEndFrame();
@@ -1233,8 +1252,21 @@ void PlaylistWindow::onZoomScrollChanged(uint64_t newStart, double newZoom)
 
 void PlaylistWindow::onViewportVerticalScrolled(int offsetPx)
 {
-    m_viewport.verticalOffsetPx = offsetPx;
-    applyViewport();
+    // Fast vertical-scroll path: layouts are unchanged, so skip the
+    // O(T) buildTrackLayouts + full-canvas update in applyViewport().
+    // Canvas blits via QWidget::scroll(); header reuses its row culling.
+    const int maxOffset = getMaxVerticalOffset();
+    const int clamped = std::clamp(offsetPx, 0, maxOffset);
+    if (clamped == m_viewport.verticalOffsetPx) {
+        return;
+    }
+    m_viewport.verticalOffsetPx = clamped;
+    if (m_canvas) {
+        m_canvas->setVerticalOffset(clamped);
+    }
+    if (m_trackHeader) {
+        m_trackHeader->setVerticalOffset(clamped);
+    }
 }
 
 void PlaylistWindow::onTempoCollapseToggled(bool collapsed)
