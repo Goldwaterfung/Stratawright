@@ -1,6 +1,4 @@
 #pragma once
-
-#include <type_traits>
 #include <cstdint>
 #include "common/system_primitives.h"
 
@@ -14,7 +12,7 @@ struct MarkerInfo {
     uint32_t markerNumber;
 };
 
-static_assert((std::is_trivially_copyable<MarkerInfo>::value && std::is_standard_layout<MarkerInfo>::value), "MarkerInfo must be Plain Old Data");
+static_assert(std::is_pod<MarkerInfo>::value, "MarkerInfo must be Plain Old Data");
 
 class IMarkerManager {
 public:

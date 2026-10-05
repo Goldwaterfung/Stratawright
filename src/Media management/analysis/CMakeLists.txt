@@ -14,15 +14,11 @@ add_library(layer6_analysis STATIC
 find_path(EBUR128_INCLUDE_DIR NAMES ebur128.h)
 find_library(EBUR128_LIBRARY NAMES ebur128 libebur128)
 
-target_include_directories(layer6_analysis PUBLIC
+target_include_directories(layer6_analysis PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
     ${EBUR128_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/src/third_party/eigen-5.0.0
-    # SoundTouch headers (BPMDetect.h); do not rely solely on transitive
-    # propagation from soundtouch_analysis.
-    ${CMAKE_SOURCE_DIR}/src/third_party/soundtouch/include
-    ${CMAKE_SOURCE_DIR}/src/third_party/soundtouch/source/SoundTouch
 )
 
 target_link_libraries(layer6_analysis PUBLIC 

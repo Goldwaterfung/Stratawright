@@ -1,13 +1,9 @@
 #include "bpm_analyzer.h"
-#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 #pragma clang diagnostic ignored "-Wold-style-cast"
-#endif
 #include <BPMDetect.h>
-#if defined(__clang__)
 #pragma clang diagnostic pop
-#endif
 #include <vector>
 #include <algorithm>
 

@@ -78,14 +78,16 @@ jobs:
           cmake -B build
           -DCMAKE_BUILD_TYPE=Release
           "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          -DBUILD_TESTS=OFF
-          -DSTRICT_WARNINGS=OFF
+          -DBUILD_TESTS=ON
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          cmake -B build -G "${{ matrix.cmake_generator }}" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="%GITHUB_WORKSPACE%\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTS=OFF -DSTRICT_WARNINGS=OFF
+          cmake -B build -G "${{ matrix.cmake_generator }}" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="%GITHUB_WORKSPACE%\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build --config Release --parallel
+
+      - name: Run Unit Tests
+        run: ctest --test-dir build -C Release --output-on-failure

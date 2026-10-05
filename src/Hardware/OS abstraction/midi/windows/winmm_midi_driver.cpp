@@ -1,15 +1,9 @@
 // winmm_midi_driver.cpp
 #ifdef _WIN32
 #include "winmm_midi_driver.h"
-#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
 #include <windows.h>
 #include <mmsystem.h>
-#include <cstring>
 #include <vector>
 
 namespace Layer1 {
@@ -39,26 +33,15 @@ uint32_t WinMMMIDIDriver::getDeviceCount() {
 
 uint32_t WinMMMIDIDriver::getDeviceName(uint32_t deviceIndex, char* outName, uint32_t maxLength) {
     if (!outName || maxLength == 0) return 0;
-#ifdef UNICODE
-    MIDIINCAPSW capsW;
-    if (midiInGetDevCapsW(deviceIndex, &capsW, sizeof(capsW)) == MMSYSERR_NOERROR) {
+    MIDIINCAPS caps;
+    if (midiInGetDevCaps(deviceIndex, &caps, sizeof(MIDIINCAPS)) == MMSYSERR_NOERROR) {
         // Convert WCHAR to UTF-8 string
-        const int outSize = static_cast<int>(maxLength);
-        int len = WideCharToMultiByte(CP_UTF8, 0, capsW.szPname, -1, outName, outSize, nullptr, nullptr);
+        int len = WideCharToMultiByte(CP_UTF8, 0, caps.szPname, -1, outName, static_cast<int>(maxLength), NULL, NULL);
         if (len > 0) {
             outName[len - 1] = '\0';
             return static_cast<uint32_t>(len - 1);
         }
     }
-#else
-    MIDIINCAPSA capsA;
-    if (midiInGetDevCapsA(deviceIndex, &capsA, sizeof(capsA)) == MMSYSERR_NOERROR) {
-        // ANSI build: device name is already a narrow string, copy safely
-        std::strncpy(outName, capsA.szPname, maxLength - 1);
-        outName[maxLength - 1] = '\0';
-        return static_cast<uint32_t>(std::strlen(outName));
-    }
-#endif
     outName[0] = '\0';
     return 0;
 }
@@ -134,17 +117,14 @@ VirtualPortHandle WinMMMIDIDriver::createVirtualInputPort(const char* name) {
     // WinMM doesn't natively support creating virtual ports.
     // Usually require a driver like loopMIDI.
     // For now we return invalid but could potentially use a third-party driver if available.
-    (void)name;
     return VirtualPortHandle::invalid();
 }
 
 bool WinMMMIDIDriver::closeVirtualPort(VirtualPortHandle handle) {
-    (void)handle;
     return false;
 }
 
 void CALLBACK WinMMMIDIDriver::midiInCallback(HMIDIIN hMidiIn, UINT wMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2) {
-    (void)hMidiIn;
     // dwInstance is our InputPort pointer
     InputPort* port = reinterpret_cast<InputPort*>(dwInstance);
     if (!port || !port->queue) return;

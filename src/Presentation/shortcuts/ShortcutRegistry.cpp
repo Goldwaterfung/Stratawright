@@ -1,5 +1,4 @@
 #include "ShortcutRegistry.h"
-#include <array>
 
 namespace presentation::shortcuts {
 

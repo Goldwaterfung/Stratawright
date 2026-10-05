@@ -15,8 +15,6 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include <atomic>
 #include <cstdint>
 #include <cstring>
@@ -112,7 +110,7 @@ struct AudioBuffer {
 };
 
 // COMPILE-TIME ASSERTION: AudioBuffer must be POD
-static_assert((std::is_trivially_copyable<AudioBuffer>::value && std::is_standard_layout<AudioBuffer>::value),
+static_assert(std::is_pod<AudioBuffer>::value,
               "AudioBuffer must be Plain Old Data");
 
 //==============================================================================
@@ -174,7 +172,7 @@ struct NodeID {
 
 // Compile-time assertions
 static_assert(sizeof(NodeID) == 8, "NodeID must be exactly 8 bytes");
-static_assert((std::is_trivially_copyable<NodeID>::value && std::is_standard_layout<NodeID>::value), "NodeID must be Plain Old Data");
+static_assert(std::is_pod<NodeID>::value, "NodeID must be Plain Old Data");
 
 //==============================================================================
 // EVENT PRIMITIVE (v1.2 - With Routing Support)
@@ -286,7 +284,7 @@ inline void sort_events_in_place(EventData* events, uint32_t count) noexcept {
 }
 
 // COMPILE-TIME ASSERTION: EventData must be POD
-static_assert((std::is_trivially_copyable<EventData>::value && std::is_standard_layout<EventData>::value),
+static_assert(std::is_pod<EventData>::value,
               "EventData must be Plain Old Data");
 
 //==============================================================================
@@ -317,7 +315,7 @@ struct TelemetryFrame {
 };
 
 // COMPILE-TIME ASSERTION: TelemetryFrame must be POD
-static_assert((std::is_trivially_copyable<TelemetryFrame>::value && std::is_standard_layout<TelemetryFrame>::value),
+static_assert(std::is_pod<TelemetryFrame>::value,
               "TelemetryFrame must be Plain Old Data");
 
 //=== State Management Primitives ===//
@@ -341,7 +339,7 @@ struct StateSnapshotID {
 };
 
 // COMPILE-TIME ASSERTION: StateSnapshotID must be POD
-static_assert((std::is_trivially_copyable<StateSnapshotID>::value && std::is_standard_layout<StateSnapshotID>::value),
+static_assert(std::is_pod<StateSnapshotID>::value,
               "StateSnapshotID must be Plain Old Data");
 
 struct StateDelta {
@@ -355,7 +353,7 @@ struct StateDelta {
 };
 
 // COMPILE-TIME ASSERTION: StateDelta must be POD
-static_assert((std::is_trivially_copyable<StateDelta>::value && std::is_standard_layout<StateDelta>::value),
+static_assert(std::is_pod<StateDelta>::value,
               "StateDelta must be Plain Old Data");
 
 //=== Plugin Discovery Primitives ===//
@@ -392,7 +390,7 @@ struct PluginDescriptor {
 };
 
 // COMPILE-TIME ASSERTION: PluginDescriptor must be POD
-static_assert((std::is_trivially_copyable<PluginDescriptor>::value && std::is_standard_layout<PluginDescriptor>::value),
+static_assert(std::is_pod<PluginDescriptor>::value,
               "PluginDescriptor must be Plain Old Data");
 
 //==============================================================================
@@ -423,7 +421,7 @@ struct DSPNode {
 };
 
 // COMPILE-TIME ASSERTION: DSPNode must be POD
-static_assert((std::is_trivially_copyable<DSPNode>::value && std::is_standard_layout<DSPNode>::value), "DSPNode must be Plain Old Data");
+static_assert(std::is_pod<DSPNode>::value, "DSPNode must be Plain Old Data");
 
 
 //=== DSP Connection Primitive ===//
@@ -448,7 +446,7 @@ struct DSPConnection {
 };
 
 // COMPILE-TIME ASSERTION: DSPConnection must be POD
-static_assert((std::is_trivially_copyable<DSPConnection>::value && std::is_standard_layout<DSPConnection>::value),
+static_assert(std::is_pod<DSPConnection>::value,
               "DSPConnection must be Plain Old Data");
 
 /// Warp behavior for a clip on an audio track.
@@ -470,7 +468,7 @@ struct SoundTouchParams {
 };
 
 static_assert(sizeof(SoundTouchParams) == 16, "SoundTouchParams must be 16 bytes");
-static_assert((std::is_trivially_copyable<SoundTouchParams>::value && std::is_standard_layout<SoundTouchParams>::value), "SoundTouchParams must be Plain Old Data");
+static_assert(std::is_pod<SoundTouchParams>::value, "SoundTouchParams must be Plain Old Data");
 
 struct MonitorPayload {
     uint8_t  monitorState; // cast from MonitorState or acceptLiveMIDI (0 or 1)
@@ -479,7 +477,7 @@ struct MonitorPayload {
 };
 
 static_assert(sizeof(MonitorPayload) == 32, "MonitorPayload must be 32 bytes");
-static_assert((std::is_trivially_copyable<MonitorPayload>::value && std::is_standard_layout<MonitorPayload>::value), "MonitorPayload must be Plain Old Data");
+static_assert(std::is_pod<MonitorPayload>::value, "MonitorPayload must be Plain Old Data");
 
 struct RecordPayload {
     bool isArmed;
@@ -489,7 +487,7 @@ struct RecordPayload {
 };
 
 static_assert(sizeof(RecordPayload) == 32, "RecordPayload must be exactly 32 bytes");
-static_assert((std::is_trivially_copyable<RecordPayload>::value && std::is_standard_layout<RecordPayload>::value), "RecordPayload must be a POD type");
+static_assert(std::is_pod<RecordPayload>::value, "RecordPayload must be a POD type");
 
 //=== Sidechain Primitives ===//
 
@@ -540,7 +538,7 @@ struct SystemMutation {
 };
 
 // COMPILE-TIME ASSERTION: SystemMutation must be POD
-static_assert((std::is_trivially_copyable<SystemMutation>::value && std::is_standard_layout<SystemMutation>::value),
+static_assert(std::is_pod<SystemMutation>::value,
               "SystemMutation must be Plain Old Data");
 
 
@@ -562,7 +560,7 @@ struct TransportPosition {
 };
 
 // COMPILE-TIME ASSERTION: TransportPosition must be POD
-static_assert((std::is_trivially_copyable<TransportPosition>::value && std::is_standard_layout<TransportPosition>::value),
+static_assert(std::is_pod<TransportPosition>::value,
               "TransportPosition must be Plain Old Data");
 
 struct LoopState {
@@ -583,7 +581,7 @@ struct LoopState {
 };
 
 // COMPILE-TIME ASSERTION: LoopState must be POD
-static_assert((std::is_trivially_copyable<LoopState>::value && std::is_standard_layout<LoopState>::value),
+static_assert(std::is_pod<LoopState>::value,
               "LoopState must be Plain Old Data");
 
 //=== Plugin Host Primitives ===//
@@ -617,7 +615,7 @@ struct PluginHandle {
 };
 
 // COMPILE-TIME ASSERTION: PluginHandle must be POD
-static_assert((std::is_trivially_copyable<PluginHandle>::value && std::is_standard_layout<PluginHandle>::value),
+static_assert(std::is_pod<PluginHandle>::value,
               "PluginHandle must be Plain Old Data");
 
 //==============================================================================
@@ -692,7 +690,7 @@ struct ArrangementID {
     bool operator!=(const ArrangementID& o) const { return id != o.id; }
 };
 
-static_assert((std::is_trivially_copyable<ArrangementID>::value && std::is_standard_layout<ArrangementID>::value), "ArrangementID must be Plain Old Data");
+static_assert(std::is_pod<ArrangementID>::value, "ArrangementID must be Plain Old Data");
 
 struct MarkerUUID {
     uint8_t bytes[16];
@@ -711,7 +709,7 @@ struct MarkerUUID {
     }
 };
 
-static_assert((std::is_trivially_copyable<MarkerUUID>::value && std::is_standard_layout<MarkerUUID>::value), "MarkerUUID must be Plain Old Data");
+static_assert(std::is_pod<MarkerUUID>::value, "MarkerUUID must be Plain Old Data");
 
 
 struct ArrangementInfo {
@@ -721,7 +719,7 @@ struct ArrangementInfo {
     uint8_t padding[3]; // Structural alignment padding
 };
 
-static_assert((std::is_trivially_copyable<ArrangementInfo>::value && std::is_standard_layout<ArrangementInfo>::value), "ArrangementInfo must be Plain Old Data");
+static_assert(std::is_pod<ArrangementInfo>::value, "ArrangementInfo must be Plain Old Data");
 
 struct MergeFilterOptions {
     bool importAudio;
@@ -733,7 +731,7 @@ struct MergeFilterOptions {
     uint64_t loopEndFrame;
 };
 
-static_assert((std::is_trivially_copyable<MergeFilterOptions>::value && std::is_standard_layout<MergeFilterOptions>::value), "MergeFilterOptions must be Plain Old Data");
+static_assert(std::is_pod<MergeFilterOptions>::value, "MergeFilterOptions must be Plain Old Data");
 
 enum class RenderFormat : uint8_t {
     WAV = 0,
@@ -767,7 +765,7 @@ struct RenderJobInfo {
     uint8_t _pad1[3];
 };
 
-static_assert((std::is_trivially_copyable<RenderJobInfo>::value && std::is_standard_layout<RenderJobInfo>::value), "RenderJobInfo must be Plain Old Data");
+static_assert(std::is_pod<RenderJobInfo>::value, "RenderJobInfo must be Plain Old Data");
 
 struct RenderConfiguration {
     char outputFilePath[MAX_PATH_LENGTH];  // File path for single bounce, or destination folder for stems
@@ -799,7 +797,7 @@ struct RenderConfiguration {
     bool allowMutedGhostSidechainTriggers;  // True (default): muted/ghost tracks still feed sidechain inputs
 };
 
-static_assert((std::is_trivially_copyable<RenderConfiguration>::value && std::is_standard_layout<RenderConfiguration>::value), "RenderConfiguration must be Plain Old Data");
+static_assert(std::is_pod<RenderConfiguration>::value, "RenderConfiguration must be Plain Old Data");
 
 namespace std {
 template <typename T, typename Tag>
@@ -870,7 +868,7 @@ struct SnapshotRegion {
     uint8_t padding2[7];        // 7 bytes padding (total struct size aligns to 8-byte boundaries)
 };
 
-static_assert((std::is_trivially_copyable<SnapshotRegion>::value && std::is_standard_layout<SnapshotRegion>::value), "SnapshotRegion must be Plain Old Data");
+static_assert(std::is_pod<SnapshotRegion>::value, "SnapshotRegion must be Plain Old Data");
 
 constexpr uint32_t MAX_SNAPSHOT_REGIONS = 4096;
 constexpr uint32_t MAX_BUFFERS_PER_TRACK = 4;
@@ -880,7 +878,7 @@ struct TimelineSnapshot {
     uint32_t regionCount;
 };
 
-static_assert((std::is_trivially_copyable<TimelineSnapshot>::value && std::is_standard_layout<TimelineSnapshot>::value), "TimelineSnapshot must be Plain Old Data");
+static_assert(std::is_pod<TimelineSnapshot>::value, "TimelineSnapshot must be Plain Old Data");
 
 //=== Musical Position ===//
 
@@ -896,7 +894,7 @@ struct MusicalPosition {
 };
 
 // COMPILE-TIME ASSERTION: MusicalPosition must be POD
-static_assert((std::is_trivially_copyable<MusicalPosition>::value && std::is_standard_layout<MusicalPosition>::value),
+static_assert(std::is_pod<MusicalPosition>::value,
               "MusicalPosition must be Plain Old Data");
 
 //=== SoundTouch Warp Primitives (v1.3) ===//
@@ -915,7 +913,7 @@ struct MIDINote {
 };
 
 // COMPILE-TIME ASSERTION: MIDINote must be POD
-static_assert((std::is_trivially_copyable<MIDINote>::value && std::is_standard_layout<MIDINote>::value), "MIDINote must be Plain Old Data");
+static_assert(std::is_pod<MIDINote>::value, "MIDINote must be Plain Old Data");
 
 struct MIDICCPoint {
   uint64_t absoluteTickPosition; // Absolute musical position (ticks from project start)
@@ -926,7 +924,7 @@ struct MIDICCPoint {
   uint8_t padding[5];
 };
 
-static_assert((std::is_trivially_copyable<MIDICCPoint>::value && std::is_standard_layout<MIDICCPoint>::value), "MIDICCPoint must be Plain Old Data");
+static_assert(std::is_pod<MIDICCPoint>::value, "MIDICCPoint must be Plain Old Data");
 
 struct MIDIPitchPoint {
   uint64_t absoluteTickPosition; // Absolute musical position (ticks from project start)
@@ -936,7 +934,7 @@ struct MIDIPitchPoint {
   uint8_t padding[5];
 };
 
-static_assert((std::is_trivially_copyable<MIDIPitchPoint>::value && std::is_standard_layout<MIDIPitchPoint>::value), "MIDIPitchPoint must be Plain Old Data");
+static_assert(std::is_pod<MIDIPitchPoint>::value, "MIDIPitchPoint must be Plain Old Data");
 
 class IMidiClipDataProvider {
 public:
@@ -1001,7 +999,7 @@ struct ChannelStripState {
 };
 
 // COMPILE-TIME ASSERTION: ChannelStripState must be POD
-static_assert((std::is_trivially_copyable<ChannelStripState>::value && std::is_standard_layout<ChannelStripState>::value),
+static_assert(std::is_pod<ChannelStripState>::value,
               "ChannelStripState must be Plain Old Data");
 
 //=== Automation Point ===//
@@ -1023,7 +1021,7 @@ struct AutomationPoint {
 };
 
 // COMPILE-TIME ASSERTION: AutomationPoint must be POD
-static_assert((std::is_trivially_copyable<AutomationPoint>::value && std::is_standard_layout<AutomationPoint>::value),
+static_assert(std::is_pod<AutomationPoint>::value,
               "AutomationPoint must be Plain Old Data");
 
 //=== Automation Mode, Recorder State & Capture Point ===//
@@ -1045,7 +1043,7 @@ struct RecorderState {
   uint64_t startSample;
 };
 
-static_assert((std::is_trivially_copyable<RecorderState>::value && std::is_standard_layout<RecorderState>::value), "RecorderState must be Plain Old Data");
+static_assert(std::is_pod<RecorderState>::value, "RecorderState must be Plain Old Data");
 
 struct CapturePoint {
   NodeID targetId;           ///< Which node was changed
@@ -1060,7 +1058,7 @@ struct CapturePoint {
   static constexpr uint8_t FLAG_RELEASE = 1 << 1;
 };
 
-static_assert((std::is_trivially_copyable<CapturePoint>::value && std::is_standard_layout<CapturePoint>::value), "CapturePoint must be Plain Old Data");
+static_assert(std::is_pod<CapturePoint>::value, "CapturePoint must be Plain Old Data");
 
 
 //==============================================================================
@@ -1090,7 +1088,7 @@ struct ParameterInfo {
 };
 
 // COMPILE-TIME ASSERTION: ParameterInfo must be POD
-static_assert((std::is_trivially_copyable<ParameterInfo>::value && std::is_standard_layout<ParameterInfo>::value),
+static_assert(std::is_pod<ParameterInfo>::value,
               "ParameterInfo must be Plain Old Data");
 
 constexpr uint32_t BYPASS_PARAMETER_INDEX = 0xFFFF;
@@ -1122,7 +1120,7 @@ struct ProcessContext {
 };
 
 // COMPILE-TIME ASSERTION: ProcessContext must be POD
-static_assert((std::is_trivially_copyable<ProcessContext>::value && std::is_standard_layout<ProcessContext>::value),
+static_assert(std::is_pod<ProcessContext>::value,
               "ProcessContext must be Plain Old Data");
 
 //=== DSP Processing Function Signature (v1.3) ===//

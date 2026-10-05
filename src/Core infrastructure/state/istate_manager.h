@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-
 #include "system_primitives.h"
 #include <memory>
 #include <cstdint>
@@ -263,4 +261,4 @@ public:
 } // namespace Layer2
 
 // Ensure ApplyContext is POD for cross-layer passing
-static_assert((std::is_trivially_copyable_v<Layer2::ApplyContext> && std::is_standard_layout_v<Layer2::ApplyContext>));
+static_assert(std::is_pod_v<Layer2::ApplyContext>);

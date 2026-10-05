@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-
 #include "common/system_primitives.h"
 #include <memory>
 #include <vector>
@@ -30,7 +28,7 @@ struct Preset {
     uint64_t modifiedTime;      // Last modification timestamp
 };
 
-static_assert((std::is_trivially_copyable<Preset>::value && std::is_standard_layout<Preset>::value), "Preset must be Plain Old Data");
+static_assert(std::is_pod<Preset>::value, "Preset must be Plain Old Data");
 
 /**
  * @brief Bridge interface to extract/apply state from/to active engine nodes.

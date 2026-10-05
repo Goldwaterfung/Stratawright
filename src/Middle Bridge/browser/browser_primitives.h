@@ -35,6 +35,6 @@ struct BrowserItem {
 };
 
 // Compile-time assertions for POD verification
-static_assert((std::is_trivially_copyable<BrowserItem>::value && std::is_standard_layout<BrowserItem>::value), "BrowserItem must be Plain Old Data");
+static_assert(std::is_pod<BrowserItem>::value, "BrowserItem must be Plain Old Data");
 
 } // namespace bridge

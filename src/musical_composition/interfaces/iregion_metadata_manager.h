@@ -1,6 +1,4 @@
 #pragma once
-
-#include <type_traits>
 #include "common/system_primitives.h"
 #include "musical_composition/musical_primitives.h"
 
@@ -13,7 +11,7 @@ struct RegionMetadata {
     bool hasComment;
 };
 
-static_assert((std::is_trivially_copyable<RegionMetadata>::value && std::is_standard_layout<RegionMetadata>::value), "RegionMetadata must be Plain Old Data");
+static_assert(std::is_pod<RegionMetadata>::value, "RegionMetadata must be Plain Old Data");
 
 class IRegionMetadataManager {
 public:

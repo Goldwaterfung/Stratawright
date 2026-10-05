@@ -23,7 +23,7 @@ struct KeySignaturePoint {
 };
 
 static_assert(sizeof(KeySignaturePoint) == 16, "KeySignaturePoint must be exactly 16 bytes");
-static_assert((std::is_trivially_copyable<KeySignaturePoint>::value && std::is_standard_layout<KeySignaturePoint>::value), "KeySignaturePoint must be Plain Old Data");
+static_assert(std::is_pod<KeySignaturePoint>::value, "KeySignaturePoint must be Plain Old Data");
 
 class IKeySignatureMap {
 public:

@@ -13,8 +13,6 @@
 // Platform-specific semaphore includes
 #ifdef __APPLE__
 #include <dispatch/dispatch.h>
-#elif defined(_WIN32)
-#include "common/win32_sem_compat.h"
 #else
 #include <semaphore.h>
 #endif

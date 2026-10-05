@@ -37,10 +37,6 @@ option(ENABLE_SIMD "Enable SIMD optimizations" ON)
 option(USE_ASAN "Enable Address Sanitizer" OFF)
 option(USE_TSAN "Enable Thread Sanitizer" OFF)
 option(BUILD_PLUGINS "Build plugin host support" ON)
-# STRICT_WARNINGS=ON keeps local dev strict (-Werror / /WX).
-# CI passes -DSTRICT_WARNINGS=OFF to match ./scripts/build.sh tolerance
-# on newer compilers (warnings logged, not fatal).
-option(STRICT_WARNINGS "Treat warnings as errors" ON)
 
 # Export compile commands for IDE support
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -79,24 +75,12 @@ elseif(MSVC)
 endif()
 
 # Warning flags
-# STRICT_WARNINGS controls whether warnings are fatal. Local dev keeps ON;
-# CI sets OFF so newer compiler warnings don't fail the whole build.
 if(MSVC)
-    add_compile_options(/W4)
-    if(STRICT_WARNINGS)
-        add_compile_options(/WX)
-    else()
-        add_compile_options(/WX-)
-    endif()
+    add_compile_options(/W4 /WX)
     # Additional safety checks for MSVC
     add_compile_options(/sdl)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
-    if(STRICT_WARNINGS)
-        add_compile_options(-Werror)
-    else()
-        add_compile_options(-Wno-error)
-    endif()
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
     # Additional warning flags for Clang/GCC
     add_compile_options(-Wshadow -Wold-style-cast -Wcast-align)
     add_compile_options(-Wunused -Woverloaded-virtual)
@@ -147,25 +131,15 @@ else()
     add_definitions(-DENABLE_SIMD=0)
 endif()
 
-# Release build optimizations (GCC/Clang only; MSVC uses /O2 via CMAKE_CXX_FLAGS_RELEASE_INIT)
-if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g -DNDEBUG")
-    # Debug build flags
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
-endif()
+# Release build optimizations
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g -DNDEBUG")
+
+# Debug build flags
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
 
 # Find required packages
 find_package(Threads REQUIRED)
-
-# Fix macOS 14+ / Xcode 16+ linker error: ld: framework 'AGL' not found
-# Qt 6.8's FindWrapOpenGL attempts to link legacy AGL.framework which Apple removed.
-# Pre-creating WrapOpenGL::WrapOpenGL causes Qt to skip its internal AGL lookup.
-if(APPLE AND NOT TARGET WrapOpenGL::WrapOpenGL)
-    add_library(WrapOpenGL::WrapOpenGL INTERFACE IMPORTED)
-    target_link_libraries(WrapOpenGL::WrapOpenGL INTERFACE "-framework OpenGL")
-    set(WrapOpenGL_FOUND ON)
-endif()
 
 # Find Qt6 Components
 find_package(Qt6 COMPONENTS Widgets Core Gui Svg REQUIRED)
@@ -207,26 +181,9 @@ add_subdirectory("src/Core infrastructure")
 # Layer 3: Core Audio Engine
 add_subdirectory("src/Core audio engine")
 
-# Third-party: SoundTouch and RubberBand (must be before Layer 4 and Layer 6 consumers)
+# Third-party: SoundTouch (must be before Layer 4 and Layer 6 consumers)
 add_subdirectory(src/third_party/soundtouch)
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default/CMakeLists.txt" AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/rubberband/CMakeLists.txt")
-    file(COPY "${CMAKE_SOURCE_DIR}/cmake/rubberband/CMakeLists.txt" DESTINATION "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default")
-endif()
 add_subdirectory(src/third_party/rubberband-default)
-
-# Third-party warning opt-out: top-level adds -Werror (/WX) globally, which
-# upstream SoundTouch/RubberBand sources cannot satisfy (old-style casts,
-# sign conversions, double promotions). Neutralize warnings-as-errors for
-# whatever target names the vendored/upstream CMake files declare.
-foreach(_tp_tgt IN ITEMS SoundTouch soundtouch soundtouch_lib soundtouch_analysis rubberband_lib RubberBand)
-    if(TARGET ${_tp_tgt})
-        if(MSVC)
-            target_compile_options(${_tp_tgt} PRIVATE /WX- /wd4244 /wd4267 /wd4100 /wd4101 /wd4996 /wd4324 /wd4456 /wd4457 /wd4458 /wd4459)
-        else()
-            target_compile_options(${_tp_tgt} PRIVATE -Wno-error -Wno-conversion -Wno-sign-conversion -Wno-old-style-cast -Wno-double-promotion -Wno-implicit-int-float-conversion -Wno-cast-align -Wno-unused-parameter -Wno-pedantic)
-        endif()
-    endif()
-endforeach()
 
 # Layer 4: DSP Processing Nodes
 add_subdirectory("src/DSP nodes/channelstrip")
@@ -332,6 +289,5 @@ message(STATUS "  TSAN Enabled: ${USE_TSAN}")
 message(STATUS "  Build Tests: ${BUILD_TESTS}")
 #message(STATUS "  Build Performance Tests: ${BUILD_PERFORMANCE_TESTS}")
 message(STATUS "  Build Plugin Support: ${BUILD_PLUGINS}")
-message(STATUS "  Strict Warnings: ${STRICT_WARNINGS}")
 message(STATUS "")
 

@@ -6,7 +6,6 @@
 #include "common/math/analysis.h"
 #include <ebur128.h>
 #include <unsupported/Eigen/FFT>
-#include <array>
 #include <vector>
 #include <algorithm>
 #include <cmath>

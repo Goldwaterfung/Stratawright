@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "system_primitives.h"
 #include <memory>
 #include <cstdint>
@@ -242,17 +240,17 @@ public:
 } // namespace Layer2
 
 // COMPILE-TIME ASSERTION: ScanResult must be POD
-static_assert((std::is_trivially_copyable<Layer2::IPluginScanner::ScanResult>::value && std::is_standard_layout<Layer2::IPluginScanner::ScanResult>::value),
+static_assert(std::is_pod<Layer2::IPluginScanner::ScanResult>::value,
               "IPluginScanner::ScanResult must be Plain Old Data");
 
 // COMPILE-TIME ASSERTION: ScanProgress must be POD
-static_assert((std::is_trivially_copyable<Layer2::IPluginScanner::ScanProgress>::value && std::is_standard_layout<Layer2::IPluginScanner::ScanProgress>::value),
+static_assert(std::is_pod<Layer2::IPluginScanner::ScanProgress>::value,
               "IPluginScanner::ScanProgress must be Plain Old Data");
 
 // COMPILE-TIME ASSERTION: ScanConfig must be POD
-static_assert((std::is_trivially_copyable<Layer2::IPluginScanner::ScanConfig>::value && std::is_standard_layout<Layer2::IPluginScanner::ScanConfig>::value),
+static_assert(std::is_pod<Layer2::IPluginScanner::ScanConfig>::value,
               "IPluginScanner::ScanConfig must be Plain Old Data");
 
 // COMPILE-TIME ASSERTION: ValidationResult must be POD
-static_assert((std::is_trivially_copyable<Layer2::IPluginValidator::ValidationResult>::value && std::is_standard_layout<Layer2::IPluginValidator::ValidationResult>::value),
+static_assert(std::is_pod<Layer2::IPluginValidator::ValidationResult>::value,
               "IPluginValidator::ValidationResult must be Plain Old Data");

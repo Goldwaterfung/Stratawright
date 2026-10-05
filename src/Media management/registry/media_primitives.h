@@ -46,7 +46,7 @@ struct AssetInfo {
 };
 
 // COMPILE-TIME ASSERTIONS: AssetInfo must be POD
-static_assert((std::is_trivially_copyable<AssetInfo>::value && std::is_standard_layout<AssetInfo>::value), "AssetInfo must be Plain Old Data");
+static_assert(std::is_pod<AssetInfo>::value, "AssetInfo must be Plain Old Data");
 static_assert(sizeof(AssetInfo) == 104, "AssetInfo must have deterministic layout");
 
 /**
@@ -68,6 +68,6 @@ struct ImportOptions {
     }
 };
 
-static_assert((std::is_trivially_copyable<ImportOptions>::value && std::is_standard_layout<ImportOptions>::value), "ImportOptions must be Plain Old Data");
+static_assert(std::is_pod<ImportOptions>::value, "ImportOptions must be Plain Old Data");
 
 } // namespace MediaManagement

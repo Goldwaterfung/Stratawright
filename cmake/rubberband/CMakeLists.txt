@@ -42,7 +42,6 @@ target_compile_definitions(rubberband_lib
 # Warning Suppression (Legacy code)
 # -----------------------------------------------------------------------------
 if(NOT MSVC)
-    # NOTE: top-level adds -Werror globally; third-party must opt out.
     target_compile_options(rubberband_lib PRIVATE
         -Wno-error
         -Wno-unused-parameter
@@ -58,7 +57,6 @@ if(NOT MSVC)
         -Wno-cast-align
     )
 else()
-    # MSVC: top-level adds /WX; third-party must opt out.
     target_compile_options(rubberband_lib PRIVATE
         /WX-
         /wd4244 /wd4267 /wd4100 /wd4101 /wd4996 /wd4324

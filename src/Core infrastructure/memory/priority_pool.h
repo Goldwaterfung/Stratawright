@@ -14,20 +14,12 @@ namespace Layer2 {
 // Thread-safety: All public methods are wait-free and thread-safe
 class PriorityPool {
 private:
-    // Padding is intentional (cache-line isolation to prevent false sharing).
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4324)
-#endif
     struct TierPool {
         alignas(64) std::atomic<uint32_t> freeCount;
         alignas(64) std::atomic<uint32_t>* freeIndices;
         uint32_t capacity;
         uint32_t bufferOffset;
     };
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     TierPool tiers[4];  // REALTIME, HIGH, NORMAL, BACKGROUND
     AudioBuffer* buffers;

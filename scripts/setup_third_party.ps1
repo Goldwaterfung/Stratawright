@@ -50,13 +50,12 @@ Clone-Repo "CLAP_SDK" "https://github.com/free-audio/clap.git"
 Clone-Repo "eigen-5.0.0" "https://gitlab.com/libeigen/eigen.git"
 
 # 6. Rubber Band (Pitch Shifting & Time Stretching)
+# Uses upstream source + a committed CMake overlay (cmake/rubberband/CMakeLists.txt)
 Clone-Repo "rubberband-default" "https://github.com/breakfastquay/rubberband.git"
-$RubberbandCmake = Join-Path $ThirdPartyDir "rubberband-default\CMakeLists.txt"
-$SourceCmake = Join-Path $ProjectRoot "cmake\rubberband\CMakeLists.txt"
-if ((-not (Test-Path $RubberbandCmake)) -and (Test-Path $SourceCmake)) {
-    Write-Host "--> Installing RubberBand CMakeLists.txt..." -ForegroundColor Yellow
-    Copy-Item $SourceCmake $RubberbandCmake
-}
+Copy-Item -Path (Join-Path $ProjectRoot "cmake\rubberband\CMakeLists.txt") `
+          -Destination (Join-Path $ThirdPartyDir "rubberband-default\CMakeLists.txt") `
+          -Force
+Write-Host "✓ rubberband CMakeLists.txt overlay applied." -ForegroundColor Green
 
 # 7. SoundTouch (Time Stretching & Jitter Buffer)
 Clone-Repo "soundtouch" "https://codeberg.org/soundtouch/soundtouch.git"

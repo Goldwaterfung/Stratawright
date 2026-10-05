@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-
 #include "common/system_primitives.h"
 #include <cstdint>
 #include <string>
@@ -78,7 +76,7 @@ struct ExportConfig {
     uint32_t isolateTrackId;
 };
 
-static_assert((std::is_trivially_copyable<ExportConfig>::value && std::is_standard_layout<ExportConfig>::value), "ExportConfig must be Plain Old Data");
+static_assert(std::is_pod<ExportConfig>::value, "ExportConfig must be Plain Old Data");
 
 /**
  * @brief Status of an ongoing export job.
@@ -104,6 +102,6 @@ struct ExportProgress {
     char currentItemName[MAX_NAME_LENGTH]; ///< Name of currently rendering stem
 };
 
-static_assert((std::is_trivially_copyable<ExportProgress>::value && std::is_standard_layout<ExportProgress>::value), "ExportProgress must be Plain Old Data");
+static_assert(std::is_pod<ExportProgress>::value, "ExportProgress must be Plain Old Data");
 
 } // namespace MediaManagement
