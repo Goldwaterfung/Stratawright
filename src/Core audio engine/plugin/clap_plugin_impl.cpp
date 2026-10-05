@@ -1,7 +1,25 @@
 #include "clap_plugin_impl.h"
 #include <project_config.h>
 #include "Hardware/OS abstraction/audio/audio_utils.h"
+#if defined(_WIN32) || defined(__WIN32__)
+// Windows has no dlfcn.h: map dlopen/dlsym/dlclose onto LoadLibraryA API.
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+namespace {
+inline void* dlopen(const char* path, int) { return reinterpret_cast<void*>(::LoadLibraryA(path)); }
+inline void* dlsym(void* handle, const char* symbol) {
+    return reinterpret_cast<void*>(::GetProcAddress(static_cast<HMODULE>(handle), symbol));
+}
+inline int dlclose(void* handle) { return ::FreeLibrary(static_cast<HMODULE>(handle)) ? 0 : -1; }
+} // namespace
+#ifndef RTLD_NOW
+#define RTLD_NOW 0
+#endif
+#else
 #include <dlfcn.h>
+#endif
 #include <iostream>
 #include <algorithm>
 #include <vector>

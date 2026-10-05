@@ -1,9 +1,16 @@
 set(VST3_SDK_DIR "${CMAKE_SOURCE_DIR}/src/third_party/VST3_SDK")
 
+# au_plugin_impl.mm is Objective-C++ (macOS only); MSVC cannot compile it.
+if(APPLE)
+    set(_AU_SOURCES au_plugin_impl.mm)
+else()
+    set(_AU_SOURCES "")
+endif()
+
 add_library(layer3_plugin STATIC
     iplugin_manager.cpp
     vst3_plugin_impl.cpp
-    au_plugin_impl.mm
+    ${_AU_SOURCES}
     clap_plugin_impl.cpp
     ${VST3_SDK_DIR}/pluginterfaces/base/funknown.cpp
     ${VST3_SDK_DIR}/pluginterfaces/base/coreiids.cpp

@@ -1,6 +1,7 @@
 #pragma once
 #include "musical_composition/musical_primitives.h"
 #include <cstdint>
+#include <string>
 
 namespace composition {
 
