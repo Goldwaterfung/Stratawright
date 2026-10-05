@@ -58,7 +58,7 @@ elseif(WIN32)
     set(PLATFORM_NAME "windows")
     set(PLATFORM_WINDOWS TRUE)
     # Windows specific definitions
-    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS -D_SILENCE_ALL_CXX20_DEPRECATION_WARNINGS)
+    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
 elseif(UNIX)
     message(FATAL_ERROR "Linux platform support has been removed. Only macOS and Windows are supported.")
 else()
@@ -76,7 +76,7 @@ endif()
 
 # Warning flags
 if(MSVC)
-    add_compile_options(/W4 /WX /wd4996 /wd4005)
+    add_compile_options(/W4 /WX)
     # Additional safety checks for MSVC
     add_compile_options(/sdl)
 else()
@@ -93,8 +93,7 @@ else()
     endif()
     
     if(CLANG)
-        # Clang-specific warning adjustments: disable 64-bit int to float/double conversion errors in DSP/timing
-        add_compile_options(-Wno-implicit-int-float-conversion -Wno-error=implicit-int-float-conversion)
+        # Clang specific flags if any
     endif()
 endif()
 
@@ -141,6 +140,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
 
 # Find required packages
 find_package(Threads REQUIRED)
+
+# Fix macOS 14+ / Xcode 16+ linker error: ld: framework 'AGL' not found
+# Qt 6.8's FindWrapOpenGL attempts to link legacy AGL.framework which Apple removed.
+# Pre-creating WrapOpenGL::WrapOpenGL causes Qt to skip its internal AGL lookup.
+if(APPLE AND NOT TARGET WrapOpenGL::WrapOpenGL)
+    add_library(WrapOpenGL::WrapOpenGL INTERFACE IMPORTED)
+    target_link_libraries(WrapOpenGL::WrapOpenGL INTERFACE "-framework OpenGL")
+    set(WrapOpenGL_FOUND ON)
+endif()
 
 # Find Qt6 Components
 find_package(Qt6 COMPONENTS Widgets Core Gui Svg REQUIRED)

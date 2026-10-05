@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QGuiApplication>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "telemetry/iwaveform_cache_provider.h"
 #include "timeline/iarrangement_controller.h"

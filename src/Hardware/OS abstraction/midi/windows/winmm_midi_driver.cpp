@@ -1,9 +1,7 @@
 // winmm_midi_driver.cpp
 #ifdef _WIN32
 #include "winmm_midi_driver.h"
-#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
-#endif
 #include <windows.h>
 #include <mmsystem.h>
 #include <vector>
@@ -35,8 +33,8 @@ uint32_t WinMMMIDIDriver::getDeviceCount() {
 
 uint32_t WinMMMIDIDriver::getDeviceName(uint32_t deviceIndex, char* outName, uint32_t maxLength) {
     if (!outName || maxLength == 0) return 0;
-    MIDIINCAPSW caps;
-    if (midiInGetDevCapsW(deviceIndex, &caps, sizeof(MIDIINCAPSW)) == MMSYSERR_NOERROR) {
+    MIDIINCAPS caps;
+    if (midiInGetDevCaps(deviceIndex, &caps, sizeof(MIDIINCAPS)) == MMSYSERR_NOERROR) {
         // Convert WCHAR to UTF-8 string
         int len = WideCharToMultiByte(CP_UTF8, 0, caps.szPname, -1, outName, static_cast<int>(maxLength), NULL, NULL);
         if (len > 0) {

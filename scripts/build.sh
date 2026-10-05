@@ -155,9 +155,17 @@ if [ $USE_TSAN -eq 1 ]; then
     CMAKE_ARGS+=(-DUSE_TSAN=ON)
 fi
 
-# On macOS, auto-detect Homebrew Qt installation if CMAKE_PREFIX_PATH is not set
+# On macOS, auto-detect Qt installation (aqtinstall ~/Qt or Homebrew) if CMAKE_PREFIX_PATH is not set
 if [ "$(uname)" = "Darwin" ] && [ -z "$CMAKE_PREFIX_PATH" ]; then
-    if command -v brew &> /dev/null; then
+    FOUND_QT=""
+    for qt_dir in "$HOME/Qt/"*"/macos"; do
+        if [ -d "$qt_dir" ]; then
+            CMAKE_ARGS+=(-DCMAKE_PREFIX_PATH="$qt_dir")
+            FOUND_QT="$qt_dir"
+            break
+        fi
+    done
+    if [ -z "$FOUND_QT" ] && command -v brew &> /dev/null; then
         for qt_cand in qt@6 qt; do
             cand_prefix="$(brew --prefix "$qt_cand" 2>/dev/null || true)"
             if [ -n "$cand_prefix" ] && [ -d "$cand_prefix" ]; then
