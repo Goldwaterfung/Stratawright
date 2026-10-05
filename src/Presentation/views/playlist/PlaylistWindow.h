@@ -45,6 +45,7 @@ namespace presentation::views {
     class TempoTrackHeader;
     class TempoTrackCanvas;
     class PlaylistMenuButton;
+    class RenderJobsDialog;
 }
 
 namespace presentation::views {
@@ -281,6 +282,11 @@ private:
     QWidget*               m_tempoRow{nullptr};
     int                    m_expandedHeight{80};
     bool                   m_tempoCollapsed{true};
+
+    // Render export dialogs
+    void openExportDialog(int initialTab = 0);
+    void openRenderJobsDialog();
+    RenderJobsDialog*      m_renderJobsDialog{nullptr};
 };
 
 } // namespace presentation::views

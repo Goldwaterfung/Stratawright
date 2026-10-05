@@ -379,7 +379,7 @@ Run the setup script to install dependencies and libraries (RtAudio, RtMidi, lib
 - [x] **Clips & Timeline Editing** (`clip`, `midi`) - Fully Implemented
 - [x] **Bus Submixing & Auxiliary FX Routing** (`route`) - Fully Implemented
 - [x] **Non-Visual DSP Analysis & Audio Intelligence** (`analyze`) - Fully Implemented
-- [ ] **Stem Exports & Asynchronous Render Jobs** (`export`, `job`) - *In Progress*
+- [x] **Stem Exports & Asynchronous Render Jobs** (`export`, `job`) - Fully Implemented
 
 ---
 

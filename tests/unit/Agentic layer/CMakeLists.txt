@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.20)
 
 add_executable(agentic_layer_unit_tests
     analysis_handler_test.cpp
+    rendering_handler_test.cpp
 )
 
 target_include_directories(agentic_layer_unit_tests PRIVATE

@@ -42,6 +42,9 @@ signals:
     void openProjectRequested();
     void exportProjectJsonRequested();
     void importProjectJsonRequested();
+    void exportAudioRequested();
+    void exportStemsRequested();
+    void renderQueueRequested();
 
 
 private slots:

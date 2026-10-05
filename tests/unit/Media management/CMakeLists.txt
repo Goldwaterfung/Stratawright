@@ -75,3 +75,14 @@ add_test(NAME MediaWaveformTest COMMAND media_waveform_test)
 add_test(NAME MediaAnalysisTest COMMAND media_analysis_test)
 add_test(NAME MediaFinalTest COMMAND media_final_test)
 add_test(NAME MediaRoundtripTest COMMAND media_roundtrip_test)
+
+add_executable(export_stem_test export_stem_test.cpp)
+target_link_libraries(export_stem_test PRIVATE 
+    Catch2::Catch2WithMain
+    layer6_export
+    layer6_codecs
+    layer1_filesystem
+    layer2_memory
+    layer3_scheduler
+)
+add_test(NAME ExportStemTest COMMAND export_stem_test)

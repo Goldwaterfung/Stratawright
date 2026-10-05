@@ -69,6 +69,7 @@ add_library(layer7_views STATIC
     # Phase 8 — Dialogs
     playlist/dialogs/MergeArrangementDialog.cpp
     playlist/dialogs/RenderSettingsDialog.cpp
+    playlist/dialogs/RenderJobsDialog.cpp
     playlist/dialogs/ParameterWindow.cpp
     settings/settings_dialog.cpp
     

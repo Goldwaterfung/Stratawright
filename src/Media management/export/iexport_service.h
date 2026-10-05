@@ -84,6 +84,14 @@ public:
     virtual bool getProgress(uint64_t jobId, ExportProgress& outProgress) const = 0;
 
     /**
+     * @brief Retrieve snapshot of active/queued jobs.
+     * @param outJobs Pre-allocated array of ExportProgress.
+     * @param maxJobs Maximum number of entries to write.
+     * @return Number of entries written.
+     */
+    virtual uint32_t getActiveJobs(ExportProgress* outJobs, uint32_t maxJobs) const = 0;
+
+    /**
      * @brief Cancel an ongoing export.
      */
     virtual bool cancelExport(uint64_t jobId) = 0;

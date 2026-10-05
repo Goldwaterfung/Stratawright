@@ -49,6 +49,19 @@ void PlaylistMenuButton::buildMenu()
 
     projectMenu->addSeparator();
 
+    QAction* exportAudioAct = projectMenu->addAction(QStringLiteral("Export Audio Mixdown..."));
+    exportAudioAct->setData(QStringLiteral("export_audio"));
+    exportAudioAct->setShortcut(QKeySequence(QStringLiteral("Ctrl+R")));
+
+    QAction* exportStemsAct = projectMenu->addAction(QStringLiteral("Export Stems..."));
+    exportStemsAct->setData(QStringLiteral("export_stems"));
+    exportStemsAct->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+R")));
+
+    QAction* renderQueueAct = projectMenu->addAction(QStringLiteral("Render Queue / Jobs..."));
+    renderQueueAct->setData(QStringLiteral("render_queue"));
+
+    projectMenu->addSeparator();
+
     QAction* exportJsonAct = projectMenu->addAction(QStringLiteral("Export Session to JSON..."));
     exportJsonAct->setData(QStringLiteral("export_project_json"));
 
@@ -153,6 +166,12 @@ void PlaylistMenuButton::onMenuTriggered(QAction* action)
         emit saveProjectRequested();
     } else if (id == QStringLiteral("save_project_as")) {
         emit saveProjectAsRequested();
+    } else if (id == QStringLiteral("export_audio")) {
+        emit exportAudioRequested();
+    } else if (id == QStringLiteral("export_stems")) {
+        emit exportStemsRequested();
+    } else if (id == QStringLiteral("render_queue")) {
+        emit renderQueueRequested();
     } else if (id == QStringLiteral("export_project_json")) {
         emit exportProjectJsonRequested();
     } else if (id == QStringLiteral("import_project_json")) {

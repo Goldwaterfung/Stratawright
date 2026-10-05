@@ -13,6 +13,7 @@
 #include "PickerPanel.h"              // Phase 7
 #include "dialogs/MergeArrangementDialog.h"  // Phase 8
 #include "dialogs/RenderSettingsDialog.h"     // Phase 8
+#include "dialogs/RenderJobsDialog.h"
 #include "dialogs/ParameterWindow.h"
 #include "MiniPlaylistPreview.h"
 #include "ProjectPickerScreen.h"
@@ -358,6 +359,15 @@ void PlaylistWindow::wireSignals()
         connect(m_menuBtn, &PlaylistMenuButton::openProjectRequested, this, &PlaylistWindow::onOpenProject);
         connect(m_menuBtn, &PlaylistMenuButton::exportProjectJsonRequested, this, &PlaylistWindow::onExportProjectJson);
         connect(m_menuBtn, &PlaylistMenuButton::importProjectJsonRequested, this, &PlaylistWindow::onImportProjectJson);
+        connect(m_menuBtn, &PlaylistMenuButton::exportAudioRequested, this, [this]() {
+            openExportDialog(0);
+        });
+        connect(m_menuBtn, &PlaylistMenuButton::exportStemsRequested, this, [this]() {
+            openExportDialog(1);
+        });
+        connect(m_menuBtn, &PlaylistMenuButton::renderQueueRequested, this, [this]() {
+            openRenderJobsDialog();
+        });
         connect(m_menuBtn, &PlaylistMenuButton::snapSelected, this, [this](bridge::SnapMode mode) {
             if (m_ctrl.inputMode) {
                 m_ctrl.inputMode->setSnapMode(mode);
@@ -627,10 +637,7 @@ void PlaylistWindow::installKeyboardShortcuts()
         onOpenProject();
     });
     sm.bind(this, ShortcutAction::Playlist_OpenExportDialog, [this]() {
-        RenderSettingsDialog dialog(m_ctrl.render, m_ctrl.timeline, m_ctrl.arrangement, this);
-        if (dialog.exec() == QDialog::Accepted) {
-            qDebug() << "RenderSettingsDialog: Export finished successfully!";
-        }
+        openExportDialog(0);
     });
 
     // Zoom shortcuts
@@ -1828,6 +1835,24 @@ void PlaylistWindow::onInsertBlankMidiClip() {
     if (duration == 0) duration = 44100 * 4;
     m_ctrl.arrangement->insertMidiClip(targetTrack, frame, duration);
     if (m_canvas) m_canvas->update();
+}
+
+void PlaylistWindow::openExportDialog(int initialTab) {
+    RenderSettingsDialog dialog(m_ctrl.render, m_ctrl.timeline, m_ctrl.arrangement, m_ctrl.track, this);
+    dialog.setCurrentTab(initialTab == 1 ? RenderTab::StemExport : RenderTab::MasterBounce);
+    connect(&dialog, &RenderSettingsDialog::jobEnqueued, this, [this](uint64_t /*jobId*/) {
+        openRenderJobsDialog();
+    });
+    dialog.exec();
+}
+
+void PlaylistWindow::openRenderJobsDialog() {
+    if (!m_renderJobsDialog) {
+        m_renderJobsDialog = new RenderJobsDialog(m_ctrl.render, this);
+    }
+    m_renderJobsDialog->show();
+    m_renderJobsDialog->raise();
+    m_renderJobsDialog->activateWindow();
 }
 
 } // namespace presentation::views

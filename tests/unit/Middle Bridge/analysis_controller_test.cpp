@@ -154,6 +154,19 @@ public:
 
 class MockRenderController : public bridge::IRenderController {
 public:
+    uint64_t enqueueRenderJob(const RenderConfiguration&) override { return 1; }
+    bool getJobInfo(uint64_t, RenderJobInfo&) const override { return false; }
+    std::vector<RenderJobInfo> listAllJobs() const override { return {}; }
+    void cancelJob(uint64_t) override {}
+    void getSupportedCapabilities(
+        std::vector<RenderFormat>& outFormats,
+        std::vector<uint32_t>& outSampleRates,
+        std::vector<uint8_t>& outBitDepths) const override {
+        outFormats = { RenderFormat::WAV };
+        outSampleRates = { 44100, 48000 };
+        outBitDepths = { 16, 24 };
+    }
+
     void startOfflineRender(const RenderConfiguration&) override {}
     bool isRenderingActive() const override { return false; }
     float getRenderProgress() const override { return 1.0f; }

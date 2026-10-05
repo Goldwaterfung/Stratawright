@@ -18,6 +18,7 @@
 #include <cstring>
 #include <cmath>
 #include <random>
+#include <filesystem>
 
 namespace MediaManagement {
 
@@ -45,6 +46,10 @@ public:
         progress->jobId = jobId;
         progress->status = ExportStatus::PENDING;
         progress->progress = 0.0f;
+        progress->errorMessage[0] = '\0';
+        progress->currentItem = 1;
+        progress->totalItems = config.stemExport ? (config.numStemNodes > 0 ? config.numStemNodes : 1) : 1;
+        progress->currentItemName[0] = '\0';
         
         jobs_[jobId] = { config, callback, nullptr, context, progress, {} };
         jobQueue_.push(jobId);
@@ -67,6 +72,10 @@ public:
         progress->jobId = jobId;
         progress->status = ExportStatus::PENDING;
         progress->progress = 0.0f;
+        progress->errorMessage[0] = '\0';
+        progress->currentItem = 1;
+        progress->totalItems = 1;
+        progress->currentItemName[0] = '\0';
         
         ExportConfig config{};
         config.startSample = startSample;
@@ -90,6 +99,19 @@ public:
             return true;
         }
         return false;
+    }
+
+    uint32_t getActiveJobs(ExportProgress* outJobs, uint32_t maxJobs) const override {
+        if (!outJobs || maxJobs == 0) return 0;
+        std::unique_lock lock(mutex_);
+        uint32_t count = 0;
+        for (const auto& [id, job] : jobs_) {
+            if (count >= maxJobs) break;
+            if (job.progress) {
+                outJobs[count++] = *(job.progress);
+            }
+        }
+        return count;
     }
 
     bool cancelExport(uint64_t jobId) override {
@@ -426,8 +448,23 @@ private:
         ebur128_destroy(&ebustate);
     }
 
-    void processSingleExport(JobInternal& job, uint32_t outputPathId, NodeID isolateNode) {
-        job.progress->status = ExportStatus::PREPARING;
+    static const char* formatExtension(ExportFormat format) {
+        switch (format) {
+            case ExportFormat::WAV:  return ".wav";
+            case ExportFormat::AIFF: return ".aiff";
+            case ExportFormat::FLAC: return ".flac";
+            case ExportFormat::OGG:  return ".ogg";
+            case ExportFormat::MP3:  return ".mp3";
+            default:                 return ".wav";
+        }
+    }
+
+    void processSingleExport(JobInternal& job, uint32_t outputPathId, NodeID isolateNode, uint32_t stemIndex = 0, uint32_t totalStems = 1) {
+        if (stemIndex == 0) {
+            job.progress->status = ExportStatus::PREPARING;
+        }
+        job.progress->currentItem = stemIndex + 1;
+        job.progress->totalItems = totalStems;
         
         std::string outputPath;
         if (!strings_->getString(outputPathId, outputPath)) {
@@ -435,6 +472,11 @@ private:
             std::strncpy(job.progress->errorMessage, "Invalid output path ID", 127);
             return;
         }
+
+        std::filesystem::path p(outputPath);
+        std::string fname = p.filename().string();
+        std::strncpy(job.progress->currentItemName, fname.c_str(), sizeof(job.progress->currentItemName) - 1);
+        job.progress->currentItemName[sizeof(job.progress->currentItemName) - 1] = '\0';
 
         int sfFormat = formatToSndFile(job.config.format, job.config.bitDepth);
         (void)job.config.endSample; // Suppress unused if needed, or use it
@@ -467,31 +509,49 @@ private:
         applyMetadata(job, writer);
 
         job.progress->status = ExportStatus::PROCESSING;
-        renderToWriter(job, writer, gainMultiplier, isolateNode);
+        renderToWriter(job, writer, gainMultiplier, isolateNode, stemIndex, totalStems);
 
         if (job.progress->status == ExportStatus::PROCESSING) {
-            job.progress->status = ExportStatus::COMPLETED;
-            job.progress->progress = 1.0f;
+            if (stemIndex + 1 >= totalStems) {
+                job.progress->status = ExportStatus::COMPLETED;
+                job.progress->progress = 1.0f;
+            }
         }
         
         writer.close();
     }
 
     void processStemExport(JobInternal& job) {
-        // For stems, we append the node ID or name to the path
         std::string basePath;
         strings_->getString(job.config.outputPathId, basePath);
         
         size_t dotPos = basePath.find_last_of('.');
         std::string pathNoExt = (dotPos == std::string::npos) ? basePath : basePath.substr(0, dotPos);
-        std::string ext = (dotPos == std::string::npos) ? "" : basePath.substr(dotPos);
+        std::string ext = (dotPos == std::string::npos) ? formatExtension(job.config.format) : basePath.substr(dotPos);
 
-        for (uint32_t i = 0; i < job.config.numStemNodes; ++i) {
+        uint32_t totalStems = job.config.numStemNodes;
+        job.progress->totalItems = totalStems;
+
+        for (uint32_t i = 0; i < totalStems; ++i) {
             NodeID node = job.config.stemNodes[i];
-            std::string stemPath = pathNoExt + "_stem_" + std::to_string(node.id) + ext;
+            
+            std::string stemPath;
+            if (job.config.stemFileNames[i][0] != '\0') {
+                std::filesystem::path p(basePath);
+                if (std::filesystem::is_directory(p) || basePath.back() == '/' || basePath.back() == '\\' || dotPos == std::string::npos) {
+                    stemPath = (p / job.config.stemFileNames[i]).string();
+                } else {
+                    std::filesystem::path parentDir = p.parent_path();
+                    std::string stemFile = p.stem().string() + "_" + job.config.stemFileNames[i];
+                    stemPath = (parentDir / stemFile).string();
+                }
+            } else {
+                stemPath = pathNoExt + "_stem_" + std::to_string(node.id) + ext;
+            }
+            
             uint32_t stemPathId = strings_->registerString(stemPath);
             
-            processSingleExport(job, stemPathId, node);
+            processSingleExport(job, stemPathId, node, i, totalStems);
             
             if (job.progress->status == ExportStatus::CANCELLED || job.progress->status == ExportStatus::FAILED) {
                 break;
@@ -500,8 +560,8 @@ private:
     }
 
     float performNormalizationPass(JobInternal& job, NodeID isolateNode) {
-        (void)isolateNode;
-        uint64_t totalFrames = job.config.endSample - job.config.startSample;
+        uint64_t tailFrames = (static_cast<uint64_t>(job.config.tailDurationMs) * job.config.sampleRate) / 1000;
+        uint64_t totalFrames = (job.config.endSample + tailFrames) - job.config.startSample;
         uint64_t processedFrames = 0;
         float maxPeak = 0.0f;
 
@@ -518,12 +578,29 @@ private:
         context.maxBlockSize = 1024;
         context.isolateNodeId = isolateNode;
         context.transportState = TransportState::PLAYING;
+        context.timelineSnapshot = kernel_->getActiveTimelineSnapshot();
+        context.midiClipDataProvider = midiProvider_;
+
+        // Pre-roll / Flush Latency
+        uint32_t totalLatency = kernel_->getTotalLatency();
+        if (totalLatency > 0) {
+            uint32_t remainingPreRoll = totalLatency;
+            while (remainingPreRoll > 0) {
+                uint32_t framesToProcess = std::min(remainingPreRoll, 1024u);
+                int64_t preRollPos = static_cast<int64_t>(job.config.startSample) - static_cast<int64_t>(remainingPreRoll);
+                context.transport.positionSample = static_cast<uint64_t>(preRollPos);
+                context.currentBlockSize = framesToProcess;
+
+                kernel_->process(nullptr, outputPlanes.data(), job.config.numChannels, framesToProcess, &context);
+                remainingPreRoll -= framesToProcess;
+            }
+        }
 
         while (processedFrames < totalFrames && job.progress->status != ExportStatus::CANCELLED) {
             std::atomic_thread_fence(std::memory_order_acquire);
             uint32_t toProcess = static_cast<uint32_t>(std::min(static_cast<uint64_t>(1024), totalFrames - processedFrames));
             context.currentBlockSize = toProcess;
-            context.transport.positionSample = job.config.startSample + processedFrames + kernel_->getTotalLatency();
+            context.transport.positionSample = job.config.startSample + processedFrames;
 
             kernel_->process(nullptr, outputPlanes.data(), job.config.numChannels, toProcess, &context);
 
@@ -537,9 +614,9 @@ private:
         return maxPeak;
     }
 
-    void renderToWriter(JobInternal& job, SndFileWriter& writer, float gain, NodeID isolateNode) {
-        (void)isolateNode;
-        uint64_t totalFrames = job.config.endSample - job.config.startSample;
+    void renderToWriter(JobInternal& job, SndFileWriter& writer, float gain, NodeID isolateNode, uint32_t stemIndex = 0, uint32_t totalStems = 1) {
+        uint64_t tailFrames = (static_cast<uint64_t>(job.config.tailDurationMs) * job.config.sampleRate) / 1000;
+        uint64_t totalFrames = (job.config.endSample + tailFrames) - job.config.startSample;
         uint64_t processedFrames = 0;
         
         std::vector<float> outputData(1024 * job.config.numChannels);
@@ -554,6 +631,8 @@ private:
         context.maxBlockSize = 1024;
         context.isolateNodeId = isolateNode;
         context.transportState = TransportState::PLAYING;
+        context.timelineSnapshot = kernel_->getActiveTimelineSnapshot();
+        context.midiClipDataProvider = midiProvider_;
 
         std::mt19937 gen(42); // Deterministic seed for dither
         std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
@@ -598,15 +677,28 @@ private:
                         val += d;
                     }
                     
+                    // Fixed-point PCM (16/24-bit) cannot store values > 0 dBFS (+-1.0f).
+                    // Clamp to prevent integer overflow wrap-around / foldback distortion.
+                    if (job.config.bitDepth != ExportBitDepth::BIT_32_FLOAT) {
+                        val = std::clamp(val, -1.0f, 1.0f);
+                    }
+
                     interleaved[f * job.config.numChannels + c] = val;
                 }
             }
 
             writer.writeFrames(interleaved.data(), toProcess);
             processedFrames += toProcess;
-            job.progress->progress = static_cast<float>(processedFrames) / totalFrames;
+            
+            float fileProgress = static_cast<float>(processedFrames) / (totalFrames > 0 ? totalFrames : 1);
+            if (totalStems > 1) {
+                job.progress->progress = (static_cast<float>(stemIndex) + fileProgress) / static_cast<float>(totalStems);
+            } else {
+                job.progress->progress = fileProgress;
+            }
         }
     }
+
 
     void applyMetadata(JobInternal& job, SndFileWriter& writer) {
         auto setMeta = [&](uint32_t id, int sfKey) {

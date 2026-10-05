@@ -21,6 +21,9 @@ public:
     SndFileWriter(const std::string& filePath, int sampleRate, int numChannels, int format)
         : file_(filePath.c_str(), SFM_WRITE, format, numChannels, sampleRate)
     {
+        if (isValid()) {
+            file_.command(SFC_SET_CLIPPING, NULL, SF_TRUE);
+        }
     }
 
     ~SndFileWriter() override = default;

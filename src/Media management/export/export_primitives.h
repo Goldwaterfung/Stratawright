@@ -56,8 +56,15 @@ struct ExportConfig {
     // Stem Export Support
     bool stemExport;
     uint32_t numStemNodes;
-    NodeID stemNodes[32];       ///< Nodes (tracks/buses) to export as individual stems
+    NodeID stemNodes[MAX_STEM_TRACKS];       ///< Nodes (tracks/buses) to export as individual stems
+    char stemFileNames[MAX_STEM_TRACKS][MAX_NAME_LENGTH]; ///< Explicit file names for stems
     
+    // Routing & Effect Policies
+    bool printAuxReturnsIntoStems;
+    bool activeSidechainsDuringExport;
+    bool allowMutedGhostSidechainTriggers;
+    uint32_t tailDurationMs;
+
     // Metadata (String handles from Layer 2)
     uint32_t titleId;
     uint32_t artistId;
@@ -87,8 +94,12 @@ enum class ExportStatus : uint8_t {
 struct ExportProgress {
     uint64_t jobId;
     ExportStatus status;
+    uint8_t _pad[7];            ///< Alignment padding
     float progress;             ///< 0.0 to 1.0
     char errorMessage[128];
+    uint32_t currentItem;       ///< 1-based index of current stem being processed
+    uint32_t totalItems;        ///< Total stems (1 for master bounce)
+    char currentItemName[MAX_NAME_LENGTH]; ///< Name of currently rendering stem
 };
 
 static_assert(std::is_pod<ExportProgress>::value, "ExportProgress must be Plain Old Data");

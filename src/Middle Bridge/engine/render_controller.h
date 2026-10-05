@@ -2,6 +2,9 @@
 #include "Middle Bridge/engine/irender_controller.h"
 #include "Media management/export/iexport_service.h"
 #include <string>
+#include <vector>
+#include <unordered_map>
+#include <mutex>
 
 namespace Layer2 { class IStringRegistry; }
 namespace Layer3 { class IAudioEngine; }
@@ -16,6 +19,16 @@ public:
     ~RenderController() override;
 
     // IRenderController overrides
+    uint64_t enqueueRenderJob(const RenderConfiguration& config) override;
+    bool getJobInfo(uint64_t jobId, RenderJobInfo& outInfo) const override;
+    std::vector<RenderJobInfo> listAllJobs() const override;
+    void cancelJob(uint64_t jobId) override;
+
+    void getSupportedCapabilities(
+        std::vector<RenderFormat>& outFormats,
+        std::vector<uint32_t>& outSampleRates,
+        std::vector<uint8_t>& outBitDepths) const override;
+
     void startOfflineRender(const RenderConfiguration& config) override;
     bool isRenderingActive() const override;
     float getRenderProgress() const override;
@@ -33,12 +46,18 @@ private:
     ISessionManager* m_sessionManager = nullptr;
     Layer3::IAudioEngine* m_audioEngine = nullptr;
 
-    uint64_t m_activeJobId = 0;
-    bool m_hasActiveJob = false;
+    mutable std::mutex m_jobsMutex;
+    mutable std::unordered_map<uint64_t, RenderJobInfo> m_jobs;
+    std::vector<uint64_t> m_jobOrder;
+
+    mutable uint64_t m_activeJobId = 0;
+    mutable bool m_hasActiveJob = false;
     mutable float m_progress = 0.0f;
     mutable std::string m_statusMsg;
     mutable bool m_hasFailed = false;
     mutable char m_lastError[256] = "";
+
+    void updateJobInfoLocked(uint64_t jobId, RenderJobInfo& job) const;
 
     static void onExportCompleted(uint64_t jobId, bool success, const char* error, void* context);
     static void onAnalysisCompleted(uint64_t jobId, bool success, const MediaManagement::IExportService::AnalysisResult& result, const char* error, void* context);

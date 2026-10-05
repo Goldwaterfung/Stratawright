@@ -39,6 +39,7 @@ constexpr uint32_t MAX_NAME_LENGTH = 64;
 constexpr uint32_t MAX_COMMENT_LENGTH = 1024;
 constexpr uint32_t MAX_PATH_LENGTH = 512;
 constexpr uint32_t MAX_PLUGIN_NAME_LENGTH = 128;
+constexpr uint32_t MAX_STEM_TRACKS = 64;
 
 namespace SystemDefaults {
     // Parameter Default States (Normalized [0.0, 1.0])
@@ -735,18 +736,65 @@ static_assert(std::is_pod<MergeFilterOptions>::value, "MergeFilterOptions must b
 enum class RenderFormat : uint8_t {
     WAV = 0,
     FLAC = 1,
-    MP3 = 2
+    MP3 = 2,
+    AIFF = 3,
+    OGG = 4
 };
 
+enum class RenderJobState : uint8_t {
+    QUEUED = 0,
+    PREPARING = 1,
+    PROCESSING = 2,
+    FINALIZING = 3,
+    COMPLETED = 4,
+    FAILED = 5,
+    CANCELLED = 6
+};
+
+struct RenderJobInfo {
+    uint64_t jobId;
+    RenderJobState state;
+    uint8_t _pad0[7];                     // Explicit alignment padding
+    float progress;                       // Range [0.0f, 1.0f]
+    char jobName[MAX_NAME_LENGTH];         // e.g. "Full Mixdown" or "Stem Export (16 tracks)"
+    char outputPath[MAX_PATH_LENGTH];      // Target file or directory
+    char statusMessage[128];              // Human-readable status line
+    uint32_t currentItemIndex;            // For stems: current track index (1-based)
+    uint32_t totalItemCount;              // 1 for master, N for stems
+    bool isStemExport;
+    uint8_t _pad1[3];
+};
+
+static_assert(std::is_pod<RenderJobInfo>::value, "RenderJobInfo must be Plain Old Data");
+
 struct RenderConfiguration {
-    char outputFilePath[MAX_PATH_LENGTH];
+    char outputFilePath[MAX_PATH_LENGTH];  // File path for single bounce, or destination folder for stems
     RenderFormat format;
-    uint8_t bitDepth;          // 16, 24, or 32
-    bool enableDither;         // Inject TPDF dither
-    bool splitPlanar;          // Export L/R files separately
+    uint8_t bitDepth;                      // 16, 24, or 32
+    bool enableDither;                     // Inject TPDF dither
+    bool splitPlanar;                      // Export L/R files separately
     uint32_t sampleRate;
     uint64_t startFrame;
     uint64_t endFrame;
+
+    // Normalization
+    bool normalize;
+    float normalizationdB;                  // Target peak in dBFS (e.g. -0.1f)
+
+    // Stem Export
+    bool stemExport;
+    uint32_t numStemTracks;
+    uint32_t stemTrackIds[MAX_STEM_TRACKS]; // 1-based Track IDs selected for export
+    char stemNamingPattern[64];            // Default: "{track_index:02d}_{track_name}", Option: "{project}_{track_name}"
+
+    // Timeline & Tail Settings (Timeline Ruler Loop Region & Reverb Tail)
+    bool useLoopRegion;                     // If true, strictly bound to loop start/end from PlaylistTimelineRuler
+    uint32_t tailDurationMs;                // Tail in milliseconds for reverb/delay decay when loop region is not active
+
+    // Aux Send & Sidechain Policies
+    bool printAuxReturnsIntoStems;          // False (default): Aux tracks exported as separate stems. True: print send returns into track stem
+    bool activeSidechainsDuringExport;      // True (default): keep upstream sidechain pumping active
+    bool allowMutedGhostSidechainTriggers;  // True (default): muted/ghost tracks still feed sidechain inputs
 };
 
 static_assert(std::is_pod<RenderConfiguration>::value, "RenderConfiguration must be Plain Old Data");

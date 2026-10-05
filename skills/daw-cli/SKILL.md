@@ -495,6 +495,84 @@ daw-cli analyze stereo-width --track 1 [--format json|tsv|kv|pretty]
 
 ---
 
+## 8. Export & Asynchronous Render Jobs (`export`, `job`)
+
+The `export` and `job` command suites allow agents to trigger offline full-mix bounces, export multi-track stems, and asynchronously query or cancel active rendering jobs.
+
+### 8.1 Master Mixdown Export (`export master`)
+
+Enqueues an offline bounce of the full master arrangement or loop selection.
+
+```bash
+daw-cli export master --output <path> [options]
+```
+
+- **Options**:
+  - `--output, -o <path>`: Destination audio file path (e.g. `/tmp/mixdown.wav`).
+  - `--format <wav|flac|mp3|aiff|ogg>`: Audio codec (default: `wav`).
+  - `--bit-depth <16|24|32>`: Sample precision (default: `24`).
+  - `--sample-rate <uint>`: Target sample rate in Hz (default: project sample rate).
+  - `--dither <on|off>`: Psychoacoustic TPDF dither injection (default: `on`).
+  - `--split-planar <on|off>`: Export split Left/Right planar files (default: `off`).
+  - `--normalize <on|off>`: Enable peak normalization (default: `off`).
+  - `--norm-db <float>`: Target peak in dBFS (e.g. `-0.1`).
+  - `--range <full|loop>`: Render arrangement timeline or active loop region (default: `loop` if looping is enabled, else `full`).
+  - `--tail-ms <uint>`: Reverb/decay tail in milliseconds for full arrangement bounces (default: `1000`).
+- **Success Symbol**: `EXPORT_JOB_STARTED`
+- **Output Fields**: `job_id`, `type`, `format`, `sample_rate`, `bit_depth`, `destination`
+
+### 8.2 Stem Export (`export stems`)
+
+Enqueues multi-track stem exports across selected session tracks.
+
+```bash
+daw-cli export stems --output <directory> [options]
+```
+
+- **Options**:
+  - `--output, -o <directory>`: Target directory where stem files will be saved (e.g. `/tmp/stems/`).
+  - `--track <range|all>`: Track index range (`1..8`, `1,2,5`, or `all`).
+  - `--naming-pattern <pattern>`: Filename pattern token (default: `"{track_index:02d}_{track_name}"`, option: `"{project}_{track_name}"`).
+  - `--format <wav|flac|mp3|aiff|ogg>`: Codec (default: `wav`).
+  - `--bit-depth <16|24|32>`: Sample bit depth (default: `24`).
+  - `--sample-rate <uint>`: Target sample rate (default: project sample rate).
+  - `--print-sends`: Print auxiliary send returns into track stems (wet bounce).
+  - `--bypass-sidechain`: Disable mixdown sidechain ducking during export (default: active).
+  - `--range <full|loop>`: Bounds selection.
+  - `--tail-ms <uint>`: Decay tail duration in milliseconds.
+  - `--normalize <on|off>`: Stem peak normalization.
+  - `--norm-db <float>`: Target peak in dBFS.
+- **Success Symbol**: `STEM_EXPORT_STARTED`
+- **Output Fields**: `job_id`, `type`, `total_tracks`, `format`, `sample_rate`, `destination`
+
+### 8.3 Job Queue Management (`job`)
+
+#### Listing Jobs
+Lists all active, queued, and completed render jobs.
+```bash
+daw-cli job list [--format json|tsv|kv|pretty]
+```
+- **Success Symbol**: `JOB_LIST`
+- **Output Columns**: `JOB_ID`, `NAME`, `TYPE`, `STATUS`, `PROGRESS`, `OUTPUT`
+
+#### Querying Job Status
+Queries real-time progress and status details for a specific job.
+```bash
+daw-cli job status --id <job_id> [--format json|tsv|kv|pretty]
+```
+- **Success Symbol**: `JOB_STATUS`
+- **Output Fields**: `job_id`, `name`, `type`, `status`, `progress`, `status_message`, `destination`, `current_track_index`, `total_tracks`
+
+#### Cancelling a Job
+Aborts an in-progress or queued background render job.
+```bash
+daw-cli job cancel --id <job_id>
+```
+- **Success Symbol**: `JOB_CANCELLED`
+- **Output Fields**: `job_id`
+
+---
+
 ## Common Workflows
 
 ### Workflow A: Setting Up a 4-Track Drum Session
@@ -553,6 +631,21 @@ daw-cli analyze phase-align --track 3 --vs 4
 
 # 4. Perform offline windowed LUFS & True-Peak telemetry on Master Output (Track 10)
 daw-cli analyze window --track 10 --start 1.1.0 --dur 4.0.0
+```
+
+### Workflow E: Bouncing Master Mixdown and Exporting Stems
+```bash
+# 1. Export 24-bit 48kHz master mixdown with -0.1 dBFS normalization
+daw-cli export master --output "/tmp/mixdown.wav" --format wav --bit-depth 24 --normalize on --norm-db -0.1
+
+# 2. Export drum stems (tracks 1 to 4) to directory
+daw-cli export stems --output "/tmp/stems/" --track 1..4 --format wav --bit-depth 24
+
+# 3. Check active render jobs
+daw-cli job list
+
+# 4. Poll specific job status until completed
+daw-cli job status --id 1
 ```
 
 ---

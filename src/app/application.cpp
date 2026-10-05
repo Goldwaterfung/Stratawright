@@ -307,7 +307,8 @@ void Application::onBootCompleted() {
             compositionRoot.getBrowserController(),
             compositionRoot.getArrangementController(),
             compositionRoot.getMidiEditorController(),
-            compositionRoot.getAnalysisController()
+            compositionRoot.getAnalysisController(),
+            compositionRoot.getRenderController()
         });
     }
 

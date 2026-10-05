@@ -34,8 +34,12 @@ void CommandDispatcher::registerHandlers() {
     m_verbHandlers["midi"]      = [this](const ParsedArgs& args) { return ClipHandler::handleCommand(args, m_controllers.arrangementController, m_controllers.midiEditorController, m_controllers.timelineController); };
     m_verbHandlers["route"]     = [this](const ParsedArgs& args) { return RoutingHandler::handleCommand(args, m_controllers.trackController); };
     m_verbHandlers["analyze"]   = [this](const ParsedArgs& args) { return AnalysisHandler::handleCommand(args, m_controllers.analysisController); };
-    m_verbHandlers["export"]    = [](const ParsedArgs& args) { return RenderingHandler::handleCommand(args); };
-    m_verbHandlers["job"]       = [](const ParsedArgs& args) { return RenderingHandler::handleCommand(args); };
+    m_verbHandlers["export"]    = [this](const ParsedArgs& args) {
+        return RenderingHandler::handleCommand(args, m_controllers.renderController, m_controllers.trackController, m_controllers.timelineController, m_controllers.arrangementController);
+    };
+    m_verbHandlers["job"]       = [this](const ParsedArgs& args) {
+        return RenderingHandler::handleCommand(args, m_controllers.renderController, m_controllers.trackController, m_controllers.timelineController, m_controllers.arrangementController);
+    };
 }
 
 ExecutionResult CommandDispatcher::dispatch(const ParsedArgs& args) {
