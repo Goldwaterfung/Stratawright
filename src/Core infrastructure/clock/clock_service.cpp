@@ -45,15 +45,15 @@ public:
 
     uint64_t getTimestampForSample(uint32_t sampleOffset) const override {
         uint64_t start = cycleStartTime.load(std::memory_order_acquire);
-        return start + static_cast<uint64_t>(sampleOffset * nsPerSample);
+        return start + static_cast<uint64_t>(static_cast<double>(sampleOffset) * nsPerSample);
     }
 
     uint32_t getOffsetForTimestamp(uint64_t rawTimestamp) const override {
         uint64_t start = cycleStartTime.load(std::memory_order_acquire);
         if (rawTimestamp <= start) return 0;
-        
+
         uint64_t diff = rawTimestamp - start;
-        uint32_t offset = static_cast<uint32_t>(diff / nsPerSample);
+        uint32_t offset = static_cast<uint32_t>(static_cast<double>(diff) / nsPerSample);
         
         uint32_t maxFrames = currentNumFrames.load(std::memory_order_acquire);
         return (offset < maxFrames) ? offset : (maxFrames - 1);

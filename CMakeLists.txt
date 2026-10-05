@@ -131,12 +131,13 @@ else()
     add_definitions(-DENABLE_SIMD=0)
 endif()
 
-# Release build optimizations
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g -DNDEBUG")
-
-# Debug build flags
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+# Release build optimizations (GCC/Clang only; MSVC uses /O2 via CMAKE_CXX_FLAGS_RELEASE_INIT)
+if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g -DNDEBUG")
+    # Debug build flags
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+endif()
 
 # Find required packages
 find_package(Threads REQUIRED)
@@ -196,6 +197,20 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default/CMakeLists
     file(COPY "${CMAKE_SOURCE_DIR}/cmake/rubberband/CMakeLists.txt" DESTINATION "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default")
 endif()
 add_subdirectory(src/third_party/rubberband-default)
+
+# Third-party warning opt-out: top-level adds -Werror (/WX) globally, which
+# upstream SoundTouch/RubberBand sources cannot satisfy (old-style casts,
+# sign conversions, double promotions). Neutralize warnings-as-errors for
+# whatever target names the vendored/upstream CMake files declare.
+foreach(_tp_tgt IN ITEMS SoundTouch soundtouch soundtouch_lib soundtouch_analysis rubberband_lib RubberBand)
+    if(TARGET ${_tp_tgt})
+        if(MSVC)
+            target_compile_options(${_tp_tgt} PRIVATE /WX- /wd4244 /wd4267 /wd4100 /wd4101 /wd4996 /wd4324 /wd4456 /wd4457 /wd4458 /wd4459)
+        else()
+            target_compile_options(${_tp_tgt} PRIVATE -Wno-error -Wno-conversion -Wno-sign-conversion -Wno-old-style-cast -Wno-double-promotion -Wno-implicit-int-float-conversion -Wno-cast-align -Wno-unused-parameter -Wno-pedantic)
+        endif()
+    endif()
+endforeach()
 
 # Layer 4: DSP Processing Nodes
 add_subdirectory("src/DSP nodes/channelstrip")

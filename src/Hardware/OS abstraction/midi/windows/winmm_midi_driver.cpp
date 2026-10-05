@@ -134,14 +134,17 @@ VirtualPortHandle WinMMMIDIDriver::createVirtualInputPort(const char* name) {
     // WinMM doesn't natively support creating virtual ports.
     // Usually require a driver like loopMIDI.
     // For now we return invalid but could potentially use a third-party driver if available.
+    (void)name;
     return VirtualPortHandle::invalid();
 }
 
 bool WinMMMIDIDriver::closeVirtualPort(VirtualPortHandle handle) {
+    (void)handle;
     return false;
 }
 
 void CALLBACK WinMMMIDIDriver::midiInCallback(HMIDIIN hMidiIn, UINT wMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2) {
+    (void)hMidiIn;
     // dwInstance is our InputPort pointer
     InputPort* port = reinterpret_cast<InputPort*>(dwInstance);
     if (!port || !port->queue) return;

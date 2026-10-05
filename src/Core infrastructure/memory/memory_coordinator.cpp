@@ -12,7 +12,7 @@ namespace {
 
 // Helper: Map MemoryPriority to Layer1::ThreadPriority
 // Note: Currently unused but reserved for future thread priority integration
-Layer1::ThreadPriority mapMemoryPriority(IMemoryCoordinator::MemoryPriority memPrio)
+[[maybe_unused]] Layer1::ThreadPriority mapMemoryPriority(IMemoryCoordinator::MemoryPriority memPrio)
 {
     (void)memPrio;  // Suppress unused warning for now
     switch (memPrio) {
@@ -31,12 +31,7 @@ Layer1::ThreadPriority mapMemoryPriority(IMemoryCoordinator::MemoryPriority memP
 
 } // anonymous namespace
 
-// Reference the function to suppress unused warning
-// This will be used when implementing background thread expansion
-void force_reference_mapMemoryPriority()
-{
-    (void)mapMemoryPriority;  // Suppress unused warning
-}
+
 
 class MemoryCoordinatorImpl : public IMemoryCoordinator {
 private:

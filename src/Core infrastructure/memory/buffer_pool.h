@@ -18,12 +18,20 @@ namespace Layer2 {
 //   - reconfigure: NOT RT-safe, requires exclusive access
 class BufferPool {
 private:
+    // Padding is intentional (cache-line isolation to prevent false sharing).
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4324)
+#endif
     struct BufferMetadata {
         alignas(64) std::atomic<uint32_t> generation;
         uint32_t maxChannels;
         uint32_t maxFrames;
         alignas(64) std::atomic<bool> inUse;
     };
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
     std::vector<AudioBuffer> buffers;
     BufferMetadata* metadata;  // Raw array (atomics not compatible with vector)

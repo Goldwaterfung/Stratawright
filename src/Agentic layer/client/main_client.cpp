@@ -1,4 +1,5 @@
 #include "../common/ipc_protocol.h"
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <iostream>
@@ -77,7 +78,14 @@ int main(int argc, char* argv[]) {
     }
     if (!cmd.empty()) { cmd.back() = '\n'; }
 
-    // 2. Open UNIX Domain Socket with RAII wrapper
+    // 2. Open UNIX Domain Socket with RAII wrapper (POSIX only)
+#ifdef _WIN32
+    // Windows IPC transport (named pipes / TCP) is not yet implemented.
+    // Keep the CLI building on Windows while failing fast at runtime.
+    (void)cmd;
+    std::cerr << "ERROR 71 DAW_NOT_RUNNING \"daw-cli IPC is not yet supported on Windows.\"\n";
+    return agentic::ErrorCode::DAW_NOT_RUNNING;
+#else
     SocketHandle sock{::socket(AF_UNIX, SOCK_STREAM, 0)};
     if (!sock.isValid()) {
         std::cerr << "ERROR: Failed to create IPC socket\n";
@@ -109,4 +117,5 @@ int main(int argc, char* argv[]) {
     }
 
     return 0; // RAII closes socket cleanly on exit
+#endif
 }
