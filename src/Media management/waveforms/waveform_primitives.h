@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "common/system_primitives.h"
 #include <cstdint>
 
@@ -38,7 +40,7 @@ struct MinMaxPair {
     float max;
 };
 
-static_assert(std::is_pod<MinMaxPair>::value, "MinMaxPair must be Plain Old Data");
+static_assert((std::is_trivially_copyable<MinMaxPair>::value && std::is_standard_layout<MinMaxPair>::value), "MinMaxPair must be Plain Old Data");
 
 /**
  * @brief Generation-counted handle for waveform cache access.
@@ -55,6 +57,6 @@ struct WaveformHandle {
     }
 };
 
-static_assert(std::is_pod<WaveformHandle>::value, "WaveformHandle must be Plain Old Data");
+static_assert((std::is_trivially_copyable<WaveformHandle>::value && std::is_standard_layout<WaveformHandle>::value), "WaveformHandle must be Plain Old Data");
 
 } // namespace MediaManagement

@@ -1,9 +1,15 @@
 // winmm_midi_driver.cpp
 #ifdef _WIN32
 #include "winmm_midi_driver.h"
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 #include <mmsystem.h>
+#include <cstring>
 #include <vector>
 
 namespace Layer1 {
@@ -33,15 +39,26 @@ uint32_t WinMMMIDIDriver::getDeviceCount() {
 
 uint32_t WinMMMIDIDriver::getDeviceName(uint32_t deviceIndex, char* outName, uint32_t maxLength) {
     if (!outName || maxLength == 0) return 0;
-    MIDIINCAPS caps;
-    if (midiInGetDevCaps(deviceIndex, &caps, sizeof(MIDIINCAPS)) == MMSYSERR_NOERROR) {
+#ifdef UNICODE
+    MIDIINCAPSW capsW;
+    if (midiInGetDevCapsW(deviceIndex, &capsW, sizeof(capsW)) == MMSYSERR_NOERROR) {
         // Convert WCHAR to UTF-8 string
-        int len = WideCharToMultiByte(CP_UTF8, 0, caps.szPname, -1, outName, static_cast<int>(maxLength), NULL, NULL);
+        const int outSize = static_cast<int>(maxLength);
+        int len = WideCharToMultiByte(CP_UTF8, 0, capsW.szPname, -1, outName, outSize, nullptr, nullptr);
         if (len > 0) {
             outName[len - 1] = '\0';
             return static_cast<uint32_t>(len - 1);
         }
     }
+#else
+    MIDIINCAPSA capsA;
+    if (midiInGetDevCapsA(deviceIndex, &capsA, sizeof(capsA)) == MMSYSERR_NOERROR) {
+        // ANSI build: device name is already a narrow string, copy safely
+        std::strncpy(outName, capsA.szPname, maxLength - 1);
+        outName[maxLength - 1] = '\0';
+        return static_cast<uint32_t>(std::strlen(outName));
+    }
+#endif
     outName[0] = '\0';
     return 0;
 }

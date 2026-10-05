@@ -3,6 +3,7 @@
 #include "automation_processor_impl.h"
 #include "common/dsp/curve_interpolation.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <limits>
 #include <mutex>

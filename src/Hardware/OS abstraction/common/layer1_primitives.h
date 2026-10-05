@@ -67,7 +67,7 @@ struct DeviceInfo {
 };
 
 // Ensure DeviceInfo is POD
-static_assert(std::is_pod_v<DeviceInfo>, "DeviceInfo must be Plain Old Data");
+static_assert((std::is_trivially_copyable_v<DeviceInfo> && std::is_standard_layout_v<DeviceInfo>), "DeviceInfo must be Plain Old Data");
 
 struct OpenResult {
     bool success;                      // True if stream opened successfully
@@ -76,7 +76,7 @@ struct OpenResult {
 };
 
 // Ensure OpenResult is POD
-static_assert(std::is_pod_v<OpenResult>, "OpenResult must be Plain Old Data");
+static_assert((std::is_trivially_copyable_v<OpenResult> && std::is_standard_layout_v<OpenResult>), "OpenResult must be Plain Old Data");
 
 
 // =============================================================================
@@ -97,7 +97,7 @@ struct MIDIMessage {
 };
 
 // Ensure MIDIMessage is POD
-static_assert(std::is_pod_v<MIDIMessage>, "MIDIMessage must be Plain Old Data");
+static_assert((std::is_trivially_copyable_v<MIDIMessage> && std::is_standard_layout_v<MIDIMessage>), "MIDIMessage must be Plain Old Data");
 
 struct VirtualPortHandle {
     uint32_t id;             // Port identifier
@@ -117,7 +117,7 @@ struct VirtualPortHandle {
 };
 
 // Ensure VirtualPortHandle is POD
-static_assert(std::is_pod_v<VirtualPortHandle>, "VirtualPortHandle must be Plain Old Data");
+static_assert((std::is_trivially_copyable_v<VirtualPortHandle> && std::is_standard_layout_v<VirtualPortHandle>), "VirtualPortHandle must be Plain Old Data");
 
 // =============================================================================
 // FILE SYSTEM PRIMITIVES
@@ -147,7 +147,7 @@ struct FileInfo {
     uint8_t reserved[5]; // Padding to maintain alignment
 };
 
-static_assert(std::is_pod_v<FileInfo>, "FileInfo must be Plain Old Data");
+static_assert((std::is_trivially_copyable_v<FileInfo> && std::is_standard_layout_v<FileInfo>), "FileInfo must be Plain Old Data");
 
 // =============================================================================
 // THREAD MANAGEMENT PRIMITIVES
@@ -171,7 +171,7 @@ struct ThreadHandle {
 };
 
 // Ensure ThreadHandle is POD
-static_assert(std::is_pod_v<ThreadHandle>, "ThreadHandle must be Plain Old Data");
+static_assert((std::is_trivially_copyable_v<ThreadHandle> && std::is_standard_layout_v<ThreadHandle>), "ThreadHandle must be Plain Old Data");
 
 enum class ThreadPriority : uint8_t {
     IDLE,           // Below normal (background tasks)
@@ -189,7 +189,7 @@ struct RealTimeConstraints {
 };
 
 // Ensure RealTimeConstraints is POD
-static_assert(std::is_pod_v<RealTimeConstraints>, "RealTimeConstraints must be Plain Old Data");
+static_assert((std::is_trivially_copyable_v<RealTimeConstraints> && std::is_standard_layout_v<RealTimeConstraints>), "RealTimeConstraints must be Plain Old Data");
 
 // Opaque handle for Real-Time Workgroups / MMCSS Groups
 struct WorkgroupHandle {
@@ -206,6 +206,6 @@ struct WorkgroupHandle {
 };
 
 // Ensure WorkgroupHandle is POD
-static_assert(std::is_pod_v<WorkgroupHandle>, "WorkgroupHandle must be Plain Old Data");
+static_assert((std::is_trivially_copyable_v<WorkgroupHandle> && std::is_standard_layout_v<WorkgroupHandle>), "WorkgroupHandle must be Plain Old Data");
 
 } // namespace Layer1

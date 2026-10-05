@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "common/system_primitives.h"
 #include "common/dsp/node_infrastructure.h"
 #include "common/dsp/node_types.h"
@@ -17,7 +19,7 @@ struct MonitorSwitchState {
     }
 };
 
-static_assert(std::is_pod<MonitorSwitchState>::value, "MonitorSwitchState must be Plain Old Data");
+static_assert((std::is_trivially_copyable<MonitorSwitchState>::value && std::is_standard_layout<MonitorSwitchState>::value), "MonitorSwitchState must be Plain Old Data");
 
 // processMonitorSwitch():
 //   Inputs: inputs[0..1] represents physical audio input (from AudioInputNode),

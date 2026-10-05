@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "Media management/registry/media_primitives.h"
 #include <cstdint>
 #include <string>
@@ -28,6 +30,6 @@ struct ImportJob {
 };
 
 // POD check for ImportJob
-static_assert(std::is_pod<ImportJob>::value, "ImportJob must be Plain Old Data");
+static_assert((std::is_trivially_copyable<ImportJob>::value && std::is_standard_layout<ImportJob>::value), "ImportJob must be Plain Old Data");
 
 } // namespace MediaManagement

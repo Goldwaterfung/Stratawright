@@ -2,7 +2,9 @@
 // Layer 1: Hardware/OS Abstraction - Windows IO Worker Implementation
 
 #include "../ifile_system.h"
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 
 namespace Layer1 {

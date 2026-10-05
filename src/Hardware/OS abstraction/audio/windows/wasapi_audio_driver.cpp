@@ -9,7 +9,9 @@
 #include "../audio_driver_defaults.h"
 
 // Platform headers (QUARANTINED to this file)
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #include <mmdeviceapi.h>
 #include <audioclient.h>

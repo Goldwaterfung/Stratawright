@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "common/system_primitives.h"
 #include <cstdint>
 
@@ -36,6 +38,6 @@ struct AnalysisResult {
     uint64_t keyPositionSample;
 };
 
-static_assert(std::is_pod<AnalysisResult>::value, "AnalysisResult must be Plain Old Data");
+static_assert((std::is_trivially_copyable<AnalysisResult>::value && std::is_standard_layout<AnalysisResult>::value), "AnalysisResult must be Plain Old Data");
 
 } // namespace MediaManagement

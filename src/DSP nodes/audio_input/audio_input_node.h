@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include "common/system_primitives.h"
 #include "common/dsp/node_infrastructure.h"
 #include "common/dsp/node_types.h"
@@ -33,7 +35,7 @@ struct AudioInputState {
     }
 };
 
-static_assert(std::is_pod<AudioInputState>::value, "AudioInputState must remain a POD type");
+static_assert((std::is_trivially_copyable<AudioInputState>::value && std::is_standard_layout<AudioInputState>::value), "AudioInputState must remain a POD type");
 
 // processAudioInput():
 //   Copies context->inputChannels[hardwareChannelIndex .. +numChannels]

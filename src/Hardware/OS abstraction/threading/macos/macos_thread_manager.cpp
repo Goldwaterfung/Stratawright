@@ -34,9 +34,9 @@ void MacOSThreadManager::applyThreadPriority(std::thread& thread, ThreadPriority
         mach_timebase_info(&timebase);
         double ns_to_mach = static_cast<double>(timebase.denom) / static_cast<double>(timebase.numer);
 
-        policy.period = static_cast<uint32_t>(rt.periodNs * ns_to_mach);
-        policy.computation = static_cast<uint32_t>(rt.computationNs * ns_to_mach);
-        policy.constraint = static_cast<uint32_t>(rt.deadlineNs * ns_to_mach);
+        policy.period = static_cast<uint32_t>(static_cast<double>(rt.periodNs) * ns_to_mach);
+        policy.computation = static_cast<uint32_t>(static_cast<double>(rt.computationNs) * ns_to_mach);
+        policy.constraint = static_cast<uint32_t>(static_cast<double>(rt.deadlineNs) * ns_to_mach);
         policy.preemptible = TRUE;
 
         thread_policy_set(
@@ -81,9 +81,9 @@ bool MacOSThreadManager::applyRealTimeConstraints(ThreadHandle handle, const Rea
     mach_timebase_info(&timebase);
     double ns_to_mach = static_cast<double>(timebase.denom) / static_cast<double>(timebase.numer);
 
-    policy.period = static_cast<uint32_t>(constraints.periodNs * ns_to_mach);
-    policy.computation = static_cast<uint32_t>(constraints.computationNs * ns_to_mach);
-    policy.constraint = static_cast<uint32_t>(constraints.deadlineNs * ns_to_mach);
+    policy.period = static_cast<uint32_t>(static_cast<double>(constraints.periodNs) * ns_to_mach);
+    policy.computation = static_cast<uint32_t>(static_cast<double>(constraints.computationNs) * ns_to_mach);
+    policy.constraint = static_cast<uint32_t>(static_cast<double>(constraints.deadlineNs) * ns_to_mach);
     policy.preemptible = TRUE;
 
     kern_return_t kr = thread_policy_set(
