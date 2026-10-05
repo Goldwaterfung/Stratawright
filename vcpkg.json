@@ -10,7 +10,6 @@
     "catch2",
     "sqlite3",
     "libebur128",
-    "qtvirtualkeyboard",
     "libsamplerate",
     {
       "name": "qtbase",

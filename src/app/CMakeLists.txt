@@ -58,7 +58,6 @@ target_link_libraries(${PROJECT_EXECUTABLE_NAME} PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Svg
-    Qt6::VirtualKeyboard
 )
 
 # Platform-specific libraries

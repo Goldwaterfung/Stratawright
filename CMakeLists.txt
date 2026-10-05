@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 # vcpkg integration (must be before project())
 if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+    if(NOT DEFINED VCPKG_INSTALL_OPTIONS)
+        set(VCPKG_INSTALL_OPTIONS "--clean-buildtrees-after-build;--clean-packages-after-build" CACHE STRING "Vcpkg install options")
+    endif()
 endif()
 
 project(Stratawright VERSION 1.0.0 LANGUAGES CXX)
@@ -139,7 +142,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
 find_package(Threads REQUIRED)
 
 # Find Qt6 Components
-find_package(Qt6 COMPONENTS Widgets Core Gui Svg VirtualKeyboard REQUIRED)
+find_package(Qt6 COMPONENTS Widgets Core Gui Svg REQUIRED)
 
 # Dependencies via vcpkg/system
 find_package(RtAudio CONFIG REQUIRED)

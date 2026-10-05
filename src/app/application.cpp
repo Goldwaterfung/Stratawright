@@ -224,9 +224,6 @@ bool Application::initializeLayer6() {
 
 bool Application::initializeLayer7() {
     std::cout << "Application: Initializing Layer 7 (Presentation)..." << std::endl;
-    
-    // Enable the virtual keyboard input method globally
-    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
     m_qapp = std::make_unique<QApplication>(m_argc, m_argv);
     m_qapp->setQuitOnLastWindowClosed(false);
