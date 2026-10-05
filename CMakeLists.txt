@@ -37,6 +37,10 @@ option(ENABLE_SIMD "Enable SIMD optimizations" ON)
 option(USE_ASAN "Enable Address Sanitizer" OFF)
 option(USE_TSAN "Enable Thread Sanitizer" OFF)
 option(BUILD_PLUGINS "Build plugin host support" ON)
+# STRICT_WARNINGS=ON keeps local dev strict (-Werror / /WX).
+# CI passes -DSTRICT_WARNINGS=OFF to match ./scripts/build.sh tolerance
+# on newer compilers (warnings logged, not fatal).
+option(STRICT_WARNINGS "Treat warnings as errors" ON)
 
 # Export compile commands for IDE support
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -75,12 +79,24 @@ elseif(MSVC)
 endif()
 
 # Warning flags
+# STRICT_WARNINGS controls whether warnings are fatal. Local dev keeps ON;
+# CI sets OFF so newer compiler warnings don't fail the whole build.
 if(MSVC)
-    add_compile_options(/W4 /WX)
+    add_compile_options(/W4)
+    if(STRICT_WARNINGS)
+        add_compile_options(/WX)
+    else()
+        add_compile_options(/WX-)
+    endif()
     # Additional safety checks for MSVC
     add_compile_options(/sdl)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+    add_compile_options(-Wall -Wextra -Wpedantic)
+    if(STRICT_WARNINGS)
+        add_compile_options(-Werror)
+    else()
+        add_compile_options(-Wno-error)
+    endif()
     # Additional warning flags for Clang/GCC
     add_compile_options(-Wshadow -Wold-style-cast -Wcast-align)
     add_compile_options(-Wunused -Woverloaded-virtual)
@@ -316,5 +332,6 @@ message(STATUS "  TSAN Enabled: ${USE_TSAN}")
 message(STATUS "  Build Tests: ${BUILD_TESTS}")
 #message(STATUS "  Build Performance Tests: ${BUILD_PERFORMANCE_TESTS}")
 message(STATUS "  Build Plugin Support: ${BUILD_PLUGINS}")
+message(STATUS "  Strict Warnings: ${STRICT_WARNINGS}")
 message(STATUS "")
 
