@@ -1,6 +1,3 @@
-// system_primitives.h v1.1
-// Last Updated: 2026-05-07
-//
 // This file defines the core POD (Plain Old Data) primitives that cross
 // layer boundaries in the DAW architecture. All structures are true PODs
 // with explicit data formats - no hidden allocations, no template magic.
