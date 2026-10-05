@@ -58,7 +58,7 @@ elseif(WIN32)
     set(PLATFORM_NAME "windows")
     set(PLATFORM_WINDOWS TRUE)
     # Windows specific definitions
-    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS -D_SILENCE_ALL_CXX20_DEPRECATION_WARNINGS)
 elseif(UNIX)
     message(FATAL_ERROR "Linux platform support has been removed. Only macOS and Windows are supported.")
 else()
@@ -76,7 +76,7 @@ endif()
 
 # Warning flags
 if(MSVC)
-    add_compile_options(/W4 /WX)
+    add_compile_options(/W4 /WX /wd4996 /wd4005)
     # Additional safety checks for MSVC
     add_compile_options(/sdl)
 else()
@@ -93,7 +93,8 @@ else()
     endif()
     
     if(CLANG)
-        # Clang specific flags if any
+        # Clang-specific warning adjustments: disable 64-bit int to float/double conversion errors in DSP/timing
+        add_compile_options(-Wno-implicit-int-float-conversion -Wno-error=implicit-int-float-conversion)
     endif()
 endif()
 

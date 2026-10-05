@@ -2,6 +2,7 @@
 #pragma once
 
 #include "isidechain_manager.h"
+#include <array>
 #include <atomic>
 #include <cstdint>
 #include <memory>
