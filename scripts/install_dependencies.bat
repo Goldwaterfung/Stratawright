@@ -59,7 +59,7 @@ if defined FOUND_QT (
     echo [NOTICE] Pre-built Qt 6 was not detected in C:\Qt\6.*\msvc2022_64.
     echo To install pre-built Qt 6 with a single command:
     echo   pip install aqtinstall
-    echo   aqt install-qt windows desktop 6.8.0 win64_msvc2022_64 -m qtsvg --outputdir C:\Qt
+    echo   aqt install-qt windows desktop 6.8.0 win64_msvc2022_64 --outputdir C:\Qt
     echo Or download the official installer from https://www.qt.io/download
 )
 

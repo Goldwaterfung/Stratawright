@@ -41,7 +41,6 @@ jobs:
         with:
           version: '6.8.0'
           arch: ${{ matrix.qt_arch }}
-          modules: 'qtsvg'
           cache: true
 
       - name: Cache vcpkg binary archives

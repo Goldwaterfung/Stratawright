@@ -289,7 +289,7 @@ Run the setup script to install build tools, pre-built Qt 6 via Homebrew, and bo
 2. Install pre-built **Qt 6** (using `aqtinstall` or official Qt Online Installer):
    ```cmd
    pip install aqtinstall
-   aqt install-qt windows desktop 6.8.0 win64_msvc2022_64 -m qtsvg --outputdir C:\Qt
+   aqt install-qt windows desktop 6.8.0 win64_msvc2022_64 --outputdir C:\Qt
    ```
 3. Run the Windows dependency setup script (Command Prompt or PowerShell):
    ```cmd
