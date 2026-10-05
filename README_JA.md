@@ -8,7 +8,7 @@
   <b>セッションのミキシング、バランス調整、整理を数秒で完了。<br>面倒なDAWのセットアップに時間を費やすのはやめましょう。AIアシスタントに指示を出し、クリエイティブなフローを維持できます。</b>
 </p>
 
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by/4.0/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
 [![Multi-Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20Hermes%20·%20Gemini-blueviolet)](#クイックスタート--agenticセットアップ)
 [![Plugin Host](https://img.shields.io/badge/Plugins-VST3%20%7C%20AU%20%7C%20CLAP-blue.svg)](#主な機能)
@@ -384,15 +384,9 @@ Stratawright は、AI 駆動の音楽制作のために構築されたオープ�
 
 <div align="center">
 
-[![CC BY 4.0][cc-by-shield]][cc-by]
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-本プロジェクトは [Creative Commons Attribution 4.0 International License][cc-by] の下で公開されています。
-
-[![CC BY 4.0][cc-by-image]][cc-by]
-
-[cc-by]: http://creativecommons.org/licenses/by/4.0/
-[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
-[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
+本プロジェクトは [MIT ライセンス](LICENSE) の下で公開されています。
 
 </div>
 

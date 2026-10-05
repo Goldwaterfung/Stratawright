@@ -8,7 +8,7 @@
   <b>在幾秒鐘內完成 Session 混音、平衡與整理。<br>不再把時間浪費在繁瑣的 DAW 設定上—直接告訴你的 AI 助手，保持專注在音樂靈感中。</b>
 </p>
 
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by/4.0/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
 [![Multi-Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20Hermes%20·%20Gemini-blueviolet)](#快速開始--agentic-設定)
 [![Plugin Host](https://img.shields.io/badge/Plugins-VST3%20%7C%20AU%20%7C%20CLAP-blue.svg)](#核心特性)
@@ -384,15 +384,9 @@ Stratawright 是一款專為 AI 驅動音樂製作打造的開源高性能 C++20
 
 <div align="center">
 
-[![CC BY 4.0][cc-by-shield]][cc-by]
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-本專案基於 [Creative Commons Attribution 4.0 International License][cc-by] 協議開源。
-
-[![CC BY 4.0][cc-by-image]][cc-by]
-
-[cc-by]: http://creativecommons.org/licenses/by/4.0/
-[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
-[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
+本專案基於 [MIT 協議](LICENSE) 開源。
 
 </div>
 

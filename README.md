@@ -8,7 +8,7 @@
   <b>Get your session mixed, balanced, and organized in seconds.<br>Stop wasting time on tedious DAW setup—tell your AI assistant what you need and stay in your creative flow.</b>
 </p>
 
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by/4.0/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
 [![Multi-Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20Hermes%20·%20Gemini-blueviolet)](#quick-start--agentic-install)
 [![Plugin Host](https://img.shields.io/badge/Plugins-VST3%20%7C%20AU%20%7C%20CLAP-blue.svg)](#key-features)
@@ -387,16 +387,9 @@ Run the setup script to install dependencies and libraries (RtAudio, RtMidi, lib
 
 <div align="center">
 
-[![CC BY 4.0][cc-by-shield]][cc-by]
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-This work is licensed under a  
-[Creative Commons Attribution 4.0 International License][cc-by].
-
-[![CC BY 4.0][cc-by-image]][cc-by]
-
-[cc-by]: http://creativecommons.org/licenses/by/4.0/
-[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
-[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
+This project is licensed under the [MIT License](LICENSE).
 
 </div>
 

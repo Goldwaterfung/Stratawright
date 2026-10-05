@@ -8,7 +8,7 @@
   <b>몇 초 만에 세션 믹싱, 밸런스 조절, 정돈을 완료하세요.<br>번거로운 DAW 설정으로 시간을 허비하지 마세요. AI 어시스턴트에게 필요한 것을 말하고 창작의 흐름을 유지하세요.</b>
 </p>
 
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by/4.0/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
 [![Multi-Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20Hermes%20·%20Gemini-blueviolet)](#빠른-시작--에이전트-설정)
 [![Plugin Host](https://img.shields.io/badge/Plugins-VST3%20%7C%20AU%20%7C%20CLAP-blue.svg)](#핵심-기능)
@@ -384,15 +384,9 @@ Stratawright는 AI 기반 음악 제작을 위해 구축된 오픈 소스 고성
 
 <div align="center">
 
-[![CC BY 4.0][cc-by-shield]][cc-by]
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-본 프로젝트는 [Creative Commons Attribution 4.0 International License][cc-by] 라이선스를 따릅니다.
-
-[![CC BY 4.0][cc-by-image]][cc-by]
-
-[cc-by]: http://creativecommons.org/licenses/by/4.0/
-[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
-[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
+본 프로젝트는 [MIT 라이선스](LICENSE)를 따릅니다.
 
 </div>
 
