@@ -43,6 +43,10 @@ clone_repo "eigen-5.0.0" "https://gitlab.com/libeigen/eigen.git"
 
 # 6. Rubber Band (Pitch Shifting & Time Stretching)
 clone_repo "rubberband-default" "https://github.com/breakfastquay/rubberband.git"
+if [ ! -f "$THIRD_PARTY_DIR/rubberband-default/CMakeLists.txt" ] && [ -f "$PROJECT_ROOT/cmake/rubberband/CMakeLists.txt" ]; then
+    echo "--> Installing RubberBand CMakeLists.txt..."
+    cp "$PROJECT_ROOT/cmake/rubberband/CMakeLists.txt" "$THIRD_PARTY_DIR/rubberband-default/CMakeLists.txt"
+fi
 
 # 7. SoundTouch (Time Stretching & Jitter Buffer)
 clone_repo "soundtouch" "https://codeberg.org/soundtouch/soundtouch.git"

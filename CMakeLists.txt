@@ -181,8 +181,11 @@ add_subdirectory("src/Core infrastructure")
 # Layer 3: Core Audio Engine
 add_subdirectory("src/Core audio engine")
 
-# Third-party: SoundTouch (must be before Layer 4 and Layer 6 consumers)
+# Third-party: SoundTouch and RubberBand (must be before Layer 4 and Layer 6 consumers)
 add_subdirectory(src/third_party/soundtouch)
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default/CMakeLists.txt" AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/rubberband/CMakeLists.txt")
+    file(COPY "${CMAKE_SOURCE_DIR}/cmake/rubberband/CMakeLists.txt" DESTINATION "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default")
+endif()
 add_subdirectory(src/third_party/rubberband-default)
 
 # Layer 4: DSP Processing Nodes

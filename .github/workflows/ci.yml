@@ -21,7 +21,7 @@ jobs:
           - os: macos-latest
             qt_arch: clang_64
             cmake_generator: "Unix Makefiles"
-          - os: windows-latest
+          - os: windows-2022
             qt_arch: win64_msvc2022_64
             cmake_generator: "Visual Studio 17 2022"
 
@@ -77,18 +77,14 @@ jobs:
         run: >
           cmake -B build
           -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+          "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
           -DBUILD_TESTS=ON
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
-        run: >
-          cmake -B build
-          -G "${{ matrix.cmake_generator }}"
-          -A x64
-          -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
-          -DBUILD_TESTS=ON
+        shell: cmd
+        run: |
+          cmake -B build -G "${{ matrix.cmake_generator }}" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="%GITHUB_WORKSPACE%\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build --config Release --parallel

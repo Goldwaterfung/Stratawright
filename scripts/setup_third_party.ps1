@@ -51,6 +51,12 @@ Clone-Repo "eigen-5.0.0" "https://gitlab.com/libeigen/eigen.git"
 
 # 6. Rubber Band (Pitch Shifting & Time Stretching)
 Clone-Repo "rubberband-default" "https://github.com/breakfastquay/rubberband.git"
+$RubberbandCmake = Join-Path $ThirdPartyDir "rubberband-default\CMakeLists.txt"
+$SourceCmake = Join-Path $ProjectRoot "cmake\rubberband\CMakeLists.txt"
+if ((-not (Test-Path $RubberbandCmake)) -and (Test-Path $SourceCmake)) {
+    Write-Host "--> Installing RubberBand CMakeLists.txt..." -ForegroundColor Yellow
+    Copy-Item $SourceCmake $RubberbandCmake
+}
 
 # 7. SoundTouch (Time Stretching & Jitter Buffer)
 Clone-Repo "soundtouch" "https://codeberg.org/soundtouch/soundtouch.git"
