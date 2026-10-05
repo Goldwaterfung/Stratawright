@@ -18,9 +18,9 @@ case "$OS" in
             exit 1
         fi
 
-        # Install build tools
-        echo "Installing build tools..."
-        brew install cmake pkg-config git
+        # Install build tools and pre-built Qt 6
+        echo "Installing build tools and Qt 6 via Homebrew..."
+        brew install cmake pkg-config git qt@6
 
         # Setup vcpkg and third-party SDKs
         bash ./scripts/setup_vcpkg.sh
@@ -34,6 +34,7 @@ case "$OS" in
 
     MINGW*|CYGWIN*|MSYS*)
         echo "Windows detected via Git Bash/MSYS."
+        echo "Note: Qt 6 should be installed separately via Qt Online Installer or aqtinstall."
         bash ./scripts/setup_vcpkg.sh
         bash ./scripts/setup_third_party.sh
         ;;

@@ -1,0 +1,98 @@
+name: Stratawright CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            qt_arch: clang_64
+            cmake_generator: "Unix Makefiles"
+          - os: windows-latest
+            qt_arch: win64_msvc2022_64
+            cmake_generator: "Visual Studio 17 2022"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Qt 6 (Pre-built)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.0'
+          arch: ${{ matrix.qt_arch }}
+          modules: 'qtsvg'
+          cache: true
+
+      - name: Cache vcpkg binary archives
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/vcpkg/archives
+            ${{ env.LOCALAPPDATA }}/vcpkg/archives
+          key: ${{ runner.os }}-vcpkg-archives-${{ hashFiles('vcpkg.json') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-archives-${{ hashFiles('vcpkg.json') }}-
+            ${{ runner.os }}-vcpkg-archives-
+
+      - name: Setup vcpkg (macOS)
+        if: runner.os == 'macOS'
+        run: bash ./scripts/setup_vcpkg.sh
+
+      - name: Setup vcpkg (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: call scripts\setup_vcpkg.bat
+
+      - name: Setup Third-Party SDKs (macOS)
+        if: runner.os == 'macOS'
+        run: bash ./scripts/setup_third_party.sh
+
+      - name: Setup Third-Party SDKs (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\scripts\setup_third_party.ps1
+
+      - name: Configure CMake (macOS)
+        if: runner.os == 'macOS'
+        run: >
+          cmake -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+          -DBUILD_TESTS=ON
+
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        run: >
+          cmake -B build
+          -G "${{ matrix.cmake_generator }}"
+          -A x64
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+          -DBUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Run Unit Tests
+        run: ctest --test-dir build -C Release --output-on-failure

@@ -10,20 +10,6 @@
     "catch2",
     "sqlite3",
     "libebur128",
-    "libsamplerate",
-    {
-      "name": "qtbase",
-      "default-features": false,
-      "features": [
-        "widgets",
-        "gui",
-        "png",
-        "freetype",
-        "harfbuzz",
-        "doubleconversion",
-        "pcre2"
-      ]
-    },
-    "qtsvg"
+    "libsamplerate"
   ]
 }

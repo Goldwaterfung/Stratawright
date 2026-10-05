@@ -16,20 +16,36 @@ Build and package Stratawright for me
 
 ### Install Dependencies
 
-Run the dependency installation script to install build tools and bootstrap **vcpkg**:
+#### macOS:
+Run the dependency installation script to install build tools, pre-built **Qt 6** via Homebrew, and bootstrap **vcpkg**:
 
 ```bash
 ./scripts/install_dependencies.sh
 ```
 
 This script will:
-1. Install `cmake`, `git`, and build tools.
+1. Install `cmake`, `git`, `pkg-config`, and `qt@6` via Homebrew.
 2. Bootstrap **vcpkg** in the project root.
 3. Automatically download and build `rtaudio`, `rtmidi`, `libsndfile`, `spdlog`, etc.
 
+#### Windows:
+1. Install **Visual Studio 2022** or **Visual Studio 2026** (with *Desktop development with C++*) and **Git**.
+2. Install pre-built **Qt 6** (using `aqtinstall` or the official Qt Online Installer):
+   ```cmd
+   pip install aqtinstall
+   aqt install-qt windows desktop 6.8.0 win64_msvc2022_64 -m qtsvg --outputdir C:\Qt
+   ```
+3. Run the Windows dependency setup script (Command Prompt or PowerShell):
+   ```cmd
+   scripts\install_dependencies.bat
+   ```
+   *(Alternatively, run `scripts\setup_vcpkg.bat` and `powershell -ExecutionPolicy Bypass -File scripts\setup_third_party.ps1`)*
+
 ## 3. Build the Project
 
-### Using the build script (recommended):
+### Using build scripts (recommended):
+
+#### macOS:
 ```bash
 # Debug build
 ./scripts/build.sh debug
@@ -41,11 +57,33 @@ This script will:
 ./scripts/build.sh release --test
 ```
 
+#### Windows (Command Prompt / PowerShell):
+```cmd
+:: Debug build
+scripts\build.bat debug
+
+:: Release build
+scripts\build.bat release
+
+:: Release build with tests
+scripts\build.bat release --test
+```
+
 ### Manual build:
+
+#### macOS:
 ```bash
 mkdir -p build/debug && cd build/debug
-cmake -DCMAKE_BUILD_TYPE=Debug ../../
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6)" ../../
 cmake --build . --parallel
+```
+
+#### Windows (Command Prompt / PowerShell):
+```cmd
+mkdir build\debug
+cd build\debug
+cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="C:/Qt/6.8.0/msvc2022_64" -DCMAKE_TOOLCHAIN_FILE=../../vcpkg/scripts/buildsystems/vcpkg.cmake ../../
+cmake --build . --config Debug --parallel
 ```
 
 ## 4. Run the Application

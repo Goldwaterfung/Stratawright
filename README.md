@@ -268,19 +268,34 @@ Stratawright is an open-source, high-performance C++20 DAW engine built for AI-d
 
 ### Prerequisites
 
-The project uses **vcpkg** in manifest mode to manage dependencies.
+The project uses **vcpkg** in manifest mode to manage audio and utility dependencies, alongside pre-built **Qt 6** binaries.
 
 #### Required Tools
 - **CMake** 3.20 or higher
 - **Git**
 - **C++20 compatible compiler**: Clang 12+, GCC 11+, or MSVC 2022+
+- **Qt 6** (Core, Gui, Widgets, Svg)
 
-#### Automatic Setup
-Run the setup script to install dependencies and libraries (RtAudio, RtMidi, libsndfile, nlohmann_json, spdlog, Catch2):
+#### Dependency Setup
 
+##### macOS:
+Run the setup script to install build tools, pre-built Qt 6 via Homebrew, and bootstrap vcpkg:
 ```bash
 ./scripts/install_dependencies.sh
 ```
+
+##### Windows:
+1. Install **Visual Studio 2022** (with *Desktop development with C++*) and **Git**.
+2. Install pre-built **Qt 6** (using `aqtinstall` or official Qt Online Installer):
+   ```cmd
+   pip install aqtinstall
+   aqt install-qt windows desktop 6.8.0 win64_msvc2022_64 -m qtsvg --outputdir C:\Qt
+   ```
+3. Run the Windows dependency setup script (Command Prompt or PowerShell):
+   ```cmd
+   scripts\install_dependencies.bat
+   ```
+   *(Alternatively, run `scripts\setup_vcpkg.bat` and `powershell -ExecutionPolicy Bypass -File scripts\setup_third_party.ps1`)*
 
 ---
 
@@ -293,16 +308,39 @@ Run the setup script to install dependencies and libraries (RtAudio, RtMidi, lib
    ```
 
 2. **Configure and build**:
+
+   **macOS**:
    ```bash
+   # Using the build script (automatically detects Homebrew Qt 6):
+   ./scripts/build.sh debug
+
+   # Or manual CMake build:
    mkdir -p build/debug && cd build/debug
-   cmake -DCMAKE_BUILD_TYPE=Debug ../../
+   cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6)" ../../
    cmake --build . --parallel
    ```
 
-3. **Run application**:
-   ```bash
-   ./bin/stratawright
+   **Windows**:
+   ```cmd
+   :: Using the Windows build script (automatically detects Qt 6 in C:\Qt):
+   scripts\build.bat debug
+
+   :: Or manual CMake build:
+   mkdir build\debug
+   cd build\debug
+   cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH="C:/Qt/6.8.0/msvc2022_64" -DCMAKE_TOOLCHAIN_FILE=../../vcpkg/scripts/buildsystems/vcpkg.cmake ../../
+   cmake --build . --config Debug --parallel
    ```
+
+3. **Run application**:
+   - macOS:
+     ```bash
+     ./bin/stratawright
+     ```
+   - Windows:
+     ```cmd
+     .\bin\Debug\stratawright.exe
+     ```
 
 ---
 
