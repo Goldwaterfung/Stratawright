@@ -101,4 +101,56 @@ install(TARGETS ${PROJECT_EXECUTABLE_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT Application
 )
 
+# Bundle Qt frameworks into the .app at install time so it launches on
+# machines without Qt installed. macdeployqt copies Qt frameworks/plugins
+# into Contents/Frameworks and rewrites @rpath links to
+# @executable_path/../Frameworks (covered by CMAKE_INSTALL_RPATH).
+if(APPLE)
+    # Prefer the macdeployqt sibling of the Qt actually linked (via qmake),
+    # never a stray copy (e.g. vcpkg tools) that may be a different version.
+    set(MACDEPLOYQT_EXECUTABLE "")
+    if(TARGET Qt6::qmake)
+        get_target_property(_qmake_loc Qt6::qmake IMPORTED_LOCATION)
+        if(_qmake_loc)
+            get_filename_component(_qt_bin_dir "${_qmake_loc}" DIRECTORY)
+            if(EXISTS "${_qt_bin_dir}/macdeployqt")
+                set(MACDEPLOYQT_EXECUTABLE "${_qt_bin_dir}/macdeployqt")
+            endif()
+        endif()
+    endif()
+    if(NOT MACDEPLOYQT_EXECUTABLE)
+        find_program(MACDEPLOYQT_EXECUTABLE macdeployqt
+            HINTS "${Qt6_DIR}/../../bin" "$ENV{HOME}/Qt/6.8.0/macos/bin"
+            NO_DEFAULT_PATH)
+    endif()
+    if(MACDEPLOYQT_EXECUTABLE)
+        message(STATUS "macdeployqt: ${MACDEPLOYQT_EXECUTABLE}")
+        install(CODE "
+            file(GLOB _apps \"\${CMAKE_INSTALL_PREFIX}/*.app\")
+            foreach(_app IN LISTS _apps)
+                if(NOT EXISTS \"\${_app}/Contents/Info.plist\")
+                    continue()
+                endif()
+                message(STATUS \"Running macdeployqt on \${_app}...\")
+                execute_process(
+                    COMMAND \"${MACDEPLOYQT_EXECUTABLE}\" \"\${_app}\" -codesign=-
+                    RESULT_VARIABLE _mdqt_res)
+                if(NOT _mdqt_res EQUAL 0)
+                    message(WARNING \"macdeployqt failed for \${_app}: \${_mdqt_res}\")
+                endif()
+                # Re-sign adhoc: install_name_tool rewrites above invalidate
+                # the link-time signature, so seal the final bundle here.
+                execute_process(
+                    COMMAND codesign --force --deep --sign - \"\${_app}\"
+                    RESULT_VARIABLE _cs_res)
+                if(NOT _cs_res EQUAL 0)
+                    message(WARNING \"codesign failed for \${_app}: \${_cs_res}\")
+                endif()
+            endforeach()
+        " COMPONENT Application)
+    else()
+        message(WARNING "macdeployqt not found; installed .app will require Qt on the target machine")
+    endif()
+endif()
+
 

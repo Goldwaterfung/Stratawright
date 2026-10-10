@@ -52,6 +52,13 @@ if(APPLE)
     set(PLATFORM_MACOS TRUE)
     # macOS specific flags
     set(CMAKE_MACOS_RPATH ON)
+    # Preserve RPATH at install: CMake's install step strips the build-tree
+    # RPATH by default, which leaves the installed .app with no LC_RPATH and
+    # it dies at launch (dyld: Library not loaded @rpath/QtWidgets...).
+    # @executable_path/../Frameworks covers bundled Qt (macdeployqt layout);
+    # USE_LINK_PATH keeps the Qt lib dir so the installed app resolves Qt.
+    set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
     # Enable ARC (if needed for some dependencies)
     # set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES)
 elseif(WIN32)
@@ -141,6 +148,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
 # Find required packages
 find_package(Threads REQUIRED)
 
+# Fix macOS 14+ / Xcode 16+ linker error: ld: framework 'AGL' not found
+# Qt 6.8's FindWrapOpenGL attempts to link legacy AGL.framework which Apple removed.
+# Pre-creating WrapOpenGL::WrapOpenGL causes Qt to skip its internal AGL lookup.
+if(APPLE AND NOT TARGET WrapOpenGL::WrapOpenGL)
+    add_library(WrapOpenGL::WrapOpenGL INTERFACE IMPORTED)
+    target_link_libraries(WrapOpenGL::WrapOpenGL INTERFACE "-framework OpenGL")
+    set(WrapOpenGL_FOUND ON)
+endif()
+
 # Find Qt6 Components
 find_package(Qt6 COMPONENTS Widgets Core Gui Svg REQUIRED)
 
@@ -183,6 +199,13 @@ add_subdirectory("src/Core audio engine")
 
 # Third-party: SoundTouch (must be before Layer 4 and Layer 6 consumers)
 add_subdirectory(src/third_party/soundtouch)
+# RubberBand upstream is Meson-only; inject the committed CMake overlay.
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default/CMakeLists.txt" AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/rubberband/CMakeLists.txt")
+    file(COPY "${CMAKE_SOURCE_DIR}/cmake/rubberband/CMakeLists.txt" DESTINATION "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default")
+endif()
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/src/third_party/rubberband-default/CMakeLists.txt")
+    message(FATAL_ERROR "Missing src/third_party/rubberband-default/CMakeLists.txt. Run ./scripts/setup_third_party.sh (or setup_third_party.ps1 on Windows) first.")
+endif()
 add_subdirectory(src/third_party/rubberband-default)
 
 # Layer 4: DSP Processing Nodes

@@ -37,8 +37,10 @@ target_compile_features(daw-cli PUBLIC cxx_std_20)
 
 # Install daw-cli
 if(APPLE)
+    # Must match the real bundle dir (<executable>.app), not a hardcoded name,
+    # or install creates a second broken *.app containing only daw-cli.
     install(TARGETS daw-cli
-        RUNTIME DESTINATION "stratawright.app/Contents/MacOS"
+        RUNTIME DESTINATION "${PROJECT_EXECUTABLE_NAME}.app/Contents/MacOS"
         COMPONENT Application
     )
 else()

@@ -14,6 +14,7 @@ ALT_APP_NAME="stratawright.app"
 CLI_PATH_1="/Applications/$APP_NAME/Contents/MacOS/daw-cli"
 CLI_PATH_2="/Applications/$ALT_APP_NAME/Contents/MacOS/daw-cli"
 CLI_PATH_3="/Applications/bin/daw-cli"
+CLI_PATH_4="/Applications/strata_studio.app/Contents/MacOS/daw-cli"
 
 TARGET_SYMLINK="/usr/local/bin/daw-cli"
 
@@ -27,6 +28,9 @@ if [ -f "$CLI_PATH_1" ]; then
 elif [ -f "$CLI_PATH_2" ]; then
     ln -s "$CLI_PATH_2" "$TARGET_SYMLINK"
     echo "Symlinked daw-cli from $CLI_PATH_2 to $TARGET_SYMLINK"
+elif [ -f "$CLI_PATH_4" ]; then
+    ln -s "$CLI_PATH_4" "$TARGET_SYMLINK"
+    echo "Symlinked daw-cli from $CLI_PATH_4 to $TARGET_SYMLINK"
 elif [ -f "$CLI_PATH_3" ]; then
     # If CMake dumped it in Applications/bin, move it into the app and symlink
     if [ -d "/Applications/$APP_NAME/Contents/MacOS" ]; then

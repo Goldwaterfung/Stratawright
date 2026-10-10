@@ -29,6 +29,7 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QResizeEvent>
+#include <QShowEvent>
 #include <QWheelEvent>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -849,6 +850,9 @@ void PlaylistWindow::reloadTracks()
     // Phase 2 — PlaylistClipCanvas:
     if (m_canvas) m_canvas->setTrackList(tracks);
 
+    // Viewport width may have changed (or was 0 at construction):
+    // recompute endFrame before pushing so the grid is never stuck at 1-2 bars.
+    recalculateViewportEndFrame();
     applyViewport();
 
     Q_EMIT tracksChanged(tracks);
@@ -1291,13 +1295,39 @@ void PlaylistWindow::onTempoHeightResizeRequested(int newHeight)
 
 void PlaylistWindow::recalculateViewportEndFrame()
 {
-    if (m_canvas && m_ctrl.timeline) {
-        double canvasWidth = static_cast<double>(m_canvas->width());
-        uint64_t framesVisible = static_cast<uint64_t>(
-            m_ctrl.timeline->pixelsToFrames(static_cast<float>(canvasWidth),
-                                            static_cast<float>(m_viewport.zoomFactor)));
-        m_viewport.endFrame = m_viewport.startFrame + framesVisible;
+    if (!m_canvas || !m_ctrl.timeline) {
+        return;
     }
+    if (m_viewport.zoomFactor <= 0.0) {
+        return;
+    }
+    // Layout not finished yet (e.g. ctor / first show): width is 0.
+    // Keep the stale endFrame instead of collapsing the grid to 0-1 bars;
+    // showEvent/resizeEvent will recompute once the width is valid.
+    const double canvasWidth = static_cast<double>(m_canvas->width());
+    if (canvasWidth <= 0.0) {
+        return;
+    }
+    uint64_t framesVisible = static_cast<uint64_t>(
+        m_ctrl.timeline->pixelsToFrames(static_cast<float>(canvasWidth),
+                                        static_cast<float>(m_viewport.zoomFactor)));
+    uint64_t widthBasedEnd = m_viewport.startFrame + framesVisible;
+
+    // Ensure the initial viewport covers the whole arrangement (+4-bar
+    // padding) so all bar grids are visible instead of only 1-2 bars.
+    // Pure width-based math under-covers short canvas widths at 0.001 px/frame.
+    uint64_t contentBasedEnd = widthBasedEnd;
+    if (m_ctrl.arrangement && m_ctrl.timeline) {
+        const uint64_t arrLen = m_ctrl.arrangement->getArrangementLength();
+        if (arrLen > 0) {
+            // Tempo-aware 4-bar padding (Project BPM / time signature aware).
+            const uint64_t bar1 = m_ctrl.timeline->bbtToFrame(1, 1, 0);
+            const uint64_t bar5 = m_ctrl.timeline->bbtToFrame(5, 1, 0);
+            const uint64_t padFrames = (bar5 > bar1) ? (bar5 - bar1) : framesVisible;
+            contentBasedEnd = arrLen + padFrames;
+        }
+    }
+    m_viewport.endFrame = std::max(widthBasedEnd, contentBasedEnd);
 }
 
 void PlaylistWindow::zoomHorizontal(double zoomScale)
@@ -1331,6 +1361,15 @@ void PlaylistWindow::zoomReset()
 void PlaylistWindow::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
+    recalculateViewportEndFrame();
+    applyViewport();
+}
+
+void PlaylistWindow::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    // First show is when the canvas gets its real width (ctor width == 0).
+    // Recompute here so the initial grid covers all bars without a manual resize.
     recalculateViewportEndFrame();
     applyViewport();
 }

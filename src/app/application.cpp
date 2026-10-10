@@ -343,6 +343,16 @@ void Application::onBootCompleted() {
     // Process pending events to ensure MainWindow's show event is registered
     m_qapp->processEvents();
 
+    // The default session was bootstrapped in wireLayer6ToLayer7 before
+    // PlaylistWindow existed, so it missed the initial onSessionChanged.
+    // Re-broadcast deferred (after layout, so canvas width is valid and
+    // recalculateViewportEndFrame computes the full bar grid, not 1-2 bars).
+    if (auto* sessionManager = compositionRoot.getSessionManager()) {
+        QTimer::singleShot(0, m_qapp.get(), [sessionManager]() {
+            sessionManager->triggerSessionRefresh();
+        });
+    }
+
     // Restore default exit behavior when MainWindow is closed
     m_qapp->setQuitOnLastWindowClosed(true);
 

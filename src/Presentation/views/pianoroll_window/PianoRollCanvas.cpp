@@ -9,6 +9,7 @@
 #include <QLinearGradient>
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 
 namespace presentation::views {
 
