@@ -14,19 +14,17 @@ QString getToggleStyle()
         "QPushButton {"
         "    color: %1;"
         "    background-color: %2;"
-        "    border: 1px solid %3;"
-        "    border-radius: 4px;"
+        "    border: none;"
+        "    border-radius: 8px;"
         "    padding: 4px 4px;"
         "}"
         "QPushButton:hover {"
         "    color: %4;"
-        "    background-color: #444444;"
-        "    border: 1px solid %5;"
+        "    background-color: #3A4454;"
         "}"
         "QPushButton:checked {"
         "    color: %5;"
         "    background-color: %3;"
-        "    border: 1px solid %5;"
         "}"
     ).arg(theme::Color::TextMuted.name())
      .arg(theme::Color::BgControl.name())
@@ -46,9 +44,10 @@ WorkspaceControls::WorkspaceControls(QWidget* parent)
 
 void WorkspaceControls::setupUI()
 {
+    // No vertical margins: parent bar supplies 8px padding; buttons are 36px.
     auto* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(8, 4, 8, 4);
-    layout->setSpacing(4);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(8);
 
     m_pianoRollBtn = createWindowToggle(theme::PaintHelper::createSvgIcon(":/icons/piano.svg"), "PIANO", "Piano Roll editor",
                                          bridge::WorkspaceWindow::PianoRoll);

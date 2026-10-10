@@ -18,12 +18,12 @@ void BrowserSearchView::setupUI() {
     setStyleSheet("background: transparent; border: none;");
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(8, 6, 8, 6);
-    mainLayout->setSpacing(6);
+    mainLayout->setContentsMargins(12, 8, 12, 8);
+    mainLayout->setSpacing(8);
 
     // Search bar row
     QHBoxLayout* searchRow = new QHBoxLayout();
-    searchRow->setSpacing(4);
+    searchRow->setSpacing(8);
 
     m_searchEdit = new QLineEdit(this);
     m_searchEdit->setPlaceholderText("Search samples, plugins, projects...");
@@ -41,7 +41,7 @@ void BrowserSearchView::setupUI() {
 
     // Tag filter buttons row
     QHBoxLayout* tagRow = new QHBoxLayout();
-    tagRow->setSpacing(4);
+    tagRow->setSpacing(8);
 
     auto createTagButton = [this](const QString& text, const QString& tooltip) {
         QPushButton* btn = new QPushButton(text, this);

@@ -66,7 +66,7 @@ void TimeDisplay::paintEvent(QPaintEvent* /*event*/)
 
     // Background panel
     QRectF bounds(0.0, 0.0, static_cast<double>(width()), static_cast<double>(height()));
-    theme::PaintHelper::drawGlassPanel(&painter, bounds, theme::Color::BgSurface, 4.0);
+    theme::PaintHelper::drawGlassPanel(&painter, bounds, theme::Color::BgSurface, 12.0);
 
     // Time value (large, accent color)
     painter.setFont(theme::Font::monospace(14, QFont::Bold));
@@ -139,7 +139,7 @@ void TimeDisplay::mouseDoubleClickEvent(QMouseEvent* event)
             m_bpmSpin->setAlignment(Qt::AlignCenter);
             m_bpmSpin->setStyleSheet(QString(
                 "QDoubleSpinBox { background-color: %1; border: 1px solid %2; "
-                "border-radius: 4px; color: %2; font-family: 'Inter'; font-weight: bold; font-size: 12px; }"
+                "border-radius: 8px; color: %2; font-family: 'Inter'; font-weight: bold; font-size: 12px; }"
             ).arg(theme::Color::BgSurface.name())
              .arg(theme::Color::AccentGlow.name()));
             m_bpmSpin->setGeometry(10, 5, width() - 20, height() - 10);

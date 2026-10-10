@@ -731,7 +731,7 @@ bool ChannelStripWidget::eventFilter(QObject* watched, QEvent* event) {
             "  color: %1;"
             "  background-color: %2;"
             "  border: 1.5px solid %3;"
-            "  border-radius: 4px;"
+            "  border-radius: 8px;"
             "  padding: 1px 4px;"
             "}"
         ).arg(theme::Color::TextPrimary.name())

@@ -93,10 +93,14 @@ if "%CLEAN_BUILD%"=="1" (
     if exist "%BUILD_DIR%" rd /s /q "%BUILD_DIR%"
 )
 
-:: Locate Qt 6 if not already in CMAKE_PREFIX_PATH
+:: Locate Qt 6 if not already in CMAKE_PREFIX_PATH.
+:: Order: CMAKE_PREFIX_PATH (explicit) > Qt6_DIR > C:\Qt\6.8.0\msvc2022_64
+:: (unified aqtinstall default, same as macOS ~/Qt + CI cache) > C:\Qt\6.* fallback.
 if not defined CMAKE_PREFIX_PATH (
     if defined Qt6_DIR (
         set "CMAKE_PREFIX_PATH=%Qt6_DIR%"
+    ) else if exist "C:\Qt\6.8.0\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake" (
+        set "CMAKE_PREFIX_PATH=C:\Qt\6.8.0\msvc2022_64"
     ) else (
         for /d %%D in ("C:\Qt\6.*") do (
             if exist "%%D\msvc2022_64" (

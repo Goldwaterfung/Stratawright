@@ -29,7 +29,7 @@ PickerListWidget::PickerListWidget(QWidget* parent)
         "}"
         "QListWidget::item {"
         "  padding: 8px 10px;"
-        "  border-bottom: 1px solid #303D49;"
+        "  border-bottom: 1px solid #323232;"
         "}"
         "QListWidget::item:hover {"
         "  background-color: #1A2F2B;"
@@ -160,13 +160,13 @@ void PickerPanel::setupUI()
 
     auto* headerLabel = new QLabel(QStringLiteral("PICKER"), headerWidget);
     headerLabel->setFont(theme::Font::monospace(11, QFont::Bold));
-    headerLabel->setStyleSheet(QStringLiteral("color: #00FFCC; background: transparent;"));
+    headerLabel->setStyleSheet(QStringLiteral("color: #00D2B4; background: transparent;"));
     headerLayout->addWidget(headerLabel, 0, Qt::AlignVCenter);
     
     // Minimalist cyber dot to indicate system active
     auto* activeDot = new QFrame(headerWidget);
     activeDot->setFixedSize(4, 4);
-    activeDot->setStyleSheet(QStringLiteral("background-color: #00FFCC; border-radius: 2px;"));
+    activeDot->setStyleSheet(QStringLiteral("background-color: #00D2B4; border-radius: 2px;"));
     headerLayout->addWidget(activeDot, 0, Qt::AlignVCenter | Qt::AlignRight);
 
     mainLayout->addWidget(headerWidget);
@@ -175,15 +175,15 @@ void PickerPanel::setupUI()
     auto* divTitle = new QFrame(this);
     divTitle->setFrameShape(QFrame::HLine);
     divTitle->setFixedHeight(1);
-    divTitle->setStyleSheet(QStringLiteral("background-color: #526D82; border: none;"));
+    divTitle->setStyleSheet(QStringLiteral("background-color: #323232; border: none;"));
     mainLayout->addWidget(divTitle);
 
-    // 2. Tab buttons bar
+    // 2. Tab buttons bar (44px = 28px buttons + 8px top/bottom padding)
     auto* tabWidget = new QWidget(this);
-    tabWidget->setFixedHeight(36);
+    tabWidget->setFixedHeight(44);
     auto* tabLayout = new QHBoxLayout(tabWidget);
-    tabLayout->setContentsMargins(4, 4, 4, 4);
-    tabLayout->setSpacing(4);
+    tabLayout->setContentsMargins(8, 8, 8, 8);
+    tabLayout->setSpacing(8);
 
     m_tabGroup = new QButtonGroup(this);
     m_tabGroup->setExclusive(true);
@@ -222,7 +222,7 @@ void PickerPanel::setupUI()
     auto* divTabs = new QFrame(this);
     divTabs->setFrameShape(QFrame::HLine);
     divTabs->setFixedHeight(1);
-    divTabs->setStyleSheet(QStringLiteral("background-color: #526D82; border: none;"));
+    divTabs->setStyleSheet(QStringLiteral("background-color: #323232; border: none;"));
     mainLayout->addWidget(divTabs);
 
     // 3. Stacked widget representing lists for each tab
@@ -360,25 +360,24 @@ void PickerPanel::applyThemeStyle()
 {
     setStyleSheet(QStringLiteral(
         "QWidget#PickerPanel {"
-        "  background-color: #222831;"
-        "  border-right: 1px solid #526D82;"
+        "  background-color: #222222;"
+        "  border: none;"
+        "  border-radius: 12px;"
         "}"
         "QPushButton {"
-        "  background-color: #303D49;"
-        "  border: 1px solid #464F63;"
-        "  border-radius: 2px;"
-        "  color: #a0a5b5;"
+        "  background-color: #323232;"
+        "  border: none;"
+        "  border-radius: 8px;"
+        "  color: #9DB2BF;"
         "  padding: 0px;"
         "}"
         "QPushButton:hover {"
-        "  background-color: #526D82;"
-        "  color: #f0f1f5;"
-        "  border-color: #00FFCC;"
+        "  background-color: #3A4454;"
+        "  color: #E8E8E8;"
         "}"
         "QPushButton:checked {"
-        "  background-color: #1A2F2B;"
-        "  color: #00FFCC;"
-        "  border-color: #00FFCC;"
+        "  background-color: #211B35;"
+        "  color: #A78BFA;"
         "}"
     ));
 }

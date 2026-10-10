@@ -112,8 +112,8 @@ void BrowserPreviewDeck::setupUI() {
     setStyleSheet("background: transparent; border: none;");
 
     QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(8, 8, 8, 8);
-    layout->setSpacing(6);
+    layout->setContentsMargins(12, 8, 12, 8);
+    layout->setSpacing(8);
 
     // Play/Stop Button
     m_btnPlayToggle = new QPushButton(this);

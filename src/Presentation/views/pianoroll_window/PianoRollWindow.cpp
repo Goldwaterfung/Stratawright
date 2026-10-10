@@ -157,16 +157,16 @@ void PianoRollWindow::onQuantizeClicked() {
 
 void PianoRollWindow::setupUI() {
     auto* mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
-    mainLayout->setSpacing(0);
+    mainLayout->setContentsMargins(8, 8, 8, 8);
+    mainLayout->setSpacing(8);
 
-    // 1. Toolbar Panel
+    // 1. Toolbar Panel (48px = 32px buttons + 8px top/bottom padding)
     auto* toolbar = new QWidget(this);
     toolbar->setObjectName(QStringLiteral("PRToolbar"));
-    toolbar->setFixedHeight(44);
+    toolbar->setFixedHeight(48);
     
     auto* toolbarLayout = new QHBoxLayout(toolbar);
-    toolbarLayout->setContentsMargins(12, 4, 12, 4);
+    toolbarLayout->setContentsMargins(12, 8, 12, 8);
     toolbarLayout->setSpacing(8);
 
     // Tool Group
@@ -240,13 +240,13 @@ void PianoRollWindow::setupUI() {
 
     // 2. Splitter for Canvas and Bottom Lanes
     verticalSplitter_ = new QSplitter(Qt::Vertical, this);
-    verticalSplitter_->setHandleWidth(2);
+    verticalSplitter_->setHandleWidth(4);
 
     // Canvas container to host canvas and vertical scrollbar
     auto* canvasContainer = new QWidget(this);
     auto* canvasLayout = new QHBoxLayout(canvasContainer);
     canvasLayout->setContentsMargins(0, 0, 0, 0);
-    canvasLayout->setSpacing(0);
+    canvasLayout->setSpacing(8);
 
     canvas_ = new PianoRollCanvas(controller_, canvasContainer);
     vScrollBar_ = new QScrollBar(Qt::Vertical, canvasContainer);
@@ -260,7 +260,7 @@ void PianoRollWindow::setupUI() {
     auto* bottomContainer = new QWidget(this);
     auto* bottomLayout = new QVBoxLayout(bottomContainer);
     bottomLayout->setContentsMargins(0, 0, 0, 0);
-    bottomLayout->setSpacing(0);
+    bottomLayout->setSpacing(8);
 
     velocityView_ = new VelocityLaneView(controller_, this);
     controllerView_ = new ControllerLaneView(controller_, this);
@@ -280,7 +280,7 @@ void PianoRollWindow::setupUI() {
     auto* hScrollContainer = new QWidget(this);
     auto* hScrollLayout = new QHBoxLayout(hScrollContainer);
     hScrollLayout->setContentsMargins(0, 0, 0, 0);
-    hScrollLayout->setSpacing(0);
+    hScrollLayout->setSpacing(8);
 
     auto* leftSpacer = new QWidget(hScrollContainer);
     leftSpacer->setFixedWidth(48); // Match canvas KEY_WIDTH
@@ -315,28 +315,26 @@ void PianoRollWindow::applyThemeSheet() {
         "}"
         "QPushButton {"
         "    background-color: %2;"
-        "    border: 1px solid %4;"
+        "    border: none;"
         "    color: %5;"
         "    padding: 6px 10px;"
-        "    border-radius: 4px;"
+        "    border-radius: 8px;"
         "    font-size: 14px;"
         "}"
         "QPushButton:hover {"
-        "    background-color: #444444;"
-        "    border-color: #5D6882;"
+        "    background-color: #3A4454;"
         "}"
         "QPushButton:checked {"
         "    background-color: %6;"
-        "    border-color: %6;"
         "    color: %7;"
         "    font-weight: bold;"
         "}"
         "QComboBox {"
         "    background-color: %2;"
-        "    border: 1px solid %4;"
+        "    border: none;"
         "    color: %5;"
         "    padding: 3px 20px 3px 6px;"
-        "    border-radius: 4px;"
+        "    border-radius: 8px;"
         "    font-size: 14px;"
         "}"
         "QComboBox::drop-down {"
@@ -346,7 +344,10 @@ void PianoRollWindow::applyThemeSheet() {
         "    border-left-width: 0px;"
         "}"
         "QSplitter::handle {"
-        "    background-color: %2;"
+        "    background-color: transparent;"
+        "}"
+        "QSplitter::handle:hover {"
+        "    background-color: %6;"
         "}"
     ).arg(theme::Color::BgSurface.name())
      .arg(theme::Color::BgControl.name())

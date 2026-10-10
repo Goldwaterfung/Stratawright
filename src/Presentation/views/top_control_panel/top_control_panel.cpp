@@ -13,12 +13,12 @@ namespace presentation::views {
 TopControlPanel::TopControlPanel(QWidget* parent)
     : QWidget(parent)
 {
-    setFixedHeight(48);
+    setFixedHeight(56);
     setStyleSheet("background: transparent; border: none;");
 
     auto* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
+    layout->setContentsMargins(12, 8, 12, 8);
+    layout->setSpacing(8);
 
     // --- Input Mode Controls (left) ---
     m_inputModeControls = new InputModeControls(this);
@@ -27,7 +27,7 @@ TopControlPanel::TopControlPanel(QWidget* parent)
     // --- Vertical separator ---
     auto* sep1 = new QFrame(this);
     sep1->setFrameShape(QFrame::VLine);
-    sep1->setStyleSheet("background-color: #526D82; min-width: 1px; max-width: 1px; border: none;");
+    sep1->setStyleSheet("background-color: #323232; min-width: 1px; max-width: 1px; border: none;");
     layout->addWidget(sep1);
 
     // --- Transport Controls (center) ---
@@ -37,7 +37,7 @@ TopControlPanel::TopControlPanel(QWidget* parent)
     // --- Vertical separator ---
     auto* sep2 = new QFrame(this);
     sep2->setFrameShape(QFrame::VLine);
-    sep2->setStyleSheet("background-color: #526D82; min-width: 1px; max-width: 1px; border: none;");
+    sep2->setStyleSheet("background-color: #323232; min-width: 1px; max-width: 1px; border: none;");
     layout->addWidget(sep2);
 
     // --- Workspace Controls (right) ---

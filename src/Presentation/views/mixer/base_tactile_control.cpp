@@ -45,6 +45,7 @@ void BaseTactileControl::mousePressEvent(QMouseEvent* event) {
         // Hide cursor to enable infinite physical dragging without running into screen boundaries
         setCursor(Qt::BlankCursor);
         Q_EMIT controlPressed();
+        update(); // Refresh drag-state visuals (glow/width feedback)
         event->accept();
     } else {
         QWidget::mousePressEvent(event);
@@ -80,6 +81,7 @@ void BaseTactileControl::mouseReleaseEvent(QMouseEvent* event) {
         // Restore standard arrow cursor
         setCursor(Qt::ArrowCursor);
         Q_EMIT controlReleased();
+        update(); // Drop drag-state visuals
         event->accept();
     } else {
         QWidget::mouseReleaseEvent(event);

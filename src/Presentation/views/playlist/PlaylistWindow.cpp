@@ -156,15 +156,15 @@ void PlaylistWindow::setupUI()
 
     // ---- Root vertical layout -----------------------------------------------
     auto* root = new QVBoxLayout(this);
-    root->setContentsMargins(0, 0, 0, 0);
-    root->setSpacing(0);
+    root->setContentsMargins(8, 8, 8, 8);
+    root->setSpacing(8);
 
     // ---- Horizontal splitter: PickerPanel | Center Pane ---------------------
     auto* outerSplitter = new QSplitter(Qt::Horizontal, this);
-    outerSplitter->setHandleWidth(3);
+    outerSplitter->setHandleWidth(4);
     outerSplitter->setStyleSheet(
-        "QSplitter::handle { background-color: #526D82; }"
-        "QSplitter::handle:hover { background-color: #00FFCC; }"
+        "QSplitter::handle { background-color: #323232; }"
+        "QSplitter::handle:hover { background-color: #A78BFA; }"
     );
 
     // Phase 7: PickerPanel (hidden by default, toggled via Alt+P)
@@ -176,13 +176,13 @@ void PlaylistWindow::setupUI()
     auto* centerPane = new QWidget(outerSplitter);
     auto* centerLayout = new QVBoxLayout(centerPane);
     centerLayout->setContentsMargins(0, 0, 0, 0);
-    centerLayout->setSpacing(0);
+    centerLayout->setSpacing(8);
 
     // Header row: [HeaderControlPanel | RulerContainer]
     auto* headerRow = new QWidget(centerPane);
     auto* headerLayout = new QHBoxLayout(headerRow);
     headerLayout->setContentsMargins(0, 0, 0, 0);
-    headerLayout->setSpacing(0);
+    headerLayout->setSpacing(8);
     headerRow->setFixedHeight(40);
 
     // 1. Consolidated Control Panel (replaces empty headerSpacer)
@@ -190,7 +190,7 @@ void PlaylistWindow::setupUI()
     headerControl->setFixedWidth(280);
     headerControl->setObjectName("PlaylistHeaderControlPanel");
     headerControl->setStyleSheet(QString(
-        "QWidget#PlaylistHeaderControlPanel { background-color: %1; border-bottom: 1px solid #333; }"
+        "QWidget#PlaylistHeaderControlPanel { background-color: %1; border: none; border-radius: 12px; }"
     ).arg(theme::Color::BgSurface.name()));
 
     auto* controlLayout = new QHBoxLayout(headerControl);
@@ -208,8 +208,8 @@ void PlaylistWindow::setupUI()
     m_arrangementsBtn->setFixedHeight(30);
     m_arrangementsBtn->setCursor(Qt::PointingHandCursor);
     m_arrangementsBtn->setStyleSheet(
-        "QPushButton#arrangementsBtn { background-color: #323232; color: #E8E8E8; border: 1px solid #444; border-radius: 4px; padding: 0 8px; }"
-        "QPushButton#arrangementsBtn:hover { background-color: #424242; }"
+        "QPushButton#arrangementsBtn { background-color: #323232; color: #E8E8E8; border: none; border-radius: 8px; padding: 0 8px; }"
+        "QPushButton#arrangementsBtn:hover { background-color: #3A4454; }"
         "QPushButton#arrangementsBtn::menu-indicator { image: none; }"
     );
     m_arrangementsMenu = new QMenu(this);
@@ -255,10 +255,10 @@ void PlaylistWindow::setupUI()
 
     // Inner splitter: [TrackHeaderView | PlaylistClipCanvas]
     auto* innerSplitter = new QSplitter(Qt::Horizontal, centerPane);
-    innerSplitter->setHandleWidth(1);
+    innerSplitter->setHandleWidth(4);
     innerSplitter->setChildrenCollapsible(false);
     innerSplitter->setStyleSheet(
-        "QSplitter::handle { background-color: #526D82; }"
+        "QSplitter::handle { background-color: #323232; } QSplitter::handle:hover { background-color: #A78BFA; }"
     );
 
     // Phase 3: TrackHeaderView (fixed width ~280 px)
@@ -1422,12 +1422,12 @@ void PlaylistWindow::onAnalyzeLoudnessRequested()
 
     // Style the progress dialog to match the dark theme
     progressDialog.setStyleSheet(
-        "QProgressDialog { background-color: #1a1b24; color: #a0a5b5; }"
-        "QLabel { color: #a0a5b5; font-family: monospace; }"
-        "QProgressBar { border: 1px solid #2e3044; background: #0f1015; text-align: center; color: #00FFCC; }"
-        "QProgressBar::chunk { background-color: #00FFCC; }"
-        "QPushButton { background-color: #2e3044; color: #ffffff; border: 1px solid #3d4059; border-radius: 3px; padding: 4px 8px; }"
-        "QPushButton:hover { background-color: #3d4059; }"
+        "QProgressDialog { background-color: #161616; color: #9DB2BF; }"
+        "QLabel { color: #9DB2BF; font-family: monospace; }"
+        "QProgressBar { border: none; background: #161616; text-align: center; color: #00D2B4; border-radius: 4px; }"
+        "QProgressBar::chunk { background-color: #00D2B4; }"
+        "QPushButton { background-color: #323232; color: #E8E8E8; border: none; border-radius: 8px; padding: 4px 8px; }"
+        "QPushButton:hover { background-color: #3A4454; }"
     );
 
     // Poll render progress until finished or cancelled
@@ -1470,10 +1470,10 @@ void PlaylistWindow::onAnalyzeLoudnessRequested()
                     msgBox.setTextFormat(Qt::RichText);
                     msgBox.setInformativeText(infoText);
                     msgBox.setStyleSheet(
-                        "QMessageBox { background-color: #1a1b24; color: #a0a5b5; }"
-                        "QLabel { color: #a0a5b5; }"
-                        "QPushButton { background-color: #2e3044; color: #ffffff; border: 1px solid #3d4059; border-radius: 3px; padding: 4px 8px; }"
-                        "QPushButton:hover { background-color: #3d4059; }"
+                        "QMessageBox { background-color: #161616; color: #9DB2BF; }"
+                        "QLabel { color: #9DB2BF; }"
+                        "QPushButton { background-color: #323232; color: #E8E8E8; border: none; border-radius: 8px; padding: 4px 8px; }"
+                        "QPushButton:hover { background-color: #3A4454; }"
                     );
                     msgBox.exec();
                 }
@@ -1591,10 +1591,10 @@ void PlaylistWindow::onOpenProject()
         msgBox.setTextFormat(Qt::RichText);
         msgBox.setInformativeText(text);
         msgBox.setStyleSheet(
-            "QMessageBox { background-color: #1a1b24; color: #a0a5b5; }"
-            "QLabel { color: #a0a5b5; }"
-            "QPushButton { background-color: #2e3044; color: #ffffff; border: 1px solid #3d4059; border-radius: 3px; padding: 4px 8px; }"
-            "QPushButton:hover { background-color: #3d4059; }"
+            "QMessageBox { background-color: #161616; color: #9DB2BF; }"
+            "QLabel { color: #9DB2BF; }"
+            "QPushButton { background-color: #323232; color: #E8E8E8; border: none; border-radius: 8px; padding: 4px 8px; }"
+            "QPushButton:hover { background-color: #3A4454; }"
         );
         msgBox.exec();
     }
@@ -1682,10 +1682,10 @@ void PlaylistWindow::onImportProjectJson()
         msgBox.setTextFormat(Qt::RichText);
         msgBox.setInformativeText(text);
         msgBox.setStyleSheet(
-            "QMessageBox { background-color: #1a1b24; color: #a0a5b5; }"
-            "QLabel { color: #a0a5b5; }"
-            "QPushButton { background-color: #2e3044; color: #ffffff; border: 1px solid #3d4059; border-radius: 3px; padding: 4px 8px; }"
-            "QPushButton:hover { background-color: #3d4059; }"
+            "QMessageBox { background-color: #161616; color: #9DB2BF; }"
+            "QLabel { color: #9DB2BF; }"
+            "QPushButton { background-color: #323232; color: #E8E8E8; border: none; border-radius: 8px; padding: 4px 8px; }"
+            "QPushButton:hover { background-color: #3A4454; }"
         );
         msgBox.exec();
     }

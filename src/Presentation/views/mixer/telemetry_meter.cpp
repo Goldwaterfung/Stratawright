@@ -126,12 +126,13 @@ void TelemetryMeter::renderStaticBackground() {
     }
     double rightX = outGutter + colW + centerGutter;
 
-    // 1. Draw channel backing slots (deep black hardware cutouts)
-    painter.setPen(QPen(theme::Color::BgControl, 1.0));
+    // 1. Draw channel backing slots: flat BgBase recesses, no outlines.
+    // The cutouts read against the BgSurface strip by fill contrast alone.
+    painter.setPen(Qt::NoPen);
     painter.setBrush(theme::Color::BgBase);
     
-    painter.drawRect(QRectF(outGutter, topMargin, colW, meterHeight));
-    painter.drawRect(QRectF(rightX, topMargin, colW, meterHeight));
+    painter.drawRoundedRect(QRectF(outGutter, topMargin, colW, meterHeight), 3.0, 3.0);
+    painter.drawRoundedRect(QRectF(rightX, topMargin, colW, meterHeight), 3.0, 3.0);
 
     // 2. Draw Tapered Geometric Decibel Ladder with numeric values
     // Grid marks at: -45 dB, -30 dB, -20 dB, -12 dB, -6 dB, 0 dB (Unity), and +6 dB (Top)
@@ -233,11 +234,11 @@ void TelemetryMeter::paintEvent(QPaintEvent* event) {
     }
     double rightX = outGutter + colW + centerGutter;
 
-    // --- 2. Create Beautiful Liquid Plasma Linear Gradient ---
+    // --- 2. Zone gradient: violet (low) -> amber (unity) -> red (over) ---
     QLinearGradient plasma(0.0, height() - bottomMargin, 0.0, topMargin);
-    plasma.setColorAt(0.0, theme::Color::AccentGlow);    // Bottom: Cyber-Mint (#00FFCC)
-    plasma.setColorAt(0.75, theme::Color::SafetyAmber);   // Unity Threshold: Amber-Gold (#FFB300)
-    plasma.setColorAt(1.0, theme::Color::AccentRecord);  // Clipping Overdrive: Crimson Velvet (#FF3B30)
+    plasma.setColorAt(0.0, theme::Color::AccentGlow);    // Low end: soft violet
+    plasma.setColorAt(0.75, theme::Color::SafetyAmber);  // Unity threshold: amber
+    plasma.setColorAt(1.0, theme::Color::AccentRecord);  // Over 0dB: record red
 
     // --- 3. Draw Stereo Active RMS Columns ---
     double ratioRmsL = dbToRatio(static_cast<double>(m_rmsLeft));
@@ -259,7 +260,7 @@ void TelemetryMeter::paintEvent(QPaintEvent* event) {
         painter.drawRect(QRectF(rightX + 0.5, yRmsR, colW - 1.0, (height() - bottomMargin) - yRmsR));
     }
 
-    // --- 4. Draw Transient Active Peak Indicators (Cyan bars) ---
+    // --- 4. Draw transient peak markers (soft white) ---
     painter.setBrush(Qt::NoBrush);
     
     if (m_peakLeft > -60.0f) {
@@ -274,7 +275,7 @@ void TelemetryMeter::paintEvent(QPaintEvent* event) {
         painter.drawLine(QPointF(rightX + 1.0, yPeakR), QPointF(rightX + colW - 1.0, yPeakR));
     }
 
-    // --- 5. Draw Active Peak Hold Lines (Glowing Green) ---
+    // --- 5. Draw sticky peak-hold lines (violet, decay after 1s) ---
     if (m_holdPeakLeft > -60.0f) {
         double yHoldL = topMargin + (1.0 - dbToRatio(static_cast<double>(m_holdPeakLeft))) * meterHeight;
         painter.setPen(QPen(theme::Color::AccentGlow, 1.0));
@@ -296,7 +297,7 @@ void TelemetryMeter::paintEvent(QPaintEvent* event) {
     // Left LED clip
     if (m_clipLeft) {
         painter.setBrush(theme::Color::AccentRecord);
-        painter.drawRoundedRect(clipRectL, 1.5, 1.5);
+        painter.drawRoundedRect(clipRectL, 2.0, 2.0);
         theme::PaintHelper::drawVolumetricGlow(&painter, QRectF(outGutter - 1.0, 1.0, colW + 2.0, 10.0), theme::Color::AccentRecord, 0.45);
     } else {
         painter.setBrush(theme::Color::ClipIndicatorOff); // Deep dim warning slot
@@ -306,7 +307,7 @@ void TelemetryMeter::paintEvent(QPaintEvent* event) {
     // Right LED clip
     if (m_clipRight) {
         painter.setBrush(theme::Color::AccentRecord);
-        painter.drawRoundedRect(clipRectR, 1.5, 1.5);
+        painter.drawRoundedRect(clipRectR, 2.0, 2.0);
         theme::PaintHelper::drawVolumetricGlow(&painter, QRectF(rightX - 1.0, 1.0, colW + 2.0, 10.0), theme::Color::AccentRecord, 0.45);
     } else {
         painter.setBrush(theme::Color::ClipIndicatorOff);

@@ -32,12 +32,13 @@ void CyberFader::renderStaticBackground() {
     painter.setRenderHint(QPainter::Antialiasing, true);
 
     double centerX = width() / 2.0;
-    double margin = 15.0;
+    double margin = 20.0; // Clears the tall cap's overhang at the extremes
     double slotHeight = height() - (margin * 2.0);
 
-    // 1. Draw recessed fader groove
+    // 1. Draw recessed fader groove: flat BgBase fill, no outline.
+    // The groove reads against the BgSurface strip by fill contrast alone.
     QRectF slotRect(centerX - 2.0, margin, 4.0, slotHeight);
-    painter.setPen(QPen(theme::Color::BgControl, 1.0));
+    painter.setPen(Qt::NoPen);
     painter.setBrush(theme::Color::BgBase);
     painter.drawRoundedRect(slotRect, 2.0, 2.0);
 
@@ -50,9 +51,9 @@ void CyberFader::renderStaticBackground() {
 
         painter.setPen(QPen(theme::Color::TextMuted, 1.0));
 
-        // Highlight the unity gain line (0dB) with a wider/hotter tick mark
+        // Highlight the unity gain line (0dB) with the safety-amber token
         if (i == 3) {
-            painter.setPen(QPen(theme::Color::TextPrimary, 1.5));
+            painter.setPen(QPen(theme::Color::SafetyAmber, 1.5));
             painter.drawLine(QPointF(centerX - 12.0, tickY), QPointF(centerX - 5.0, tickY));
             painter.drawLine(QPointF(centerX + 5.0, tickY), QPointF(centerX + 12.0, tickY));
         } else {
@@ -80,7 +81,7 @@ void CyberFader::paintEvent(QPaintEvent* event) {
     painter.setRenderHint(QPainter::Antialiasing, true);
 
     double centerX = width() / 2.0;
-    double margin = 15.0;
+    double margin = 20.0;
     double slotHeight = height() - (margin * 2.0);
 
     // Calculate current vertical grip position based on the normalized parameter value
@@ -88,29 +89,29 @@ void CyberFader::paintEvent(QPaintEvent* event) {
 
     // --- 3. Paint Active Volumetric Groove Glow ---
     if (m_value > 0.0f) {
-        QPen activePen(theme::Color::AccentGlow, 2.0);
+        QPen activePen(theme::Color::AccentGlow, m_isDragging ? 3.0 : 2.0);
         activePen.setCapStyle(Qt::RoundCap);
         painter.setPen(activePen);
         painter.drawLine(QPointF(centerX, height() - margin), QPointF(centerX, gripY));
 
         // Soft volumetric neon emission around fader active terminal
-        theme::PaintHelper::drawVolumetricGlow(&painter, QRectF(centerX - 4.0, gripY - 4.0, 8.0, 8.0), theme::Color::AccentGlow, 0.35);
+        theme::PaintHelper::drawVolumetricGlow(&painter, QRectF(centerX - 4.0, gripY - 4.0, 8.0, 8.0), theme::Color::AccentGlow, m_isDragging ? 0.55 : 0.35);
     }
 
-    // --- 4. Paint Premium Anodized Fader Handle (Grip) ---
-    double gripW = 32.0;
-    double gripH = 18.0;
+    // --- 4. Paint Tall Minimal Fader Cap (height > width) ---
+    double gripW = 24.0;
+    double gripH = 34.0;
     QRectF gripRect(centerX - (gripW / 2.0), gripY - (gripH / 2.0), gripW, gripH);
 
     // Paint anodized grip handle via PaintHelper
-    theme::PaintHelper::drawControlGrip(&painter, gripRect, theme::Color::BgControl, 3.0);
+    theme::PaintHelper::drawControlGrip(&painter, gripRect, theme::Color::BgControl, 4.0);
 
-    // Active fluorescent alignment strip across the middle
+    // Slim position marker across the cap's middle
     QPen stripPen(theme::Color::AccentGlow, 1.5);
     stripPen.setCapStyle(Qt::RoundCap);
     painter.setPen(stripPen);
-    painter.drawLine(QPointF(centerX - (gripW / 2.0) + 4.0, gripY),
-                     QPointF(centerX + (gripW / 2.0) - 4.0, gripY));
+    painter.drawLine(QPointF(centerX - 8.0, gripY),
+                     QPointF(centerX + 8.0, gripY));
 }
 
 } // namespace presentation::views

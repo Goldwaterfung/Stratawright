@@ -520,9 +520,26 @@ TrackDynamicState TrackUIStateBuilder::getDynamicState(NodeID channelStripNode) 
     state._pad[1] = 0;
 
     if (channelStripNode.isValid()) {
-        if (auto* cs = DSP::ChannelStripFactory::getRegistry().get(channelStripNode)) {
-            state.faderLeveldB = Math::Gain::coeffTodB(cs->currentGain.load(std::memory_order_acquire));
-            state.panPosition = cs->currentPan.load(std::memory_order_acquire);
+        // NOTE: For regular tracks channelStripNode is actually desc.trackNode
+        // (an AudioTrackNode / InstrumentTrackNode id). Probe all factories
+        // in the same order as getTrackStateInternal so the 60 Hz lock-free
+        // updateFromBridge() path reads the persisted setpoints.
+        if (auto* trk = DSP::AudioTrackFactory::getRegistry().get(channelStripNode)) {
+            state.faderLeveldB = Math::Gain::coeffTodB(trk->channelStrip.targetGain.load(std::memory_order_acquire));
+            state.panPosition = trk->channelStrip.targetPan.load(std::memory_order_acquire);
+            state.isMuted = trk->channelStrip.mute.load(std::memory_order_acquire);
+            state.isSoloed = trk->channelStrip.solo.load(std::memory_order_acquire);
+        } else if (auto* trkInst = DSP::InstrumentTrackFactory::getRegistry().get(channelStripNode)) {
+            state.faderLeveldB = Math::Gain::coeffTodB(trkInst->channelStrip.targetGain.load(std::memory_order_acquire));
+            state.panPosition = trkInst->channelStrip.targetPan.load(std::memory_order_acquire);
+            state.isMuted = trkInst->channelStrip.mute.load(std::memory_order_acquire);
+            state.isSoloed = trkInst->channelStrip.solo.load(std::memory_order_acquire);
+        } else if (auto* cs = DSP::ChannelStripFactory::getRegistry().get(channelStripNode)) {
+            // Knobs follow intent (setpoints written synchronously on the UI thread),
+            // not the live DSP telemetry which only advances while the engine
+            // processes blocks. Meters continue to read currentGain/currentPan.
+            state.faderLeveldB = Math::Gain::coeffTodB(cs->targetGain.load(std::memory_order_acquire));
+            state.panPosition = cs->targetPan.load(std::memory_order_acquire);
             state.isMuted = cs->mute.load(std::memory_order_acquire);
             state.isSoloed = cs->solo.load(std::memory_order_acquire);
         }

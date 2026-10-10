@@ -38,9 +38,12 @@ void RotaryDial::renderStaticBackground() {
     QPointF center(width() / 2.0, height() / 2.0);
     qreal radius = std::min(width(), height()) * 0.38;
 
-    // 1. Draw outer anodized frame shadow
-    painter.setPen(QPen(theme::Color::BgControl, 1.5));
-    painter.setBrush(theme::Color::BgSurface);
+    // 1. Draw raised knob face: flat BgControl fill, no outline ring.
+    // The face contrasts against BgSurface parents by fill alone, matching
+    // the CyberFader grip fill language. Sweep, needle and ticks stay legible
+    // even where the face meets a selected (BgControl) strip.
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(theme::Color::BgControl);
     painter.drawEllipse(center, radius, radius);
 
     // 2. Draw subtle inner bezel ring
@@ -97,39 +100,47 @@ void RotaryDial::paintEvent(QPaintEvent* event) {
     qreal startAngle = 220.0;
     qreal sweepSpan = 260.0;
     
-    // --- 3. Paint Active Volumetric Sweep Arc ---
+    // --- 3. Paint Gradient Sweep Arc (violet -> teal along drag direction) ---
     if (m_value > 0.0f) {
         QRectF arcRect(center.x() - radius, center.y() - radius, radius * 2.0, radius * 2.0);
-        
-        // Beautiful glowing Cyber-Mint sweep pen
-        QPen sweepPen(theme::Color::AccentGlow, 2.0);
-        sweepPen.setCapStyle(Qt::RoundCap);
-        painter.setPen(sweepPen);
-        
-        // Qt drawArc uses 1/16th of a degree. Positive angles sweep counter-clockwise.
-        int startAngleQt = static_cast<int>(startAngle * 16.0);
-        int sweepAngleQt = static_cast<int>(static_cast<double>(m_value) * -sweepSpan * 16.0); // Negative sweeps clockwise
-        
-        painter.drawArc(arcRect, startAngleQt, sweepAngleQt);
+
+        // Segment the sweep so the color can blend from AccentGlow to
+        // SendPreFader along the arc; round caps overlap slightly for seamless joints.
+        const int segs = 48;
+        const QColor c0 = theme::Color::AccentGlow;
+        const QColor c1 = theme::Color::SendPreFader;
+        const qreal penW = m_isDragging ? 3.0 : 2.0;
+        for (int i = 0; i < segs; ++i) {
+            qreal t = (static_cast<qreal>(i) + 0.5) / static_cast<qreal>(segs);
+            QColor segColor(
+                static_cast<int>(c0.red() + (c1.red() - c0.red()) * t),
+                static_cast<int>(c0.green() + (c1.green() - c0.green()) * t),
+                static_cast<int>(c0.blue() + (c1.blue() - c0.blue()) * t));
+            QPen segPen(segColor, penW);
+            segPen.setCapStyle(Qt::RoundCap);
+            painter.setPen(segPen);
+
+            // Qt drawArc uses 1/16th of a degree. Negative sweeps clockwise.
+            qreal segStartDeg = startAngle - static_cast<double>(m_value) * sweepSpan * static_cast<qreal>(i) / static_cast<qreal>(segs);
+            int segSpanQt = static_cast<int>(static_cast<double>(m_value) * sweepSpan / static_cast<qreal>(segs) * 16.0) + 1;
+            painter.drawArc(arcRect, static_cast<int>(segStartDeg * 16.0), -segSpanQt);
+        }
     }
 
-    // --- 4. Paint Pointer Needle ---
-    qreal needleAngleDeg = startAngle - (static_cast<double>(m_value) * sweepSpan);
-    qreal needleAngleRad = needleAngleDeg * M_PI / 180.0;
-    
-    QPointF innerP(center.x() + (radius * 0.3) * std::cos(needleAngleRad),
-                   center.y() - (radius * 0.3) * std::sin(needleAngleRad));
-    QPointF outerP(center.x() + (radius * 0.85) * std::cos(needleAngleRad),
-                   center.y() - (radius * 0.85) * std::sin(needleAngleRad));
+    // --- 4. Paint Position Dot (minimal pointer, no needle line) ---
+    qreal dotAngleDeg = startAngle - (static_cast<double>(m_value) * sweepSpan);
+    qreal dotAngleRad = dotAngleDeg * M_PI / 180.0;
 
-    // Glow needle effect
-    theme::PaintHelper::drawVolumetricGlow(&painter, QRectF(outerP.x() - 4.0, outerP.y() - 4.0, 8.0, 8.0), theme::Color::AccentGlow, 0.45);
+    QPointF dotP(center.x() + radius * 0.65 * std::cos(dotAngleRad),
+                 center.y() - radius * 0.65 * std::sin(dotAngleRad));
 
-    // Primary needle line drawing
-    QPen needlePen(theme::Color::TextPrimary, 2.0);
-    needlePen.setCapStyle(Qt::RoundCap);
-    painter.setPen(needlePen);
-    painter.drawLine(innerP, outerP);
+    // Soft glow behind the dot, stronger while dragging
+    theme::PaintHelper::drawVolumetricGlow(&painter, QRectF(dotP.x() - 4.0, dotP.y() - 4.0, 8.0, 8.0), theme::Color::AccentGlow, m_isDragging ? 0.6 : 0.4);
+
+    // Solid dot marker inside the knob face
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(theme::Color::TextPrimary);
+    painter.drawEllipse(dotP, 2.5, 2.5);
 }
 
 } // namespace presentation::views

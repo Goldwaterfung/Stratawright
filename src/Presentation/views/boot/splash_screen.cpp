@@ -116,7 +116,7 @@ void SplashScreen::setupUI() {
     m_progressBar->setStyleSheet(QString(
         "QProgressBar {"
         "   background-color: %1;"
-        "   border: 1px solid %2;"
+        "   border: none;"
         "   border-radius: 3px;"
         "}"
         "QProgressBar::chunk {"
@@ -130,7 +130,7 @@ void SplashScreen::setupUI() {
 
     // Bottom info bar (Version and copyright)
     QHBoxLayout* bottomLayout = new QHBoxLayout();
-    bottomLayout->setSpacing(0);
+    bottomLayout->setSpacing(8);
     bottomLayout->setContentsMargins(0, 10, 0, 0);
 
     m_versionLabel = new QLabel("v1.0.0-PROD (C++20 ENGINE)", this);
@@ -153,7 +153,7 @@ void SplashScreen::setupUI() {
         "   background-color: %1;"
         "   color: %2;"
         "   border: 1px solid %2;"
-        "   border-radius: 4px;"
+        "   border-radius: 8px;"
         "   padding: 6px 16px;"
         "}"
         "QPushButton:hover {"
@@ -232,7 +232,7 @@ void SplashScreen::handleBootFailed(const QString& errorMessage) {
     m_progressBar->setStyleSheet(QString(
         "QProgressBar {"
         "   background-color: %1;"
-        "   border: 1px solid %2;"
+        "   border: none;"
         "   border-radius: 3px;"
         "}"
         "QProgressBar::chunk {"
@@ -257,7 +257,7 @@ void SplashScreen::onRetryClicked() {
     m_progressBar->setStyleSheet(QString(
         "QProgressBar {"
         "   background-color: %1;"
-        "   border: 1px solid %2;"
+        "   border: none;"
         "   border-radius: 3px;"
         "}"
         "QProgressBar::chunk {"

@@ -1,0 +1,100 @@
+name: CI
+
+# Unified Qt strategy: pinned Qt 6.8.0 via aqtinstall on macOS + Windows.
+# vcpkg is used ONLY for small C++ deps (vcpkg.json has no Qt — vcpkg Qt is
+# too large/slow for CI). Qt install dirs are cached between runs.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  QT_VERSION: 6.8.0
+
+jobs:
+  build-test:
+    name: ${{ matrix.os }} build+test
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos
+            runner: macos-14 # arm64, matches local dev
+            qt-host: mac
+            qt-arch: clang_64
+            qt-dir: $HOME/Qt/6.8.0/macos
+            qt-cache-path: ~/Qt
+          - os: windows
+            runner: windows-2022
+            qt-host: windows
+            qt-arch: win64_msvc2022_64
+            qt-dir: C:\Qt\6.8.0\msvc2022_64
+            qt-cache-path: C:\Qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache Qt (aqtinstall)
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.qt-cache-path }}
+          key: qt-${{ env.QT_VERSION }}-${{ matrix.os }}-${{ matrix.qt-arch }}-qtbase-qtsvg-qttools-v1
+
+      - name: Install Qt via aqtinstall (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          python -m pip install --quiet aqtinstall
+          if [ ! -f "${{ matrix.qt-dir }}/lib/cmake/Qt6/Qt6Config.cmake" ]; then
+            aqt install-qt ${{ matrix.qt-host }} desktop $QT_VERSION ${{ matrix.qt-arch }} \
+              --outputdir ~/Qt -m qtbase qtsvg qttools
+          fi
+
+      - name: Install Qt via aqtinstall (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          python -m pip install --quiet aqtinstall
+          if (!(Test-Path "C:\Qt\6.8.0\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake")) {
+            aqt install-qt ${{ matrix.qt-host }} desktop $env:QT_VERSION ${{ matrix.qt-arch }} `
+              --outputdir C:\Qt -m qtbase qtsvg qttools
+          }
+
+      - name: Setup vcpkg + third-party SDKs (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          bash scripts/setup_vcpkg.sh
+          bash scripts/setup_third_party.sh
+
+      - name: Setup vcpkg + third-party SDKs (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          scripts\setup_vcpkg.bat
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup_third_party.ps1
+
+      - name: Configure (Unix)
+        if: runner.os != 'Windows'
+        run: >
+          cmake -B build/release
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_TESTS=ON
+          "-DCMAKE_PREFIX_PATH=${{ matrix.qt-dir }}"
+          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: >
+          cmake -B build\release -G "Visual Studio 17 2022" -A x64
+          -DBUILD_TESTS=ON
+          "-DCMAKE_PREFIX_PATH=${{ matrix.qt-dir }}"
+          "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake"
+
+      - name: Build
+        run: cmake --build build/release --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build/release -C Release --output-on-failure

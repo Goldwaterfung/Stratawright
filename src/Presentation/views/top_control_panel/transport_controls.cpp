@@ -16,19 +16,17 @@ QString getToggleBtnStyle()
         "QPushButton {"
         "    color: %1;"
         "    background-color: %2;"
-        "    border: 1px solid %3;"
-        "    border-radius: 4px;"
+        "    border: none;"
+        "    border-radius: 8px;"
         "    padding: 4px 6px;"
         "}"
         "QPushButton:hover {"
         "    color: %4;"
-        "    background-color: #444444;"
-        "    border: 1px solid %5;"
+        "    background-color: #3A4454;"
         "}"
         "QPushButton:checked {"
         "    color: %5;"
         "    background-color: %3;"
-        "    border: 1px solid %5;"
         "}"
     ).arg(theme::Color::TextMuted.name())
      .arg(theme::Color::BgControl.name())
@@ -43,13 +41,12 @@ QString getTransportBtnStyle()
         "QPushButton {"
         "    color: %1;"
         "    background-color: %2;"
-        "    border: 1px solid %3;"
-        "    border-radius: 4px;"
+        "    border: none;"
+        "    border-radius: 8px;"
         "}"
         "QPushButton:hover {"
         "    color: %4;"
-        "    background-color: #444444;"
-        "    border: 1px solid %5;"
+        "    background-color: #3A4454;"
         "}"
     ).arg(theme::Color::TextMuted.name())
      .arg(theme::Color::BgControl.name())
@@ -80,9 +77,11 @@ TransportControls::TransportControls(QWidget* parent)
 
 void TransportControls::setupUI()
 {
+    // No vertical margins here: TopControlPanel (56px high, 8px padding)
+    // provides the breathing room. Buttons are 36px, TimeDisplay 40px.
     auto* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(8, 4, 8, 4);
-    layout->setSpacing(6);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(8);
 
     // --- Loop Toggle ---
     m_loopToggle = new QPushButton(this);
@@ -154,7 +153,7 @@ void TransportControls::updateFromBridge()
     if (playing != m_isPlaying) {
         m_isPlaying = playing;
         m_playBtn->setStyleSheet(m_isPlaying
-            ? QString("QPushButton { color: %1; background-color: #211B35; border: 1px solid %1; border-radius: 4px; }").arg(theme::Color::AccentGlow.name())
+            ? QString("QPushButton { color: %1; background-color: #211B35; border: none; border-radius: 8px; }").arg(theme::Color::AccentGlow.name())
             : getTransportBtnStyle());
     }
 
@@ -164,7 +163,7 @@ void TransportControls::updateFromBridge()
     if (recordArmed != m_isRecordArmed) {
         m_isRecordArmed = recordArmed;
         m_recordBtn->setStyleSheet(m_isRecordArmed
-            ? QString("QPushButton { color: %1; background-color: #2A1515; border: 1px solid %1; border-radius: 4px; }").arg(theme::Color::AccentRecord.name())
+            ? QString("QPushButton { color: %1; background-color: #2A1515; border: none; border-radius: 8px; }").arg(theme::Color::AccentRecord.name())
             : getTransportBtnStyle());
     }    // Sync loop state
     bool looping = m_controller->isLooping();

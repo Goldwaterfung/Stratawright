@@ -18,11 +18,17 @@ case "$OS" in
             exit 1
         fi
 
-        # Install build tools and pre-built Qt 6
-        echo "Installing build tools and Qt 6 via Homebrew..."
-        brew install cmake pkg-config git qt@6
+        # Install build tools (Qt comes from unified aqtinstall script below,
+        # NOT Homebrew — keeps mac/Windows/CI on the same pinned Qt 6.8.0)
+        echo "Installing build tools via Homebrew..."
+        brew install cmake pkg-config git
 
-        # Setup vcpkg and third-party SDKs
+        # Install pinned Qt 6.8.0 via aqtinstall (same as Windows + CI)
+        echo "Installing Qt via aqtinstall..."
+        bash "$(dirname "$0")/install_qt.sh"
+
+        # Setup vcpkg and third-party SDKs (vcpkg.json intentionally has NO Qt —
+        # vcpkg Qt is too large/slow for CI)
         bash ./scripts/setup_vcpkg.sh
         bash ./scripts/setup_third_party.sh
         ;;

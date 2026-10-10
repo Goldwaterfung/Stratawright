@@ -23,8 +23,8 @@ void BrowserWidget::setupUI() {
     setStyleSheet("background: transparent; border: none;");
 
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(2, 2, 2, 2);
-    layout->setSpacing(0);
+    layout->setContentsMargins(8, 8, 8, 8);
+    layout->setSpacing(8);
 
     // 1. Navigation Panel (Top)
     m_navigationView = new BrowserNavigationView(m_controller, this);
@@ -90,7 +90,7 @@ void BrowserWidget::paintEvent(QPaintEvent* event) {
 
     // Draw main glass outline border around the entire module shell
     QRectF bounds(0.0, 0.0, static_cast<double>(width()), static_cast<double>(height()));
-    theme::PaintHelper::drawGlassPanel(&painter, bounds, theme::Color::BgBase, 6.0);
+    theme::PaintHelper::drawGlassPanel(&painter, bounds, theme::Color::BgBase, 12.0);
 }
 
 } // namespace presentation::views

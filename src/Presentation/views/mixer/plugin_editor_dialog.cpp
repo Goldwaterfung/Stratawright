@@ -42,7 +42,7 @@ protected:
         double h = static_cast<double>(height());
 
         // Background dark box
-        theme::PaintHelper::drawGlassPanel(&painter, QRectF(0.0, 0.0, w, h), QColor("#0B0C0E"), 4.0);
+        theme::PaintHelper::drawGlassPanel(&painter, QRectF(0.0, 0.0, w, h), QColor("#161616"), 12.0);
 
         // Draw visualizer specific to category
         if (m_category == PluginCategory::EFFECT_EQ_FILTER) {
@@ -203,7 +203,7 @@ protected:
 
         } else {
             // Default: beautiful scrolling wave pattern
-            painter.setPen(QPen(QColor("#526D82"), 1.0));
+            painter.setPen(QPen(QColor("#888888"), 1.0));
             painter.drawLine(QPointF(0, h / 2.0), QPointF(w, h / 2.0));
 
             QPainterPath path;
@@ -238,7 +238,7 @@ public:
         setAttribute(Qt::WA_DontCreateNativeAncestors, true);
         
         // Style placeholder dark to avoid flash-frames during plugin loading
-        setStyleSheet("background-color: #0B0C0E; border: 1px solid #1E222B;");
+        setStyleSheet("background-color: #161616; border: none; border-radius: 12px;");
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         setMinimumSize(100, 100);
     }
@@ -497,8 +497,8 @@ void PluginEditorDialog::buildLastTweakedHeader(QVBoxLayout* mainLayout) {
     m_lastTweakedContainer->setStyleSheet(QString(
         "QWidget#lastTweakedContainer {"
         "  background-color: %1;"
-        "  border: 1px solid %2;"
-        "  border-radius: 4px;"
+        "  border: none;"
+        "  border-radius: 12px;"
         "}"
     ).arg(theme::Color::BgBase.name())
      .arg(theme::Color::BgControl.name()));

@@ -226,14 +226,13 @@ void MixerWindow::buildLayout()
         "QPushButton {"
         "  background-color: %1;"
         "  color: %2;"
-        "  border: 1px solid %3;"
-        "  border-radius: 4px;"
+        "  border: none;"
+        "  border-radius: 8px;"
         "  padding: 0 8px;"
         "}"
         "QPushButton:checked {"
         "  background-color: #211B35;"
         "  color: %4;"
-        "  border-color: %4;"
         "}"
     ).arg(theme::Color::BgControl.name())
      .arg(theme::Color::TextMuted.name())
@@ -249,7 +248,7 @@ void MixerWindow::buildLayout()
     auto* mainContent = new QWidget(this);
     auto* mainRow     = new QHBoxLayout(mainContent);
     mainRow->setContentsMargins(0, 0, 0, 0);
-    mainRow->setSpacing(0);
+    mainRow->setSpacing(8);
 
     // Scrollable area for track strips
     m_scrollArea = new QScrollArea(this);
@@ -279,8 +278,8 @@ void MixerWindow::buildLayout()
     m_scrollContent = new MixerScrollContent(this);
     m_scrollContent->setStyleSheet(QString("background-color: %1;").arg(theme::Color::BgBase.name()));
     m_stripLayout = new QHBoxLayout(m_scrollContent);
-    m_stripLayout->setContentsMargins(8, 8, 8, 36);
-    m_stripLayout->setSpacing(6);
+    m_stripLayout->setContentsMargins(8, 8, 8, 12);
+    m_stripLayout->setSpacing(8);
     m_stripLayout->addStretch(); // Push strips left; stretch absorbs empty space
 
     m_scrollArea->setWidget(m_scrollContent);

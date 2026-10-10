@@ -38,16 +38,15 @@ ParameterListItemWidget::ParameterListItemWidget(
         btn->setText("ADD LANE");
         btn->setStyleSheet(
             "QPushButton {"
-            "  background-color: #2E3440;"
-            "  color: #88C0D0;"
-            "  border: 1px solid #4C566A;"
-            "  border-radius: 4px;"
+            "  background-color: #323232;"
+            "  color: #9DB2BF;"
+            "  border: none;"
+            "  border-radius: 8px;"
             "  padding: 0 4px;"
             "}"
             "QPushButton:hover {"
-            "  background-color: #88C0D0;"
-            "  color: #2E3440;"
-            "  border-color: #88C0D0;"
+            "  background-color: #3A4454;"
+            "  color: #E8E8E8;"
             "}"
         );
     };
@@ -56,14 +55,14 @@ ParameterListItemWidget::ParameterListItemWidget(
         btn->setText("REMOVE");
         btn->setStyleSheet(
             "QPushButton {"
-            "  background-color: rgba(255, 102, 102, 0.1);"
-            "  color: #FF6666;"
-            "  border: 1px solid #FF6666;"
-            "  border-radius: 4px;"
+            "  background-color: rgba(255, 59, 48, 0.12);"
+            "  color: #FF6B6B;"
+            "  border: none;"
+            "  border-radius: 8px;"
             "}"
             "QPushButton:hover {"
-            "  background-color: #FF6666;"
-            "  color: #2E3440;"
+            "  background-color: #FF3B30;"
+            "  color: #FFFFFF;"
             "}"
         );
     };
@@ -104,7 +103,7 @@ ParameterWindow::ParameterWindow(
     setWindowTitle(tr("Configure Automation Lanes"));
     setModal(true);
     resize(360, 480);
-    setStyleSheet("background-color: #1E222A; border: 1px solid #2B303C; border-radius: 8px;");
+    setStyleSheet("background-color: #161616; border: none; border-radius: 12px;");
 
     auto* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(16, 16, 16, 16);
@@ -116,15 +115,15 @@ ParameterWindow::ParameterWindow(
     m_searchBox->setFixedHeight(28);
     m_searchBox->setStyleSheet(
         "QLineEdit {"
-        "  background-color: #252932;"
-        "  color: #FFFFFF;"
-        "  border: 1px solid #3B4252;"
-        "  border-radius: 4px;"
+        "  background-color: #161616;"
+        "  color: #E8E8E8;"
+        "  border: none;"
+        "  border-radius: 8px;"
         "  padding-left: 8px;"
         "  font-size: 11px;"
         "}"
         "QLineEdit:focus {"
-        "  border-color: #88C0D0;"
+        "  border: 1px solid #A78BFA;"
         "}"
     );
     connect(m_searchBox, &QLineEdit::textChanged, this, &ParameterWindow::onSearchTextChanged);
@@ -134,9 +133,9 @@ ParameterWindow::ParameterWindow(
     m_listWidget = new QListWidget(this);
     m_listWidget->setStyleSheet(
         "QListWidget {"
-        "  background-color: #1A1C23;"
-        "  border: 1px solid #2B303C;"
-        "  border-radius: 4px;"
+        "  background-color: #161616;"
+        "  border: none;"
+        "  border-radius: 8px;"
         "}"
     );
     m_listWidget->setSelectionMode(QAbstractItemView::NoSelection);
@@ -151,13 +150,13 @@ ParameterWindow::ParameterWindow(
     closeBtn->setFont(theme::Font::monospace(8, QFont::Bold));
     closeBtn->setStyleSheet(
         "QPushButton {"
-        "  background-color: #3B4252;"
-        "  color: #E5E9F0;"
+        "  background-color: #323232;"
+        "  color: #E8E8E8;"
         "  border: none;"
-        "  border-radius: 4px;"
+        "  border-radius: 8px;"
         "}"
         "QPushButton:hover {"
-        "  background-color: #4C566A;"
+        "  background-color: #3A4454;"
         "}"
     );
     connect(closeBtn, &QPushButton::clicked, this, &QDialog::accept);

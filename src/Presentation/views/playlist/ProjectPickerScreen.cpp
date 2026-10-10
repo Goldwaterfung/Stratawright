@@ -56,14 +56,15 @@ ProjectPickerScreen::ProjectPickerScreen(
     m_progressBar->setVisible(false);
     m_progressBar->setStyleSheet(QStringLiteral(
         "QProgressBar {"
-        "  background-color: #303D49;"
-        "  border: 1px solid #526D82;"
-        "  color: #00FFCC;"
+        "  background-color: #323232;"
+        "  border: none;"
+        "  border-radius: 4px;"
+        "  color: #00D2B4;"
         "  text-align: center;"
         "}"
         "QProgressBar::chunk {"
-        "  background-color: #00FFCC;"
-        "  border-radius: 3px;"
+        "  background-color: #00D2B4;"
+        "  border-radius: 4px;"
         "}"
     ));
     leftLayout->addWidget(m_progressBar);
@@ -81,7 +82,7 @@ ProjectPickerScreen::ProjectPickerScreen(
 
     auto* listHeader = new QLabel(QStringLiteral("AVAILABLE_ARRANGEMENTS:"), this);
     listHeader->setFont(theme::Font::monospace(9, QFont::Bold));
-    listHeader->setStyleSheet(QStringLiteral("color: #A0A5B5; letter-spacing: 1px;"));
+    listHeader->setStyleSheet(QStringLiteral("color: #9DB2BF; letter-spacing: 1px;"));
     rightLayout->addWidget(listHeader);
 
     m_projectsList = new QListWidget(this);
@@ -89,28 +90,26 @@ ProjectPickerScreen::ProjectPickerScreen(
     m_projectsList->setSpacing(6);
     m_projectsList->setStyleSheet(QStringLiteral(
         "QListWidget {"
-        "  background-color: #303D49;"
-        "  border: 1px solid #526D82;"
-        "  border-radius: 6px;"
+        "  background-color: #222222;"
+        "  border: none;"
+        "  border-radius: 12px;"
         "  padding: 8px;"
-        "  color: #F0F1F5;"
+        "  color: #E8E8E8;"
         "}"
         "QListWidget::item {"
-        "  background-color: #526D82;"
-        "  border: 1px solid #4A5060;"
-        "  border-radius: 4px;"
+        "  background-color: #323232;"
+        "  border: none;"
+        "  border-radius: 8px;"
         "  padding: 10px 14px;"
         "  margin-bottom: 2px;"
         "}"
         "QListWidget::item:hover {"
-        "  background-color: #464F63;"
-        "  border-color: #00FFCC;"
-        "  color: #00FFCC;"
+        "  background-color: #3A4454;"
+        "  color: #A78BFA;"
         "}"
         "QListWidget::item:selected {"
-        "  background-color: #4A5060;"
-        "  border-color: #00FFCC;"
-        "  color: #00FFCC;"
+        "  background-color: #323232;"
+        "  color: #A78BFA;"
         "}"
     ));
     rightLayout->addWidget(m_projectsList);

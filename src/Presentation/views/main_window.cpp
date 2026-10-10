@@ -43,25 +43,25 @@ MainWindow::MainWindow(QWidget* parent)
     // 3. Set central container widget with vertical layout (toolbar + content)
     QWidget* centralWidget = new QWidget(this);
     QVBoxLayout* rootLayout = new QVBoxLayout(centralWidget);
-    rootLayout->setSpacing(0);
+    rootLayout->setSpacing(8);
     rootLayout->setContentsMargins(0, 0, 0, 0);
 
     // 3a. Top Control Panel (toolbar)
     m_topControlPanel = new TopControlPanel(this);
-    m_topControlPanel->setFixedHeight(48);
+    m_topControlPanel->setFixedHeight(56);
     rootLayout->addWidget(m_topControlPanel);
 
     // 3b. Main content area containing a horizontal layout
     QWidget* contentWidget = new QWidget(centralWidget);
     QHBoxLayout* mainLayout = new QHBoxLayout(contentWidget);
-    mainLayout->setSpacing(0);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(8);
+    mainLayout->setContentsMargins(8, 0, 8, 8);
     rootLayout->addWidget(contentWidget, 1); // stretch factor 1
 
     // 3c. Splitter splitting vertically (Playlist on top, Mixer at bottom)
     m_mainSplitter = new QSplitter(Qt::Vertical, contentWidget);
-    m_mainSplitter->setHandleWidth(2);
-    m_mainSplitter->setStyleSheet("QSplitter::handle { background-color: #526D82; }");
+    m_mainSplitter->setHandleWidth(4);
+    m_mainSplitter->setStyleSheet("QSplitter::handle { background-color: transparent; } QSplitter::handle:hover { background-color: #A78BFA; }");
     mainLayout->addWidget(m_mainSplitter, 1);
 
     // 3d. Professional Mixer Window (independent floating window)
@@ -164,7 +164,7 @@ void MainWindow::setBrowserController(bridge::IBrowserController* controller) {
                     // Add vertical line divider
                     m_browserDivider = new QFrame(this);
                     m_browserDivider->setFrameShape(QFrame::VLine);
-                    m_browserDivider->setStyleSheet("background-color: #526D82; min-width: 1px; max-width: 1px; border: none;");
+                    m_browserDivider->setStyleSheet("background-color: #323232; min-width: 1px; max-width: 1px; border: none;");
 
                     // Insert at index 0 and 1
                     mainLayout->insertWidget(0, m_browserWidget);

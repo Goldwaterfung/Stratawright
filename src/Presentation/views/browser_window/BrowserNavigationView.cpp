@@ -15,17 +15,16 @@ BrowserNavigationView::BrowserNavigationView(bridge::IBrowserController* control
 }
 
 void BrowserNavigationView::setupUI() {
-    // 1. Configure visual frame sizing
-    setFixedHeight(44);
+    // 1. Configure visual frame sizing (48px = 30px tabs + 8px top/bottom padding)
+    setFixedHeight(48);
     setStyleSheet("background: transparent; border: none;");
 
     QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(8, 0, 8, 0);
-    layout->setSpacing(4);
+    layout->setContentsMargins(12, 8, 12, 8);
+    layout->setSpacing(8);
 
     m_tabGroup = new QButtonGroup(this);
     m_tabGroup->setExclusive(true);
-
     // Helper to create styled tab buttons
     auto createTabButton = [this](const QString& text, int tabId, const QString& tooltip) {
         QPushButton* btn = new QPushButton(text, this);
@@ -38,8 +37,8 @@ void BrowserNavigationView::setupUI() {
         QColor checkedBgColor = theme::Color::AccentGlow;
         checkedBgColor.setAlphaF(0.15f);
         btn->setStyleSheet(QString(
-            "QPushButton { border: none; background: transparent; padding: 4px 8px; border-radius: 4px; color: %3; }"
-            "QPushButton:hover { background: rgba(255, 255, 255, 0.1); color: #FFFFFF; }"
+            "QPushButton { border: none; background: transparent; padding: 4px 8px; border-radius: 8px; color: %3; }"
+            "QPushButton:hover { background: #323232; color: #E8E8E8; }"
             "QPushButton:checked { background: %1; color: %2; }"
         ).arg(checkedBgColor.name(QColor::HexArgb), theme::Color::AccentGlow.name(), theme::Color::TextPrimary.name()));
         
@@ -63,7 +62,7 @@ void BrowserNavigationView::setupUI() {
     m_btnCollapse->setToolTip("Collapse all folders");
     m_btnCollapse->setCursor(Qt::PointingHandCursor);
     m_btnCollapse->setFixedSize(28, 28);
-    m_btnCollapse->setStyleSheet("QPushButton { border: none; background: transparent; border-radius: 4px; } QPushButton:hover { background: rgba(255, 255, 255, 0.1); }");
+    m_btnCollapse->setStyleSheet("QPushButton { border: none; background: transparent; border-radius: 8px; } QPushButton:hover { background: #323232; }");
     m_btnCollapse->setIcon(theme::PaintHelper::createSvgIcon(":/icons/collapse.svg", QSize(16, 16)));
 
     // Refresh Button
@@ -71,7 +70,7 @@ void BrowserNavigationView::setupUI() {
     m_btnRefresh->setToolTip("Refresh sample libraries");
     m_btnRefresh->setCursor(Qt::PointingHandCursor);
     m_btnRefresh->setFixedSize(28, 28);
-    m_btnRefresh->setStyleSheet("QPushButton { border: none; background: transparent; border-radius: 4px; } QPushButton:hover { background: rgba(255, 255, 255, 0.1); }");
+    m_btnRefresh->setStyleSheet("QPushButton { border: none; background: transparent; border-radius: 8px; } QPushButton:hover { background: #323232; }");
     m_btnRefresh->setIcon(theme::PaintHelper::createSvgIcon(":/icons/refresh.svg", QSize(16, 16)));
 
     layout->addWidget(m_btnCollapse);
