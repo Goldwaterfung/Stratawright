@@ -668,10 +668,15 @@ void PlaylistClipCanvas::drawTrackLanes(QPainter& p)
                             MAX_AUTO_PTS
                         );
 
+                        // X origin MUST be x=0 with full widget width: with the
+                        // viewport invariant (duration == width/zoom), stretch
+                        // scaleX == zoom and origin matches frameToX/xToFrame.
+                        // Any horizontal inset (±1px) shifts every point by
+                        // ~1/zoom frames vs the grid and the written frame.
                         const QRectF innerRect(
-                            subLane.left()   + 1.0,
+                            subLane.left(),
                             subLane.top()    + 1.0,
-                            subLane.width()  - 2.0,
+                            subLane.width(),
                             subLane.height() - 2.0
                         );
 
@@ -867,9 +872,9 @@ void PlaylistClipCanvas::drawCompHighlight(QPainter& p)
     if (m_compHighlightClipType == composition::RegionType::AUTOMATION) {
         // Automation sub-lane geometry — use same helpers as drawTrackLanes()
         const double offset = layout.getSubLaneOffsetForParam(
-            m_compHighlightNodeId, 0, m_compHighlightParamIndex);
+            m_compHighlightNodeId, m_compHighlightSubNodeId, m_compHighlightParamIndex);
         const double subH = layout.getSubLaneHeightForParam(
-            m_compHighlightNodeId, 0, m_compHighlightParamIndex);
+            m_compHighlightNodeId, m_compHighlightSubNodeId, m_compHighlightParamIndex);
         if (offset < 0.0 || subH <= 0.0) return;  // sub-lane not currently visible
         y += offset;
         h  = subH;
@@ -957,8 +962,10 @@ QRectF PlaylistClipCanvas::regionToRect(const bridge::VisualRegion& region) cons
     double h;
 
     if (region.clipType == composition::RegionType::AUTOMATION) {
-        double offset = layout.getSubLaneOffsetForParam(region.automationTargetNodeId, 0, region.automationParameterIndex);
-        double subH = layout.getSubLaneHeightForParam(region.automationTargetNodeId, 0, region.automationParameterIndex);
+        // VisualRegion carries no subNodeId: resolve by node+param across
+        // sub-lanes so non-zero subNode lanes don't fall back to main lane.
+        double offset = layout.getSubLaneOffsetForNodeParam(region.automationTargetNodeId, region.automationParameterIndex);
+        double subH = layout.getSubLaneHeightForNodeParam(region.automationTargetNodeId, region.automationParameterIndex);
         if (offset >= 0.0) {
             y += offset;
         } else {
@@ -1124,15 +1131,16 @@ int PlaylistClipCanvas::hitTest(
                 const auto& layout = m_view.trackLayouts[static_cast<size_t>(trackIndex)];
                 auto hit = layout.hitSubLaneAtY(relY);
                 if (hit.index != -1 && m_automation->isAutomationWriteEnabled(track.trackId)) {
-                    // Determine sub-lane geometry
+                    // Determine sub-lane geometry (same origin as drawTrackLanes:
+                    // x=0 full width so scaleX == zoom; see note above).
                     double subLaneOffset = layout.getSubLaneOffsetForParam(hit.nodeId, hit.subNodeId, hit.paramIndex);
                     double subH = layout.subLanes[static_cast<size_t>(hit.index)].height;
                     QRectF subLaneRect(0.0, trackY + subLaneOffset, static_cast<double>(width()), subH);
 
                     const QRectF innerRect(
-                        subLaneRect.left()   + 1.0,
+                        subLaneRect.left(),
                         subLaneRect.top()    + 1.0,
-                        subLaneRect.width()  - 2.0,
+                        subLaneRect.width(),
                         subLaneRect.height() - 2.0
                     );
 
@@ -1167,7 +1175,11 @@ int PlaylistClipCanvas::hitTest(
                             if (std::sqrt(dx*dx + dy*dy) <= 6.0) {
                                 outState = CanvasDragState::DraggingControlPoint;
                                 if (outPointIndex) {
-                                    *outPointIndex = static_cast<int>(ptIdx);
+                                    // Global lane index, NOT the viewport-filtered
+                                    // array position: getCurvePoints() prepends
+                                    // an off-screen point, so positions shift
+                                    // whenever points exist before viewStart.
+                                    *outPointIndex = static_cast<int>(autoPts[ptIdx].pointIndex);
                                 }
                                 m_automation->selectActiveAutomationLane(track.trackId, hit.nodeId, hit.subNodeId, static_cast<int32_t>(hit.paramIndex));
                                 return -2 - trackIndex;
@@ -1316,32 +1328,24 @@ void PlaylistClipCanvas::mouseDoubleClickEvent(QMouseEvent* event)
                         // Double-clicked an existing point: remove it
                         m_automation->removeAutomationPoint(static_cast<uint32_t>(ptIdx));
                     } else {
-                        // Double-click on curve only: hit-test curve, insert at curve value
+                        // Double-click inserts at the CLICK position (frame
+                        // from X, value from Y), not on the curve.
                         double subLaneOffset = layout.getSubLaneOffsetForParam(hit.nodeId, hit.subNodeId, hit.paramIndex);
                         double subH = layout.subLanes[static_cast<size_t>(hit.index)].height;
+                        // Same origin as draw/hit (x=0 full width).
                         QRectF innerRect(0.0, trackY + subLaneOffset + 1.0,
-                                         static_cast<double>(width()) - 2.0, subH - 2.0);
+                                         static_cast<double>(width()), subH - 2.0);
 
-                        static constexpr uint32_t MAX_AUTO_PTS = 2048;
-                        bridge::VisualAutomationPoint pts[MAX_AUTO_PTS];
-                        uint32_t ptsCount = m_automation->getCurvePoints(
-                            track.trackId, hit.nodeId, hit.subNodeId, hit.paramIndex,
-                            m_view.viewStartFrame, m_view.viewEndFrame, pts, MAX_AUTO_PTS);
-
-                        double defaultVal = 0.5;
-                        if (m_automation) {
-                            defaultVal = static_cast<double>(m_automation->getBaseParameterValue(hit.nodeId, hit.subNodeId, hit.paramIndex));
+                        const double innerBottom = innerRect.bottom();
+                        const double innerHeight = innerRect.height();
+                        float clickVal = 0.5f;
+                        if (innerHeight > 0.0) {
+                            clickVal = static_cast<float>((innerBottom - pos.y()) / innerHeight);
+                            clickVal = std::clamp(clickVal, 0.0f, 1.0f);
                         }
-
-                        float curveVal = 0.0f;
-                        if (AutomationClipItem::hitTestCurve(pos, innerRect, pts, ptsCount,
-                                m_view.viewStartFrame,
-                                m_view.viewEndFrame - m_view.viewStartFrame,
-                                &curveVal,
-                                defaultVal))
-                        {
-                            uint64_t frame = xToFrame(pos.x());
-                            m_automation->addAutomationPoint(frame, curveVal);
+                        uint64_t frame = xToFrame(pos.x());
+                        if (m_automation) {
+                            m_automation->addAutomationPoint(frame, clickVal);
                         }
                     }
 
@@ -1515,6 +1519,8 @@ void PlaylistClipCanvas::mousePressEvent(QMouseEvent* event)
 
     if (hitState == CanvasDragState::DraggingControlPoint) {
         m_dragState = hitState;
+        // pointIdx is the GLOBAL lane index (see hitTest). Resolve the
+        // viewport-array position by matching .pointIndex.
         m_dragPointIndex = pointIdx;
 
         if (activeTrackId.isValid()) {
@@ -1530,9 +1536,12 @@ void PlaylistClipCanvas::mousePressEvent(QMouseEvent* event)
                 autoPts,
                 MAX_AUTO_PTS
             );
-            if (m_dragPointIndex >= 0 && m_dragPointIndex < static_cast<int>(autoPtsCount)) {
-                m_dragOrigPointFrame = autoPts[m_dragPointIndex].framePosition;
-                m_dragOrigPointValue = autoPts[m_dragPointIndex].normalizedValue;
+            for (uint32_t i = 0; i < autoPtsCount; ++i) {
+                if (static_cast<int>(autoPts[i].pointIndex) == m_dragPointIndex) {
+                    m_dragOrigPointFrame = autoPts[i].framePosition;
+                    m_dragOrigPointValue = autoPts[i].normalizedValue;
+                    break;
+                }
             }
         }
     } else if (hitIdx >= 0) {
@@ -1627,9 +1636,13 @@ void PlaylistClipCanvas::mousePressEvent(QMouseEvent* event)
             m_compHighlightClipType = regions[hitIdx].clipType;
             if (regions[hitIdx].clipType == composition::RegionType::AUTOMATION) {
                 m_compHighlightNodeId = regions[hitIdx].automationTargetNodeId;
+                // VisualRegion carries no subNodeId: fall back to 0, do NOT
+                // reuse a stale sub-lane from a previous highlight.
+                m_compHighlightSubNodeId = 0;
                 m_compHighlightParamIndex = regions[hitIdx].automationParameterIndex;
             } else {
                 m_compHighlightNodeId = NodeID::invalid();
+                m_compHighlightSubNodeId = 0;
                 m_compHighlightParamIndex = 0;
             }
         }
@@ -1661,6 +1674,7 @@ void PlaylistClipCanvas::mousePressEvent(QMouseEvent* event)
             m_compHighlightTrack = activeTrackId;
             m_compHighlightClipType = composition::RegionType::AUTOMATION;
             m_compHighlightNodeId = activeNodeId;
+            m_compHighlightSubNodeId = activeSubNodeId;
             m_compHighlightParamIndex = static_cast<uint32_t>(activeParamIndex);
         } else {
             if (!(event->modifiers() & Qt::ControlModifier)) {
@@ -1713,8 +1727,9 @@ void PlaylistClipCanvas::mouseMoveEvent(QMouseEvent* event)
                             if (m_automation->isAutomationWriteEnabled(track.trackId)) {
                                 double subLaneOffset = layout.getSubLaneOffsetForParam(hit.nodeId, hit.subNodeId, hit.paramIndex);
                                 double subH = layout.subLanes[static_cast<size_t>(hit.index)].height;
+                                // Same origin as draw/hit (x=0 full width).
                                 QRectF innerRect(0.0, trackY + subLaneOffset + 1.0,
-                                                 static_cast<double>(width()) - 2.0, subH - 2.0);
+                                                 static_cast<double>(width()), subH - 2.0);
 
                                 static constexpr uint32_t MAX_AUTO_PTS = 2048;
                                 bridge::VisualAutomationPoint pts[MAX_AUTO_PTS];
@@ -1933,7 +1948,9 @@ void PlaylistClipCanvas::mouseMoveEvent(QMouseEvent* event)
                         }
 
                         if (newIdx != -1) {
-                            m_dragPointIndex = newIdx;
+                            // Track the GLOBAL lane index so the next
+                            // editPoints() call moves the same point.
+                            m_dragPointIndex = static_cast<int>(autoPts[newIdx].pointIndex);
                             m_dragOrigPointFrame = autoPts[newIdx].framePosition;
                             m_dragOrigPointValue = autoPts[newIdx].normalizedValue;
 

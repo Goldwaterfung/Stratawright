@@ -129,8 +129,15 @@ private:
 
     /**
      * @brief Helper to recalculate viewport.endFrame based on width, startFrame, and zoomFactor.
+     * Maintains the invariant endFrame-startFrame == width/zoom.
      */
     void recalculateViewportEndFrame();
+
+    /**
+     * @brief One-shot init fit: zooms so arrangement+4 bars fill the width.
+     * Only acts while endFrame == 0 (never initialized); afterwards user zoom wins.
+     */
+    void fitArrangementInView(double canvasWidth);
 
     /**
      * @brief Zoom horizontally by the given multiplier, centering around the viewport center.

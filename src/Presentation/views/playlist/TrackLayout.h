@@ -42,6 +42,10 @@ struct TrackLayout {
     // Helper queries
     double getSubLaneHeightForParam(NodeID targetNode, uint32_t subNodeId, uint32_t paramIndex) const;
     double getSubLaneOffsetForParam(NodeID targetNode, uint32_t subNodeId, uint32_t paramIndex) const;
+    // Node+param fallback for callers without a subNodeId (e.g. VisualRegion
+    // carries no subNodeId): first expanded sub-lane matching node+param.
+    double getSubLaneHeightForNodeParam(NodeID targetNode, uint32_t paramIndex) const;
+    double getSubLaneOffsetForNodeParam(NodeID targetNode, uint32_t paramIndex) const;
     
     struct HitResult {
         int32_t index{-1};

@@ -23,6 +23,24 @@ double TrackLayout::getSubLaneOffsetForParam(NodeID targetNode, uint32_t subNode
     return -1.0;
 }
 
+double TrackLayout::getSubLaneHeightForNodeParam(NodeID targetNode, uint32_t paramIndex) const {
+    for (const auto& sl : subLanes) {
+        if (sl.targetNodeId == targetNode && sl.parameterIndex == paramIndex) {
+            return sl.height;
+        }
+    }
+    return static_cast<double>(theme::Layout::DefaultSubLaneHeight);
+}
+
+double TrackLayout::getSubLaneOffsetForNodeParam(NodeID targetNode, uint32_t paramIndex) const {
+    for (const auto& sl : subLanes) {
+        if (sl.isExpanded && sl.targetNodeId == targetNode && sl.parameterIndex == paramIndex) {
+            return sl.relativeOffset;
+        }
+    }
+    return -1.0;
+}
+
 TrackLayout::HitResult TrackLayout::hitSubLaneAtY(double relY) const {
     if (relY < mainLaneHeight) {
         return {-1, NodeID::invalid(), 0, 0};

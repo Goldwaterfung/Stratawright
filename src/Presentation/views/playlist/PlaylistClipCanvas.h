@@ -125,6 +125,7 @@ public:
         m_compHighlightLane = -1;
         m_compHighlightClipType = composition::RegionType::AUDIO;
         m_compHighlightNodeId = NodeID::invalid();
+        m_compHighlightSubNodeId = 0;
         m_compHighlightParamIndex = 0;
         update();
     }
@@ -442,6 +443,7 @@ private:
     TrackID                     m_compHighlightTrack{0, 0};
     composition::RegionType     m_compHighlightClipType{composition::RegionType::AUDIO};
     NodeID                      m_compHighlightNodeId{NodeID::invalid()};
+    uint32_t                    m_compHighlightSubNodeId{0};
     uint32_t                    m_compHighlightParamIndex{0};
 
     // -------------------------------------------------------------------------

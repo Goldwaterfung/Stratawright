@@ -1308,26 +1308,43 @@ void PlaylistWindow::recalculateViewportEndFrame()
     if (canvasWidth <= 0.0) {
         return;
     }
+    // Viewport invariant: duration MUST equal width/zoom. Every consumer
+    // (grid lines via frameToX, automation stretch mapping, region queries)
+    // assumes this; extending endFrame past it squeezes automation X.
+    // "Show all bars" is achieved by fitting ZOOM, not by stretching endFrame
+    // (see fitArrangementInView(), used once at init).
+    fitArrangementInView(canvasWidth);
     uint64_t framesVisible = static_cast<uint64_t>(
         m_ctrl.timeline->pixelsToFrames(static_cast<float>(canvasWidth),
                                         static_cast<float>(m_viewport.zoomFactor)));
-    uint64_t widthBasedEnd = m_viewport.startFrame + framesVisible;
+    m_viewport.endFrame = m_viewport.startFrame + framesVisible;
+}
 
-    // Ensure the initial viewport covers the whole arrangement (+4-bar
-    // padding) so all bar grids are visible instead of only 1-2 bars.
-    // Pure width-based math under-covers short canvas widths at 0.001 px/frame.
-    uint64_t contentBasedEnd = widthBasedEnd;
-    if (m_ctrl.arrangement && m_ctrl.timeline) {
-        const uint64_t arrLen = m_ctrl.arrangement->getArrangementLength();
-        if (arrLen > 0) {
-            // Tempo-aware 4-bar padding (Project BPM / time signature aware).
-            const uint64_t bar1 = m_ctrl.timeline->bbtToFrame(1, 1, 0);
-            const uint64_t bar5 = m_ctrl.timeline->bbtToFrame(5, 1, 0);
-            const uint64_t padFrames = (bar5 > bar1) ? (bar5 - bar1) : framesVisible;
-            contentBasedEnd = arrLen + padFrames;
-        }
+void PlaylistWindow::fitArrangementInView(double canvasWidth)
+{
+    // One-shot fit, called from recalculateViewportEndFrame but only acts
+    // while the viewport was never initialized (endFrame == 0). Afterwards
+    // user zoom is preserved across resizes.
+    if (m_viewport.endFrame != 0 || !m_ctrl.arrangement || !m_ctrl.timeline) {
+        return;
     }
-    m_viewport.endFrame = std::max(widthBasedEnd, contentBasedEnd);
+    if (canvasWidth <= 0.0) {
+        return;
+    }
+    const uint64_t arrLen = m_ctrl.arrangement->getArrangementLength();
+    if (arrLen == 0) {
+        return;
+    }
+    // Tempo-aware 4-bar padding (Project BPM / time signature aware).
+    const uint64_t bar1 = m_ctrl.timeline->bbtToFrame(1, 1, 0);
+    const uint64_t bar5 = m_ctrl.timeline->bbtToFrame(5, 1, 0);
+    const uint64_t padFrames = (bar5 > bar1) ? (bar5 - bar1) : 0;
+    const double needed = static_cast<double>(arrLen + padFrames);
+    if (needed <= 0.0) {
+        return;
+    }
+    const double fitZoom = canvasWidth / needed;
+    m_viewport.zoomFactor = std::max(0.0001, std::min(1.0, fitZoom));
 }
 
 void PlaylistWindow::zoomHorizontal(double zoomScale)
