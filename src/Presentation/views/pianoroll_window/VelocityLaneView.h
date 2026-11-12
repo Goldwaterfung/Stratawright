@@ -5,6 +5,10 @@
 #include <vector>
 #include "Middle Bridge/midi/imidi_editor_controller.h"
 
+namespace bridge {
+    class ITimelineController;
+}
+
 namespace presentation::views {
 
 class VelocityLaneView : public QWidget {
@@ -16,6 +20,7 @@ public:
 
     void setViewportRange(uint64_t startFrame, uint64_t endFrame);
     void setSelectedNoteIds(const std::vector<bridge::NoteID>& selectedIds);
+    void bindTimeline(bridge::ITimelineController* timeline) { timeline_ = timeline; }
 
 signals:
     void velocitiesMutated();
@@ -34,9 +39,10 @@ private:
     int hitTestVelocityBar(const QPointF& pos, const composition::MIDINote* notes, uint32_t count) const;
 
     bridge::IMidiEditorController* controller_ = nullptr;
+    bridge::ITimelineController* timeline_ = nullptr;
 
     uint64_t viewStartFrame_ = 0;
-    uint64_t viewEndFrame_ = 44100 * 4;
+    uint64_t viewEndFrame_ = 192000;
     std::vector<bridge::NoteID> selectedNoteIds_;
 
     // Constant offset to align with canvas keys

@@ -141,9 +141,11 @@ bool CompositionRoot::wireLayer1ToLayer2() {
         return false;
     }
 
+    uint32_t initRate = getInitialSampleRate();
+
     // Configure core infrastructure default parameters
-    tempoService_->setSampleRate(44100.0);
-    clockService_->setSampleRate(44100.0);
+    tempoService_->setSampleRate(static_cast<double>(initRate));
+    clockService_->setSampleRate(static_cast<double>(initRate));
     tempoService_->setTempoAtPosition(120.0, 0);
 
     return true;
@@ -152,6 +154,8 @@ bool CompositionRoot::wireLayer1ToLayer2() {
 bool CompositionRoot::wireLayer2ToLayer3() {
     std::cout << "CompositionRoot: Wiring Layer 2 -> Layer 3..." << std::endl;
 
+    uint32_t initRate = getInitialSampleRate();
+
     // 1. Instantiate Layer 3 components (Core Audio Engine)
     scheduler_ = Layer3::IDSPKernel::create(256);
     if (!scheduler_) {
@@ -159,7 +163,7 @@ bool CompositionRoot::wireLayer2ToLayer3() {
         return false;
     }
 
-    transport_ = Layer3::ITransport::create(44100);
+    transport_ = Layer3::ITransport::create(initRate);
     if (!transport_) {
         std::cerr << "CompositionRoot: Failed to create Transport" << std::endl;
         return false;
@@ -191,7 +195,7 @@ bool CompositionRoot::wireLayer2ToLayer3() {
     }
 
     automationMonitor_ = std::make_unique<DSP::AutomationMonitor>();
-    automationMonitor_->setSampleRate(44100.0);
+    automationMonitor_->setSampleRate(static_cast<double>(initRate));
 
     // 2. Wire Layer 2 to Layer 3
     transport_->setTempoService(tempoService_.get());
@@ -594,7 +598,7 @@ bool CompositionRoot::wireLayer6ToLayer7() {
     bridge::ProjectMetadataState defaultMeta{};
     std::strcpy(defaultMeta.projectName, "Untitled Project");
     std::strcpy(defaultMeta.author, "DAW User");
-    defaultMeta.sampleRate = 44100;
+    defaultMeta.sampleRate = getInitialSampleRate();
     defaultMeta.initialTempoBPM = 120.0f;
     defaultMeta.timeSignatureNumerator = 4;
     defaultMeta.timeSignatureDenominator = 4;
@@ -621,6 +625,52 @@ bridge::IArrangementManagerController* CompositionRoot::getArrangementManagerCon
 bridge::IRenderController* CompositionRoot::getRenderController() const { return renderController_.get(); }
 bridge::IAnalysisController* CompositionRoot::getAnalysisController() const { return analysisController_.get(); }
 
+uint32_t CompositionRoot::getInitialSampleRate() const {
+    if (audioDriver_) {
+        uint32_t count = audioDriver_->getDeviceCount();
+        for (uint32_t i = 0; i < count; ++i) {
+            auto info = audioDriver_->getDeviceInfo(i);
+            if (info.isDefaultOutput && info.defaultSampleRate > 0) {
+                return info.defaultSampleRate;
+            }
+        }
+        for (uint32_t i = 0; i < count; ++i) {
+            auto info = audioDriver_->getDeviceInfo(i);
+            if (info.defaultSampleRate > 0) {
+                return info.defaultSampleRate;
+            }
+        }
+        auto streamCfg = audioDriver_->getStreamConfig();
+        if (streamCfg.sampleRate > 0) {
+            return streamCfg.sampleRate;
+        }
+    }
+    return 0;
+}
+
+uint32_t CompositionRoot::getInitialBufferSize() const {
+    if (audioDriver_) {
+        uint32_t count = audioDriver_->getDeviceCount();
+        for (uint32_t i = 0; i < count; ++i) {
+            auto info = audioDriver_->getDeviceInfo(i);
+            if (info.isDefaultOutput && info.preferredBufferSize > 0) {
+                return info.preferredBufferSize;
+            }
+        }
+        for (uint32_t i = 0; i < count; ++i) {
+            auto info = audioDriver_->getDeviceInfo(i);
+            if (info.preferredBufferSize > 0) {
+                return info.preferredBufferSize;
+            }
+        }
+        auto streamCfg = audioDriver_->getStreamConfig();
+        if (streamCfg.bufferSize > 0) {
+            return streamCfg.bufferSize;
+        }
+    }
+    return 0;
+}
+
 bool CompositionRoot::connectAudioToBridges() {
     std::cout << "CompositionRoot: Connecting audio to bridges..." << std::endl;
 
@@ -629,29 +679,110 @@ bool CompositionRoot::connectAudioToBridges() {
         return false;
     }
 
-    // 1. Prepare Audio Engine for hardware callbacks
-    audioEngine_->prepare(44100.0, 512);
+    // 1. Discover hardware default input/output devices and their native capabilities
+    uint32_t deviceCount = audioDriver_->getDeviceCount();
+    uint32_t defaultOutIdx = Layer1::UNUSED_DEVICE_INDEX;
+    uint32_t defaultInIdx = Layer1::UNUSED_DEVICE_INDEX;
+    Layer1::DeviceInfo defaultOutInfo{};
+    Layer1::DeviceInfo defaultInInfo{};
 
-    // 2. Open Stream and connect it to the AudioEngine client callback
+    for (uint32_t i = 0; i < deviceCount; ++i) {
+        Layer1::DeviceInfo info = audioDriver_->getDeviceInfo(i);
+        if (info.isDefaultOutput && defaultOutIdx == Layer1::UNUSED_DEVICE_INDEX) {
+            defaultOutIdx = i;
+            defaultOutInfo = info;
+        }
+        if (info.isDefaultInput && defaultInIdx == Layer1::UNUSED_DEVICE_INDEX) {
+            defaultInIdx = i;
+            defaultInInfo = info;
+        }
+    }
+
+    // Fallback to first available output device if no explicit default flag exists
+    if (defaultOutIdx == Layer1::UNUSED_DEVICE_INDEX && deviceCount > 0) {
+        for (uint32_t i = 0; i < deviceCount; ++i) {
+            Layer1::DeviceInfo info = audioDriver_->getDeviceInfo(i);
+            if (info.maxOutputChannels > 0) {
+                defaultOutIdx = i;
+                defaultOutInfo = info;
+                break;
+            }
+        }
+    }
+
+    // 2. Configure desired stream properties based on native device capabilities
     Layer1::IAudioDriver::StreamConfig config{};
-    config.inputDeviceIndex = 0;
-    config.outputDeviceIndex = 0;
-    config.numInputChannels = 2;
-    config.numOutputChannels = 2;
-    config.sampleRate = 44100;
-    config.bufferSize = 512;
+    config.outputDeviceIndex = defaultOutIdx;
+    config.inputDeviceIndex = defaultInIdx;
+    config.numOutputChannels = (defaultOutIdx != Layer1::UNUSED_DEVICE_INDEX) ? std::min(defaultOutInfo.maxOutputChannels, 2u) : 0;
+    config.numInputChannels = (defaultInIdx != Layer1::UNUSED_DEVICE_INDEX) ? std::min(defaultInInfo.maxInputChannels, 2u) : 0;
+    config.sampleRate = (defaultOutIdx != Layer1::UNUSED_DEVICE_INDEX && defaultOutInfo.defaultSampleRate > 0) 
+                            ? defaultOutInfo.defaultSampleRate 
+                            : ((defaultInIdx != Layer1::UNUSED_DEVICE_INDEX) ? defaultInInfo.defaultSampleRate : 0);
+    config.bufferSize = (defaultOutIdx != Layer1::UNUSED_DEVICE_INDEX && defaultOutInfo.preferredBufferSize > 0) 
+                            ? defaultOutInfo.preferredBufferSize 
+                            : ((defaultInIdx != Layer1::UNUSED_DEVICE_INDEX) ? defaultInInfo.preferredBufferSize : 0);
     config.client = audioEngine_.get();
 
+    // 3. Open Stream FIRST
     Layer1::OpenResult result = audioDriver_->openStream(config);
     if (!result.success) {
         std::cerr << "CompositionRoot: Warning - Failed to open audio hardware stream: " 
                   << (result.errorMessage[0] != '\0' ? result.errorMessage : "unknown error") << std::endl;
-        // Don't fail the entire startup sequence - let GUI boot up
-    } else {
-        std::cout << "CompositionRoot: Audio hardware stream opened successfully. Starting playback thread..." << std::endl;
-        if (!audioDriver_->startStream()) {
-            std::cerr << "CompositionRoot: Failed to start audio hardware stream callback" << std::endl;
+        double fallbackRate = config.sampleRate > 0 ? static_cast<double>(config.sampleRate) : static_cast<double>(getInitialSampleRate());
+        uint32_t fallbackBuffer = config.bufferSize > 0 ? config.bufferSize : getInitialBufferSize();
+        audioEngine_->prepare(fallbackRate, fallbackBuffer, Layer1::WorkgroupHandle::invalid());
+        if (clockService_) clockService_->setSampleRate(fallbackRate);
+        if (tempoService_) tempoService_->setSampleRate(fallbackRate);
+        if (automationMonitor_) automationMonitor_->setSampleRate(fallbackRate);
+        return false;
+    }
+
+    // 4. Read actual negotiated stream configuration from driver
+    Layer1::IAudioDriver::StreamConfig actualConfig = audioDriver_->getStreamConfig();
+    double actualRate = static_cast<double>(actualConfig.sampleRate);
+    uint32_t actualBufferSize = actualConfig.bufferSize;
+
+    // 5. Prepare Audio Engine with actual negotiated parameters
+    audioEngine_->prepare(actualRate, actualBufferSize, audioDriver_->getWorkgroupHandle());
+
+    // 6. Synchronize core infrastructure and DSP monitoring
+    if (clockService_) {
+        clockService_->setSampleRate(actualRate);
+    }
+    if (tempoService_) {
+        tempoService_->setSampleRate(actualRate);
+    }
+    if (automationMonitor_) {
+        automationMonitor_->setSampleRate(actualRate);
+    }
+
+    float actualRateF = static_cast<float>(actualRate);
+    DSP::g_globalDspSampleRate.store(actualRateF, std::memory_order_relaxed);
+    if (channelStripFactory_) channelStripFactory_->setSampleRate(actualRateF);
+    if (pannerFactory_) pannerFactory_->setSampleRate(actualRateF);
+    if (sendFactory_) sendFactory_->setSampleRate(actualRateF);
+    if (audioTrackFactory_) audioTrackFactory_->setSampleRate(actualRateF);
+    if (instrumentTrackFactory_) instrumentTrackFactory_->setSampleRate(actualRateF);
+
+    // 7. Synchronize active project session metadata & track manager
+    if (sessionManager_ && sessionManager_->getActiveSession()) {
+        auto* session = sessionManager_->getActiveSession();
+        auto metadata = session->getMetadata();
+        metadata.sampleRate = actualConfig.sampleRate;
+        session->setMetadata(metadata);
+        if (auto* trackManager = session->getTrackManager()) {
+            trackManager->setProjectSampleRate(actualConfig.sampleRate);
+            trackManager->setProjectBufferSize(actualConfig.bufferSize);
         }
+    }
+
+    // 8. Start Stream
+    std::cout << "CompositionRoot: Audio hardware stream opened successfully at " 
+              << actualConfig.sampleRate << " Hz (" << actualConfig.bufferSize << " frames). Starting playback thread..." << std::endl;
+    if (!audioDriver_->startStream()) {
+        std::cerr << "CompositionRoot: Failed to start audio hardware stream callback" << std::endl;
+        return false;
     }
 
     return true;

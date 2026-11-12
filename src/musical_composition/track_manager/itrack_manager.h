@@ -89,6 +89,7 @@ public:
     // Timeline snapshot compilation
     virtual void compileTimelineSnapshot() = 0;
     virtual void setProjectSampleRate(uint32_t sampleRate) = 0;
+    virtual void setProjectBufferSize(uint32_t bufferSize) { (void)bufferSize; }
 
     // Mixer Operations
     virtual void setTrackFaderGain(TrackID id, float gainLinear) = 0;

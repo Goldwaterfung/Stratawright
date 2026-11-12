@@ -88,8 +88,8 @@ private:
     IAutomationProcessor* automationProcessor_ = nullptr;
 
     // Internal state
-    std::atomic<double> sampleRate_{48000.0};
-    std::atomic<uint32_t> maxBlockSize_{512};
+    std::atomic<double> sampleRate_{0.0};
+    std::atomic<uint32_t> maxBlockSize_{0};
     std::atomic<uint64_t> totalCycles_{0};
     std::atomic<double> cpuLoad_{0.0};
     std::atomic<uint32_t> xrunCount_{0};

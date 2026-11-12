@@ -159,12 +159,15 @@ composition::TrackPipelineDescriptor AudioTrackPipelineBuilder::buildPipeline(
 
       uint32_t channels =
           info.audioChannelCount > 0 ? info.audioChannelCount : 2;
+      uint32_t sr = sampleRate_;
+      uint32_t bufferFrames = sr * 2;
+      uint32_t readAheadFrames = sr / 2; // 0.5s read-ahead
       for (uint32_t i = 0; i < MAX_BUFFERS_PER_TRACK; ++i) {
         auto buffer = std::shared_ptr<Layer3::IStreamingBuffer>(
-            Layer3::IStreamingBuffer::create(channels, 44100));
+            Layer3::IStreamingBuffer::create(channels, sr));
         if (buffer) {
-          buffer->setBufferSize(44100 * 2);
-          buffer->setReadAheadSize(22050); // 0.5s read-ahead
+          buffer->setBufferSize(bufferFrames);
+          buffer->setReadAheadSize(readAheadFrames);
           s->buffers[i] = buffer.get();
 
           if (butler_) {
@@ -380,7 +383,7 @@ TrackPipelineBuilder::buildPipeline(const composition::TrackCreateInfo &info,
   NodeID trackNodeId = audioTrackF_ ? audioTrackF_->createNode() : NodeID::invalid();
   if (trackNodeId.isValid() && audioTrackF_) {
     if (auto *trk = audioTrackF_->getRegistry().get(trackNodeId)) {
-      trk->channelStrip.reset(44100.0f);
+      trk->channelStrip.reset(static_cast<float>(sampleRate_));
       trk->channelStrip.targetGain = 1.0f;
       trk->channelStrip.targetPan = 0.5f;
     }

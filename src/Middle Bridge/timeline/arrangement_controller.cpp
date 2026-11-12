@@ -97,9 +97,13 @@ RegionID ArrangementController::importAudioClip(TrackID targetTrack, const char*
             desc.sampleRate = reader->getSampleRate();
         }
     }
-    if (desc.totalLengthSamples == 0) desc.totalLengthSamples = 441000;
+    uint32_t projSampleRate = 0;
+    if (sessionManager_ && sessionManager_->getActiveSession()) {
+        projSampleRate = sessionManager_->getActiveSession()->getMetadata().sampleRate;
+    }
     if (desc.channelCount == 0) desc.channelCount = 2;
-    if (desc.sampleRate == 0) desc.sampleRate = 44100;
+    if (desc.sampleRate == 0) desc.sampleRate = projSampleRate;
+    if (desc.totalLengthSamples == 0 && projSampleRate > 0) desc.totalLengthSamples = projSampleRate * 10;
 
     // Register in IMediaRegistry to get a real MediaID for waveform lookup
     if (mediaRegistry_) {
@@ -126,8 +130,9 @@ RegionID ArrangementController::importAudioClip(TrackID targetTrack, const char*
     SourceID srcId = sourceManager->registerSource(desc, filePath);
 
     if (!sessionManager_ || !sessionManager_->getActiveSession()) return {0, 0};
-    uint32_t projSampleRate = sessionManager_->getActiveSession()->getMetadata().sampleRate;
-    if (projSampleRate == 0) projSampleRate = 44100;
+    if (projSampleRate == 0) {
+        projSampleRate = sessionManager_->getActiveSession()->getMetadata().sampleRate;
+    }
 
     composition::TrackCreateInfo trackInfo{};
     trackManager->getTrackInfo(targetTrack, trackInfo);
@@ -308,16 +313,13 @@ void ArrangementController::splitRegion(RegionID regionId, uint64_t splitFrame) 
             if (auto* sourceManager = getSourceManager()) {
                 composition::AudioSourceDescriptor desc;
                 if (sourceManager->getSource(oldRegionInfo.region.sourceId, desc) && desc.sampleRate > 0) {
-                    uint32_t projectSampleRate = 44100;
-                    if (sessionManager_) {
-                        if (auto* session = sessionManager_->getActiveSession()) {
-                            uint32_t rate = session->getMetadata().sampleRate;
-                            if (rate > 0) {
-                                projectSampleRate = rate;
-                            }
-                        }
+                    uint32_t projectSampleRate = 0;
+                    if (sessionManager_ && sessionManager_->getActiveSession()) {
+                        projectSampleRate = sessionManager_->getActiveSession()->getMetadata().sampleRate;
                     }
-                    srRatio = static_cast<double>(desc.sampleRate) / static_cast<double>(projectSampleRate);
+                    if (projectSampleRate > 0) {
+                        srRatio = static_cast<double>(desc.sampleRate) / static_cast<double>(projectSampleRate);
+                    }
                 }
             }
             double ratio = (oldRegionInfo.region.playbackRatio > 0.0f ? static_cast<double>(oldRegionInfo.region.playbackRatio) : 1.0) * srRatio;
@@ -477,13 +479,13 @@ void ArrangementController::trimRegion(RegionID regionId, uint64_t newPosition, 
             }
         }
         if (hasSource && desc.sampleRate > 0) {
-            uint32_t projectSampleRate = 44100;
-            if (sessionManager_) {
-                if (auto* session = sessionManager_->getActiveSession()) {
-                    projectSampleRate = session->getMetadata().sampleRate;
-                }
+            uint32_t projectSampleRate = 0;
+            if (sessionManager_ && sessionManager_->getActiveSession()) {
+                projectSampleRate = sessionManager_->getActiveSession()->getMetadata().sampleRate;
             }
-            srRatio = static_cast<double>(desc.sampleRate) / static_cast<double>(projectSampleRate);
+            if (projectSampleRate > 0) {
+                srRatio = static_cast<double>(desc.sampleRate) / static_cast<double>(projectSampleRate);
+            }
         }
 
         uint64_t fileSourceStart = static_cast<uint64_t>(static_cast<double>(newSourceStart) * srRatio);
@@ -823,8 +825,8 @@ uint32_t ArrangementController::getRegionsInViewport(
                         composition::AudioSourceDescriptor desc;
                         bool hasSource = sourceManager->getSource(info.region.sourceId, desc);
 
-                        uint32_t srcSampleRate = 44100;
-                        uint32_t projSampleRate = 44100;
+                        uint32_t srcSampleRate = 0;
+                        uint32_t projSampleRate = 0;
                         if (session) {
                             projSampleRate = session->getMetadata().sampleRate;
                         }
@@ -852,7 +854,8 @@ uint32_t ArrangementController::getRegionsInViewport(
                         vr.warpMode = info.region.warpMode;
                         vr.playbackRatio = info.region.playbackRatio;
                         vr.sourceBpm = info.region.sourceBpm;
-                        vr.timelineToSourceRatio = (info.region.playbackRatio > 0.0f ? static_cast<double>(info.region.playbackRatio) : 1.0) * (static_cast<double>(srcSampleRate) / static_cast<double>(projSampleRate > 0 ? projSampleRate : 44100));
+                        double ratioSr = (srcSampleRate > 0 && projSampleRate > 0) ? (static_cast<double>(srcSampleRate) / static_cast<double>(projSampleRate)) : 1.0;
+                        vr.timelineToSourceRatio = (info.region.playbackRatio > 0.0f ? static_cast<double>(info.region.playbackRatio) : 1.0) * ratioSr;
                         if (info.region.type == composition::RegionType::AUDIO && hasSource) {
                             vr.sourceLengthFrames = static_cast<uint64_t>(static_cast<double>(desc.totalLengthSamples) * srRatio);
                         } else {
@@ -921,8 +924,8 @@ bool ArrangementController::getVisualRegion(RegionID regionId, VisualRegion& out
         outRegion.trackId = trackId;
         outRegion.clipType = info.region.type;
         outRegion.startFrame = info.region.positionSample;
-        uint32_t srcSampleRate = 44100;
-        uint32_t projSampleRate = 44100;
+        uint32_t srcSampleRate = 0;
+        uint32_t projSampleRate = 0;
         auto* session = sessionManager_->getActiveSession();
         if (session) {
             projSampleRate = session->getMetadata().sampleRate;
@@ -958,7 +961,8 @@ bool ArrangementController::getVisualRegion(RegionID regionId, VisualRegion& out
         outRegion.warpMode = info.region.warpMode;
         outRegion.playbackRatio = info.region.playbackRatio;
         outRegion.sourceBpm = info.region.sourceBpm;
-        outRegion.timelineToSourceRatio = (info.region.playbackRatio > 0.0f ? static_cast<double>(info.region.playbackRatio) : 1.0) * (static_cast<double>(srcSampleRate) / static_cast<double>(projSampleRate > 0 ? projSampleRate : 44100));
+        double ratioSr = (srcSampleRate > 0 && projSampleRate > 0) ? (static_cast<double>(srcSampleRate) / static_cast<double>(projSampleRate)) : 1.0;
+        outRegion.timelineToSourceRatio = (info.region.playbackRatio > 0.0f ? static_cast<double>(info.region.playbackRatio) : 1.0) * ratioSr;
         if (info.region.type == composition::RegionType::AUDIO && hasSource) {
             outRegion.sourceLengthFrames = static_cast<uint64_t>(static_cast<double>(desc.totalLengthSamples) * srRatio);
         } else {

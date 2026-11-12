@@ -37,7 +37,7 @@ public:
         auto id = BaseNodeFactory::createNode();
         if (id.isValid()) {
             if (auto* state = getRegistry().get(id)) {
-                state->reset(44100.0f);
+                state->reset(getSampleRate());
             }
         }
         return id;

@@ -225,13 +225,9 @@ void SettingsDialog::setupUI()
     audioGroupLayout->addRow("Output Device:", m_outputDeviceCombo);
 
     m_sampleRateCombo = new QComboBox(this);
-    // Populate standard rates
-    m_sampleRateCombo->addItems({"44100 Hz", "48000 Hz", "88200 Hz", "96000 Hz"});
     audioGroupLayout->addRow("Sample Rate:", m_sampleRateCombo);
 
     m_bufferSizeCombo = new QComboBox(this);
-    // Populate standard buffer sizes
-    m_bufferSizeCombo->addItems({"64 Samples", "128 Samples", "256 Samples", "512 Samples", "1024 Samples"});
     audioGroupLayout->addRow("Buffer Size:", m_bufferSizeCombo);
 
     leftColumn->addWidget(audioGroup);
@@ -325,6 +321,8 @@ void SettingsDialog::setupUI()
     connect(cancelBtn, &QPushButton::clicked, this, &SettingsDialog::onCancelPressed);
     connect(m_inputDeviceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::onInputDeviceChanged);
     connect(m_outputDeviceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::onOutputDeviceChanged);
+    connect(m_sampleRateCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::onSampleRateChanged);
+    connect(m_bufferSizeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::onBufferSizeChanged);
 }
 
 void SettingsDialog::loadCurrentConfig()
@@ -364,19 +362,10 @@ void SettingsDialog::loadCurrentConfig()
     m_inputDeviceCombo->setCurrentIndex(activeInputIdx);
     m_outputDeviceCombo->setCurrentIndex(activeOutputIdx);
 
-    // Match sample rate
-    QString sampleRateStr = QString::number(currentConfig.sampleRate) + " Hz";
-    int srIndex = m_sampleRateCombo->findText(sampleRateStr);
-    if (srIndex != -1) {
-        m_sampleRateCombo->setCurrentIndex(srIndex);
-    }
-
-    // Match buffer size
-    QString bufferSizeStr = QString::number(currentConfig.bufferSize) + " Samples";
-    int bsIndex = m_bufferSizeCombo->findText(bufferSizeStr);
-    if (bsIndex != -1) {
-        m_bufferSizeCombo->setCurrentIndex(bsIndex);
-    }
+    // Populate dynamic sample rates supported by the active output device
+    uint32_t activeOutDevIdx = m_outputDeviceCombo->currentData().toUInt();
+    updateSampleRatesForDevice(activeOutDevIdx, currentConfig.sampleRate);
+    updateBufferSizesForDevice(activeOutDevIdx, currentConfig.bufferSize, currentConfig.sampleRate);
 
     // Load available MIDI hardware devices
     m_midiPorts = m_facade->getAvailableMidiPorts();
@@ -417,20 +406,206 @@ void SettingsDialog::onInputDeviceChanged(int index)
     }
 }
 
+void SettingsDialog::updateSampleRatesForDevice(uint32_t deviceIndex, uint32_t preferredRate)
+{
+    m_sampleRateCombo->blockSignals(true);
+    m_sampleRateCombo->clear();
+
+    std::vector<uint32_t> rates;
+    const bridge::AudioDeviceDescriptor* matchedDev = nullptr;
+
+    for (const auto& dev : m_devices) {
+        if (dev.deviceIndex == deviceIndex) {
+            matchedDev = &dev;
+            break;
+        }
+    }
+
+    if (matchedDev && matchedDev->numSampleRates > 0) {
+        for (uint32_t r = 0; r < matchedDev->numSampleRates; ++r) {
+            rates.push_back(matchedDev->supportedSampleRates[r]);
+        }
+    } else if (matchedDev && matchedDev->defaultSampleRate > 0) {
+        rates.push_back(matchedDev->defaultSampleRate);
+    }
+
+    if (preferredRate > 0 && std::find(rates.begin(), rates.end(), preferredRate) == rates.end()) {
+        rates.push_back(preferredRate);
+    }
+
+    std::sort(rates.begin(), rates.end());
+    rates.erase(std::unique(rates.begin(), rates.end()), rates.end());
+
+    int selectIndex = -1;
+    for (int i = 0; i < static_cast<int>(rates.size()); ++i) {
+        uint32_t r = rates[static_cast<size_t>(i)];
+        m_sampleRateCombo->addItem(QString::number(r) + " Hz", QVariant(r));
+        if (preferredRate > 0 && r == preferredRate) {
+            selectIndex = i;
+        } else if (selectIndex == -1 && matchedDev && r == matchedDev->defaultSampleRate) {
+            selectIndex = i;
+        }
+    }
+
+    if (selectIndex != -1) {
+        m_sampleRateCombo->setCurrentIndex(selectIndex);
+    } else if (m_sampleRateCombo->count() > 0) {
+        m_sampleRateCombo->setCurrentIndex(0);
+    }
+
+    m_sampleRateCombo->blockSignals(false);
+}
+
+void SettingsDialog::updateBufferSizesForDevice(uint32_t deviceIndex, uint32_t preferredBufferSize, uint32_t currentSampleRate)
+{
+    m_bufferSizeCombo->blockSignals(true);
+    m_bufferSizeCombo->clear();
+
+    const bridge::AudioDeviceDescriptor* matchedDev = nullptr;
+    for (const auto& dev : m_devices) {
+        if (dev.deviceIndex == deviceIndex) {
+            matchedDev = &dev;
+            break;
+        }
+    }
+
+    uint32_t activeRate = currentSampleRate;
+    if (activeRate == 0 && m_sampleRateCombo) {
+        activeRate = m_sampleRateCombo->currentData().toUInt();
+        if (activeRate == 0) {
+            QString srText = m_sampleRateCombo->currentText();
+            srText.remove(" Hz");
+            activeRate = srText.toUInt();
+        }
+    }
+    if (activeRate == 0 && matchedDev) {
+        activeRate = matchedDev->defaultSampleRate;
+    }
+
+    std::vector<uint32_t> sizes = {32, 64, 128, 256, 512, 1024, 2048};
+    if (matchedDev && matchedDev->preferredBufferSize > 0) {
+        sizes.push_back(matchedDev->preferredBufferSize);
+    }
+    if (preferredBufferSize > 0) {
+        sizes.push_back(preferredBufferSize);
+    }
+
+    std::sort(sizes.begin(), sizes.end());
+    sizes.erase(std::unique(sizes.begin(), sizes.end()), sizes.end());
+
+    int selectIndex = -1;
+    uint32_t targetSelection = (preferredBufferSize > 0) ? preferredBufferSize : 
+                               ((matchedDev && matchedDev->preferredBufferSize > 0) ? matchedDev->preferredBufferSize : 0);
+
+    for (int i = 0; i < static_cast<int>(sizes.size()); ++i) {
+        uint32_t s = sizes[static_cast<size_t>(i)];
+        QString itemText;
+        if (activeRate > 0) {
+            double bufferDurationMs = (static_cast<double>(s) / static_cast<double>(activeRate)) * 1000.0;
+            double roundtripMs = 2.0 * bufferDurationMs;
+            itemText = QString("%1 Samples (%2 ms)").arg(s).arg(roundtripMs, 0, 'f', 1);
+        } else {
+            itemText = QString("%1 Samples").arg(s);
+        }
+
+        m_bufferSizeCombo->addItem(itemText, QVariant(s));
+
+        if (targetSelection > 0 && s == targetSelection) {
+            selectIndex = i;
+        }
+    }
+
+    if (selectIndex != -1) {
+        m_bufferSizeCombo->setCurrentIndex(selectIndex);
+    } else if (m_bufferSizeCombo->count() > 0) {
+        int defaultIdx = m_bufferSizeCombo->findData(QVariant(256U));
+        if (defaultIdx == -1) defaultIdx = m_bufferSizeCombo->findData(QVariant(512U));
+        if (defaultIdx == -1) defaultIdx = 0;
+        m_bufferSizeCombo->setCurrentIndex(defaultIdx);
+    }
+
+    m_bufferSizeCombo->blockSignals(false);
+    updateEstimatedLatency();
+}
+
+void SettingsDialog::updateEstimatedLatency()
+{
+    if (!m_facade || !m_sampleRateCombo || !m_bufferSizeCombo || !m_latencyLabel) return;
+
+    uint32_t chosenRate = m_sampleRateCombo->currentData().toUInt();
+    if (chosenRate == 0) {
+        QString srText = m_sampleRateCombo->currentText();
+        srText.remove(" Hz");
+        chosenRate = srText.toUInt();
+    }
+
+    uint32_t chosenBufferSize = m_bufferSizeCombo->currentData().toUInt();
+    if (chosenBufferSize == 0) {
+        QString bsText = m_bufferSizeCombo->currentText();
+        auto spaceIdx = bsText.indexOf(' ');
+        if (spaceIdx > 0) {
+            chosenBufferSize = bsText.left(spaceIdx).toUInt();
+        }
+    }
+
+    double activeStreamLatency = m_facade->getLatencyMs();
+    if (chosenRate > 0 && chosenBufferSize > 0) {
+        double pendingLatency = 2.0 * (static_cast<double>(chosenBufferSize) / static_cast<double>(chosenRate)) * 1000.0;
+        bridge::HardwareConfig currentConfig = m_facade->getCurrentConfig();
+        bool isPending = (chosenRate != currentConfig.sampleRate || chosenBufferSize != currentConfig.bufferSize);
+
+        if (isPending && activeStreamLatency > 0.0) {
+            m_latencyLabel->setText(QString("%1 ms (Current) → %2 ms (Pending)").arg(activeStreamLatency, 0, 'f', 2).arg(pendingLatency, 0, 'f', 2));
+        } else {
+            m_latencyLabel->setText(QString("%1 ms (Roundtrip buffer duration)").arg(pendingLatency, 0, 'f', 2));
+        }
+    } else if (activeStreamLatency > 0.0) {
+        m_latencyLabel->setText(QString("%1 ms (Roundtrip buffer duration)").arg(activeStreamLatency, 0, 'f', 2));
+    }
+}
+
+void SettingsDialog::onSampleRateChanged(int index)
+{
+    if (index < 0) return;
+    uint32_t chosenRate = m_sampleRateCombo->currentData().toUInt();
+    if (chosenRate == 0) {
+        QString srText = m_sampleRateCombo->currentText();
+        srText.remove(" Hz");
+        chosenRate = srText.toUInt();
+    }
+
+    uint32_t currentBufferSize = m_bufferSizeCombo->currentData().toUInt();
+    uint32_t activeOutDevIdx = m_outputDeviceCombo->currentData().toUInt();
+
+    updateBufferSizesForDevice(activeOutDevIdx, currentBufferSize, chosenRate);
+}
+
+void SettingsDialog::onBufferSizeChanged(int index)
+{
+    if (index < 0) return;
+    updateEstimatedLatency();
+}
+
 void SettingsDialog::onOutputDeviceChanged(int index)
 {
     if (index < 0) return;
     uint32_t devIdx = m_outputDeviceCombo->itemData(index).toUInt();
     if (devIdx == 0xFFFFFFFFU) {
         m_outputDeviceCombo->setToolTip("No Audio Output selected");
+        updateSampleRatesForDevice(devIdx, 0);
+        updateBufferSizesForDevice(devIdx, 0, 0);
         return;
     }
     
     for (const auto& dev : m_devices) {
         if (dev.deviceIndex == devIdx) {
-            m_outputDeviceCombo->setToolTip(QString("Device: %1\nMax Output Channels: %2")
+            m_outputDeviceCombo->setToolTip(QString("Device: %1\nMax Output Channels: %2\nDefault Sample Rate: %3 Hz\nPreferred Buffer Size: %4 frames")
                                            .arg(dev.name)
-                                           .arg(dev.maxOutputChannels));
+                                           .arg(dev.maxOutputChannels)
+                                           .arg(dev.defaultSampleRate)
+                                           .arg(dev.preferredBufferSize));
+            updateSampleRatesForDevice(devIdx, dev.defaultSampleRate);
+            updateBufferSizesForDevice(devIdx, dev.preferredBufferSize, dev.defaultSampleRate);
             break;
         }
     }
@@ -447,7 +622,6 @@ void SettingsDialog::refreshTelemetry()
 
     // Double precision coordinates and parameters matching rules
     double cpuLoad = m_facade->getCpuLoad();
-    double latency = m_facade->getLatencyMs();
     uint32_t xruns = m_facade->getXrunCount();
 
     // 1. CPU Bar (ensure within 0.0 to 100.0)
@@ -455,8 +629,8 @@ void SettingsDialog::refreshTelemetry()
     m_cpuProgressBar->setValue(static_cast<int>(cpuPercentage));
     m_cpuLabel->setText(QString("%1%").arg(cpuPercentage, 0, 'f', 1));
 
-    // 2. Latency display formatted beautifully
-    m_latencyLabel->setText(QString("%1 ms (Roundtrip buffer duration)").arg(latency, 0, 'f', 2));
+    // 2. Latency display dynamically updated based on current & pending settings
+    updateEstimatedLatency();
 
     // 3. Buffer dropouts stability display
     if (xruns > 0) {
@@ -515,14 +689,27 @@ void SettingsDialog::onApplyPressed()
     }
 
     // Extract numerical Sample Rate
-    QString srText = m_sampleRateCombo->currentText();
-    srText.remove(" Hz");
-    targetConfig.sampleRate = srText.toUInt();
+    uint32_t chosenRate = m_sampleRateCombo->currentData().toUInt();
+    if (chosenRate == 0) {
+        QString srText = m_sampleRateCombo->currentText();
+        srText.remove(" Hz");
+        chosenRate = srText.toUInt();
+    }
+    targetConfig.sampleRate = chosenRate;
 
     // Extract numerical Buffer Size
-    QString bsText = m_bufferSizeCombo->currentText();
-    bsText.remove(" Samples");
-    targetConfig.bufferSize = bsText.toUInt();
+    uint32_t chosenBufferSize = m_bufferSizeCombo->currentData().toUInt();
+    if (chosenBufferSize == 0) {
+        QString bsText = m_bufferSizeCombo->currentText();
+        auto spaceIdx = bsText.indexOf(' ');
+        if (spaceIdx > 0) {
+            chosenBufferSize = bsText.left(spaceIdx).toUInt();
+        } else {
+            bsText.remove(" Samples");
+            chosenBufferSize = bsText.toUInt();
+        }
+    }
+    targetConfig.bufferSize = chosenBufferSize;
 
     // Apply audio config
     bool success = m_facade->applyConfig(targetConfig);

@@ -4,6 +4,10 @@
 #include <QWidget>
 #include "Middle Bridge/midi/imidi_editor_controller.h"
 
+namespace bridge {
+    class ITimelineController;
+}
+
 namespace presentation::views {
 
 class ControllerLaneView : public QWidget {
@@ -15,6 +19,7 @@ public:
 
     void setViewportRange(uint64_t startFrame, uint64_t endFrame);
     void setControllerNumber(uint8_t controllerNumber);
+    void bindTimeline(bridge::ITimelineController* timeline) { timeline_ = timeline; }
 
 signals:
     void ccMutated();
@@ -30,9 +35,10 @@ private:
     uint64_t xToFrame(double x) const;
 
     bridge::IMidiEditorController* controller_ = nullptr;
+    bridge::ITimelineController* timeline_ = nullptr;
 
     uint64_t viewStartFrame_ = 0;
-    uint64_t viewEndFrame_ = 44100 * 4;
+    uint64_t viewEndFrame_ = 192000;
     uint8_t controllerNumber_ = 1; // Default: Mod Wheel
 
     static constexpr double KEY_WIDTH = 48.0;

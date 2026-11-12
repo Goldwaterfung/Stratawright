@@ -19,6 +19,11 @@ public:
     virtual ~ITrackPipelineBuilder() = default;
 
     /**
+     * @brief Set project sample rate for buffer pre-allocation and DSP nodes.
+     */
+    virtual void setSampleRate(uint32_t sampleRate) { (void)sampleRate; }
+
+    /**
      * @brief Construct the DSP nodes required for a track type.
      * @param info Contains track type (AUDIO, MIDI, AUX, etc.)
      * @param kernel The Layer 3 DSP kernel where nodes will be registered.

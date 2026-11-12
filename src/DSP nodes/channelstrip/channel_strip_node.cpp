@@ -85,15 +85,20 @@ void processChannelStrip(
                         // Check if we are gliding back
                         uint32_t glideLeft = s_automationMonitor ? s_automationMonitor->getGlideSamples(nodeId, paramIdx) : 0;
                         
+                        float sr = (context && context->sampleRate > 0.0f) ? context->sampleRate : DSP::g_globalDspSampleRate.load(std::memory_order_relaxed);
                         if (glideLeft > 0) {
                             // 50ms glide transition
-                            if (paramIdx == static_cast<uint32_t>(ChannelStripParameter::Volume)) s->gainSmoother.updateAlpha(50.0f, context ? context->sampleRate : 44100.0f);
-                            if (paramIdx == static_cast<uint32_t>(ChannelStripParameter::Pan)) s->panSmoother.updateAlpha(50.0f, context ? context->sampleRate : 44100.0f);
+                            if (sr > 0.0f) {
+                                if (paramIdx == static_cast<uint32_t>(ChannelStripParameter::Volume)) s->gainSmoother.updateAlpha(50.0f, sr);
+                                if (paramIdx == static_cast<uint32_t>(ChannelStripParameter::Pan)) s->panSmoother.updateAlpha(50.0f, sr);
+                            }
                             s_automationMonitor->decrementGlide(nodeId, paramIdx, 1);
                         } else {
                             // Regular 10ms smoothing
-                            if (paramIdx == static_cast<uint32_t>(ChannelStripParameter::Volume)) s->gainSmoother.updateAlpha(10.0f, context ? context->sampleRate : 44100.0f);
-                            if (paramIdx == static_cast<uint32_t>(ChannelStripParameter::Pan)) s->panSmoother.updateAlpha(10.0f, context ? context->sampleRate : 44100.0f);
+                            if (sr > 0.0f) {
+                                if (paramIdx == static_cast<uint32_t>(ChannelStripParameter::Volume)) s->gainSmoother.updateAlpha(10.0f, sr);
+                                if (paramIdx == static_cast<uint32_t>(ChannelStripParameter::Pan)) s->panSmoother.updateAlpha(10.0f, sr);
+                            }
                         }
 
                         switch (static_cast<ChannelStripParameter>(paramIdx)) {

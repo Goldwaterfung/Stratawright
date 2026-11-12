@@ -601,6 +601,27 @@ bool VST3PluginImpl::load(const char *path) {
   return true;
 }
 
+void VST3PluginImpl::prepare(double sampleRate, uint32_t maxBlockSize) {
+  if (!m_processor || !m_component || sampleRate <= 0.0) return;
+  m_processor->setProcessing(false);
+  m_component->setActive(false);
+
+  Steinberg::Vst::ProcessSetup setup;
+  setup.processMode = Steinberg::Vst::kRealtime;
+  setup.symbolicSampleSize = Steinberg::Vst::kSample32;
+  setup.maxSamplesPerBlock = maxBlockSize > 0 ? static_cast<Steinberg::int32>(maxBlockSize) : m_currentMaxBlockSize;
+  setup.sampleRate = sampleRate;
+
+  m_processor->setupProcessing(setup);
+  m_component->setActive(true);
+  m_processor->setProcessing(true);
+
+  m_currentSampleRate = sampleRate;
+  if (maxBlockSize > 0) {
+    m_currentMaxBlockSize = maxBlockSize;
+  }
+}
+
 void VST3PluginImpl::cacheMidiMappings() {
   if (!m_midiMapping || !m_component) return;
 

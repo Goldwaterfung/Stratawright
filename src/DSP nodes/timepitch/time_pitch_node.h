@@ -26,11 +26,11 @@ struct TimePitchState {
     uint32_t latency = 0;       // Current engine latency
     bool isActive = false;
 
-    void reset() {
+    void reset(float sr = 0.0f) {
         stretcher = nullptr;
         timeRatio = 1.0f;
         pitchShift = 0.0f;
-        ratioSmoother.init(1.0f, 20.0f, 44100.0f); // 20ms smoothing for warping
+        ratioSmoother.init(1.0f, 20.0f, sr); // 20ms smoothing for warping
         latency = 0;
         isActive = false;
     }

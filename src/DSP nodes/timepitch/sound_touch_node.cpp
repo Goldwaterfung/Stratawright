@@ -21,11 +21,15 @@ NodeID SoundTouchFactory::createNode() {
     auto id = BaseNodeFactory::createNode();
     if (id.isValid()) {
         if (auto* s = s_registry.get(id)) {
-            s->reset();
+            float sr = getSampleRate();
+            s->reset(sr);
             s->engine = new SoundTouch();
             
             // Default configuration
-            s->engine->setSampleRate(44100);
+            if (sr > 0.0f) {
+                s->engine->setSampleRate(static_cast<uint32_t>(sr));
+                s->sampleRate = static_cast<uint32_t>(sr);
+            }
             s->engine->setChannels(2);
             s->engine->setTempo(1.0);
             

@@ -72,6 +72,10 @@ private:
     // Validate cache entry against current file
     bool validateEntry(const CacheEntry& entry, const std::string& pluginPath) const;
 
+    // Internal unlocked helpers (caller must hold mutex)
+    void invalidateUnlocked();
+    uint32_t pruneInvalidEntriesUnlocked();
+
 public:
     // Constructor with default cache path
     PluginCache();

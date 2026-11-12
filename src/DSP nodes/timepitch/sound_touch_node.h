@@ -41,12 +41,12 @@ struct SoundTouchState {
     SoundTouchParams params;
     Math::ParameterSmoother ratioSmoother;
 
-    uint32_t sampleRate = 44100;
+    uint32_t sampleRate = 0;
     uint16_t numChannels = 2;
     uint32_t latency = 0;
     bool isActive = false;
 
-    void reset() {
+    void reset(float sr = 0.0f) {
         engine = nullptr;
         jitterReadIdx = 0;
         jitterWriteIdx = 0;
@@ -55,7 +55,7 @@ struct SoundTouchState {
         params.timeRatio = 1.0f;
         params.pitchSemiTones = 0.0f;
         params.mediaBPM = 120.0f;
-        ratioSmoother.init(1.0f, 20.0f, 44100.0f);
+        ratioSmoother.init(1.0f, 20.0f, sr);
         latency = 0;
         isActive = false;
         

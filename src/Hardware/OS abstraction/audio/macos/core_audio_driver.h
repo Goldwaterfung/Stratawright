@@ -23,6 +23,7 @@ public:
     bool stopStream() override;
     void closeStream() override;
     StreamState getState() const override;
+    StreamConfig getStreamConfig() const override;
 
     // === Device Enumeration === //
     uint32_t getDeviceCount() const override;

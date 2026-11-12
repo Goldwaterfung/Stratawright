@@ -3,6 +3,7 @@
 #include "project/isession_manager.h"
 #include "musical_composition/project_session/iproject_session.h"
 #include "musical_composition/track_manager/itrack_manager.h"
+#include "common/dsp/node_infrastructure.h"
 #include <cstring>
 #include <algorithm>
 
@@ -38,6 +39,12 @@ std::vector<AudioDeviceDescriptor> HardwareSettingsFacade::getAvailableDevices()
         desc.maxOutputChannels = info.maxOutputChannels;
         desc.isDefaultInput = info.isDefaultInput;
         desc.isDefaultOutput = info.isDefaultOutput;
+        desc.defaultSampleRate = info.defaultSampleRate;
+        desc.numSampleRates = std::min(info.numSampleRates, 16u);
+        for (uint32_t r = 0; r < desc.numSampleRates; ++r) {
+            desc.supportedSampleRates[r] = info.supportedSampleRates[r];
+        }
+        desc.preferredBufferSize = info.preferredBufferSize;
         devices.push_back(desc);
     }
 
@@ -76,21 +83,7 @@ bool HardwareSettingsFacade::applyConfig(const HardwareConfig& config) {
         audioDriver_->closeStream();
     }
 
-    // 3. Prepare the audio engine for new parameters
-    audioEngine_->prepare(config.sampleRate, config.bufferSize);
-
-    // 3b. Propagate new sample rate across active session and track manager
-    if (sessionManager_ && sessionManager_->getActiveSession()) {
-        auto* session = sessionManager_->getActiveSession();
-        auto metadata = session->getMetadata();
-        metadata.sampleRate = config.sampleRate;
-        session->setMetadata(metadata);
-        if (auto* trackManager = session->getTrackManager()) {
-            trackManager->setProjectSampleRate(config.sampleRate);
-        }
-    }
-
-    // 4. Open audio stream with new configuration
+    // 3. Open audio stream FIRST with desired configuration
     Layer1::IAudioDriver::StreamConfig driverConfig = {};
     driverConfig.inputDeviceIndex = config.inputDeviceIndex;
     driverConfig.outputDeviceIndex = config.outputDeviceIndex;
@@ -105,7 +98,28 @@ bool HardwareSettingsFacade::applyConfig(const HardwareConfig& config) {
         return false;
     }
 
-    // 5. Start audio stream processing
+    // 4. Read actual negotiated stream configuration from driver
+    Layer1::IAudioDriver::StreamConfig actualConfig = audioDriver_->getStreamConfig();
+    double actualRate = static_cast<double>(actualConfig.sampleRate);
+    uint32_t actualBufferSize = actualConfig.bufferSize;
+
+    // 5. Prepare audio engine for actual parameters
+    audioEngine_->prepare(actualRate, actualBufferSize, audioDriver_->getWorkgroupHandle());
+    DSP::g_globalDspSampleRate.store(static_cast<float>(actualRate), std::memory_order_relaxed);
+
+    // 6. Propagate new sample rate across active session and track manager
+    if (sessionManager_ && sessionManager_->getActiveSession()) {
+        auto* session = sessionManager_->getActiveSession();
+        auto metadata = session->getMetadata();
+        metadata.sampleRate = actualConfig.sampleRate;
+        session->setMetadata(metadata);
+        if (auto* trackManager = session->getTrackManager()) {
+            trackManager->setProjectSampleRate(actualConfig.sampleRate);
+            trackManager->setProjectBufferSize(actualConfig.bufferSize);
+        }
+    }
+
+    // 7. Start audio stream processing
     return audioDriver_->startStream();
 }
 

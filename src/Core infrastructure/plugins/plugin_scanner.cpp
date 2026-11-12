@@ -864,7 +864,7 @@ bool PluginCache::load() {
     // Validate magic number
     if (header.magic != CACHE_MAGIC) {
         fs->closeFile(handle);
-        invalidate();
+        invalidateUnlocked();
         return false;
     }
 
@@ -872,14 +872,14 @@ bool PluginCache::load() {
     if (header.version > CACHE_VERSION_CURRENT) {
         // Cache file is from future version - can't read it
         fs->closeFile(handle);
-        invalidate();
+        invalidateUnlocked();
         return false;
     }
 
     if (header.version < CACHE_VERSION_CURRENT) {
         // Old version - discard and rebuild
         fs->closeFile(handle);
-        invalidate();
+        invalidateUnlocked();
         return true;  // Not an error, just empty cache
     }
 
@@ -890,14 +890,14 @@ bool PluginCache::load() {
 
     if (expectedChecksum != computedChecksum) {
         fs->closeFile(handle);
-        invalidate();
+        invalidateUnlocked();
         return false;  // Corrupt header
     }
 
     // Validate entry count
     if (header.entryCount > MAX_CACHE_ENTRIES) {
         fs->closeFile(handle);
-        invalidate();
+        invalidateUnlocked();
         return false;  // Suspicious entry count
     }
 
@@ -939,15 +939,19 @@ bool PluginCache::load() {
     fs->closeFile(handle);
 
     // Validate all entries against current files
-    pruneInvalidEntries();
+    pruneInvalidEntriesUnlocked();
 
     return true;
 }
 
-void PluginCache::invalidate() {
-    std::lock_guard<std::mutex> lock(mutex);
+void PluginCache::invalidateUnlocked() {
     cache.clear();
     currentMemoryBytes = 0;
+}
+
+void PluginCache::invalidate() {
+    std::lock_guard<std::mutex> lock(mutex);
+    invalidateUnlocked();
 }
 
 std::vector<PluginDescriptor> PluginCache::getAllDescriptors() const {
@@ -963,9 +967,7 @@ std::vector<PluginDescriptor> PluginCache::getAllDescriptors() const {
     return descriptors;
 }
 
-uint32_t PluginCache::pruneInvalidEntries() {
-    std::lock_guard<std::mutex> lock(mutex);
-
+uint32_t PluginCache::pruneInvalidEntriesUnlocked() {
     uint32_t pruned = 0;
 
     for (auto it = cache.begin(); it != cache.end(); ) {
@@ -979,6 +981,11 @@ uint32_t PluginCache::pruneInvalidEntries() {
     }
 
     return pruned;
+}
+
+uint32_t PluginCache::pruneInvalidEntries() {
+    std::lock_guard<std::mutex> lock(mutex);
+    return pruneInvalidEntriesUnlocked();
 }
 
 std::string PluginCache::getDefaultCachePath() {

@@ -91,7 +91,7 @@ private:
 
     // Viewport state
     uint64_t viewStartFrame_ = 0;
-    uint64_t viewEndFrame_ = 44100 * 4; // default 4 seconds
+    uint64_t viewEndFrame_ = 192000; // default initial viewport range (will sync to timeline)
     uint8_t minPitch_ = 36;             // Default C2
     uint8_t maxPitch_ = 84;             // Default C6
     uint64_t playheadFrame_ = 0;

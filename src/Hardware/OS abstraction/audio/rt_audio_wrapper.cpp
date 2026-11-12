@@ -130,6 +130,9 @@ OpenResult RtAudioWrapper::openStream(const IAudioDriver::StreamConfig& config) 
         return makeErrorResult(StreamError::DEVICE_NOT_FOUND, "Output device out of range");
     }
 
+    uint32_t targetSampleRate = config.sampleRate;
+    uint32_t targetBufferSize = config.bufferSize;
+
     uint32_t numInputChannels = 0;
     if (config.inputDeviceIndex != UNUSED_DEVICE_INDEX) {
         impl->inputParams = {};
@@ -138,6 +141,8 @@ OpenResult RtAudioWrapper::openStream(const IAudioDriver::StreamConfig& config) 
         numInputChannels = (config.numInputChannels > 0) ? config.numInputChannels : info.maxInputChannels;
         impl->inputParams.deviceId = deviceId;
         impl->inputParams.nChannels = static_cast<unsigned int>(numInputChannels);
+        if (targetSampleRate == 0) targetSampleRate = info.defaultSampleRate;
+        if (targetBufferSize == 0) targetBufferSize = info.preferredBufferSize;
     }
 
     uint32_t numOutputChannels = 0;
@@ -148,19 +153,21 @@ OpenResult RtAudioWrapper::openStream(const IAudioDriver::StreamConfig& config) 
         numOutputChannels = (config.numOutputChannels > 0) ? config.numOutputChannels : info.maxOutputChannels;
         impl->outputParams.deviceId = deviceId;
         impl->outputParams.nChannels = static_cast<unsigned int>(numOutputChannels);
+        if (targetSampleRate == 0) targetSampleRate = info.defaultSampleRate;
+        if (targetBufferSize == 0) targetBufferSize = info.preferredBufferSize;
     }
 
     impl->options = {};
     impl->options.flags = RTAUDIO_NONINTERLEAVED | RTAUDIO_SCHEDULE_REALTIME;
     impl->options.numberOfBuffers = AudioDefaults::NUM_BUFFERS;
-    impl->bufferFrames = config.bufferSize;
+    impl->bufferFrames = targetBufferSize;
 
     try {
         RtAudioErrorType error = impl->audio->openStream(
             config.outputDeviceIndex != UNUSED_DEVICE_INDEX ? &impl->outputParams : nullptr,
             config.inputDeviceIndex != UNUSED_DEVICE_INDEX ? &impl->inputParams : nullptr,
             RTAUDIO_FLOAT32,
-            config.sampleRate,
+            targetSampleRate,
             &impl->bufferFrames,
             &RtAudioWrapper::rtAudioCallback,
             this,
@@ -174,6 +181,8 @@ OpenResult RtAudioWrapper::openStream(const IAudioDriver::StreamConfig& config) 
         }
 
         impl->streamOpen = true;
+        currentConfig.sampleRate = impl->audio->getStreamSampleRate();
+        currentConfig.bufferSize = impl->bufferFrames;
         currentState.store(StreamState::OPEN, std::memory_order_release);
         return OpenResult{.success = true};
 
@@ -248,8 +257,16 @@ DeviceInfo RtAudioWrapper::getDeviceInfo(uint32_t deviceIndex) const {
         for (size_t i = 0; i < rtInfo.sampleRates.size() && info.numSampleRates < MAX_SUPPORTED_SAMPLE_RATES; ++i) {
             info.supportedSampleRates[info.numSampleRates++] = static_cast<uint32_t>(rtInfo.sampleRates[i]);
         }
-        info.defaultSampleRate = static_cast<uint32_t>(rtInfo.preferredSampleRate);
-        info.preferredBufferSize = AudioDefaults::BUFFER_SIZE;
+        if (rtInfo.currentSampleRate > 0) {
+            info.defaultSampleRate = static_cast<uint32_t>(rtInfo.currentSampleRate);
+        } else if (rtInfo.preferredSampleRate > 0) {
+            info.defaultSampleRate = static_cast<uint32_t>(rtInfo.preferredSampleRate);
+        } else if (info.numSampleRates > 0) {
+            info.defaultSampleRate = info.supportedSampleRates[0];
+        } else {
+            info.defaultSampleRate = 0;
+        }
+        info.preferredBufferSize = 0; // Hardware/driver negotiated
         info.isDefaultInput = rtInfo.isDefaultInput;
         info.isDefaultOutput = rtInfo.isDefaultOutput;
     } catch (...) {}

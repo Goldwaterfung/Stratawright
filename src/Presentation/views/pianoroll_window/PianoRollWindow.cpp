@@ -13,7 +13,7 @@
 #include "../shortcuts/ShortcutManager.h"
 
 namespace {
-    static constexpr uint64_t MAX_FRAME_LIMIT = 44100 * 600; // 10 minutes max limit
+    static constexpr double MAX_TIME_LIMIT_SECONDS = 600.0; // 10 minutes max limit
 }
 
 namespace presentation::views {
@@ -90,7 +90,7 @@ void PianoRollWindow::openMidiClip(TrackID trackId, bridge::RegionID regionId) {
         
         // Reset viewport
         viewStartFrame_ = 0;
-        viewEndFrame_ = 44100 * 4;
+        viewEndFrame_ = timeline_ ? timeline_->bbtToFrame(5, 1, 0) : 192000;
         canvas_->setViewportRange(viewStartFrame_, viewEndFrame_);
         velocityView_->setViewportRange(viewStartFrame_, viewEndFrame_);
         controllerView_->setViewportRange(viewStartFrame_, viewEndFrame_);
@@ -107,6 +107,8 @@ void PianoRollWindow::setPlayheadFrame(uint64_t frame) {
 void PianoRollWindow::bindTimeline(bridge::ITimelineController* timeline) {
     timeline_ = timeline;
     canvas_->bindTimeline(timeline);
+    if (velocityView_) velocityView_->bindTimeline(timeline);
+    if (controllerView_) controllerView_->bindTimeline(timeline);
 }
 
 void PianoRollWindow::refreshView() {
@@ -562,7 +564,10 @@ void PianoRollWindow::updateScrollBarPositions() {
         hScrollBar_->blockSignals(true);
         uint64_t viewWidth = viewEndFrame_ - viewStartFrame_;
         hScrollBar_->setPageStep(static_cast<int>(viewWidth));
-        hScrollBar_->setRange(0, static_cast<int>(MAX_FRAME_LIMIT - viewWidth));
+        double sr = timeline_ ? timeline_->getSampleRate() : 48000.0;
+        if (sr <= 0.0) sr = 48000.0;
+        uint64_t maxFrameLimit = static_cast<uint64_t>(sr * MAX_TIME_LIMIT_SECONDS);
+        hScrollBar_->setRange(0, static_cast<int>(maxFrameLimit - viewWidth));
         hScrollBar_->setValue(static_cast<int>(viewStartFrame_));
         hScrollBar_->blockSignals(false);
     }

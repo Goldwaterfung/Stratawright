@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <vector>
 #include "timeline/iarrangement_controller.h"
+#include "timeline/itimeline_controller.h"
 #include "tracks/itrack_controller.h"
 #include "PlaylistEditTool.h" // for PlaylistEditTool
 
@@ -41,7 +42,8 @@ public:
         composition::TrackType trackType,
         uint64_t frameAtClick,
         bridge::IArrangementController* arrangement,
-        QWidget* parent);
+        QWidget* parent,
+        bridge::ITimelineController* timeline = nullptr);
 
     static QMenu* buildForAutomationSegment(
         const bridge::VisualAutomationPoint& leftPoint,

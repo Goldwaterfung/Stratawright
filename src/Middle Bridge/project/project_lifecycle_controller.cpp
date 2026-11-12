@@ -71,6 +71,8 @@ bool ProjectLifecycleController::createNewProject(const ProjectMetadataState& me
     auto builder = std::make_unique<TrackPipelineBuilder>(
         audioSequencerF_, midiSequencerF_, latencyF_, csF_, panF_, sendF_, slotF_, fs_, butler_, mutationBridge_, masterBusNode_, sineSynthF_, instrumentSlotF_, audioInputF_, monitorSwitchF_, audioTrackF_, instrumentTrackF_
     );
+    uint32_t initSr = metadata.sampleRate > 0 ? metadata.sampleRate : (audioDriver_ ? audioDriver_->getStreamConfig().sampleRate : 0);
+    builder->setSampleRate(initSr);
 
     // Create active session
     auto newSession = composition::IProjectSession::create(std::move(builder), dspKernel_, mutationBridge_, pluginManager_, masterChannelStripNode_, masterPluginSlotNode_, masterLatencyNode_, latencyF_);
@@ -134,6 +136,9 @@ bool ProjectLifecycleController::loadProject(const char* absoluteFilePath) {
     auto builder = std::make_unique<TrackPipelineBuilder>(
         audioSequencerF_, midiSequencerF_, latencyF_, csF_, panF_, sendF_, slotF_, fs_, butler_, mutationBridge_, masterBusNode_, sineSynthF_, instrumentSlotF_, audioInputF_, monitorSwitchF_, audioTrackF_, instrumentTrackF_
     );
+    if (audioDriver_) {
+        builder->setSampleRate(audioDriver_->getStreamConfig().sampleRate);
+    }
 
     // 4. Create new blank session
     auto newSession = composition::IProjectSession::create(std::move(builder), dspKernel_, mutationBridge_, pluginManager_, masterChannelStripNode_, masterPluginSlotNode_, masterLatencyNode_, latencyF_);
@@ -227,6 +232,9 @@ bool ProjectLifecycleController::importProjectFromJson(const char* absoluteFileP
     auto builder = std::make_unique<TrackPipelineBuilder>(
         audioSequencerF_, midiSequencerF_, latencyF_, csF_, panF_, sendF_, slotF_, fs_, butler_, mutationBridge_, masterBusNode_, sineSynthF_, instrumentSlotF_, audioInputF_, monitorSwitchF_
     );
+    if (audioDriver_) {
+        builder->setSampleRate(audioDriver_->getStreamConfig().sampleRate);
+    }
 
     // Create new blank session
     auto newSession = composition::IProjectSession::create(std::move(builder), dspKernel_, mutationBridge_, pluginManager_, masterChannelStripNode_, masterPluginSlotNode_, masterLatencyNode_, latencyF_);

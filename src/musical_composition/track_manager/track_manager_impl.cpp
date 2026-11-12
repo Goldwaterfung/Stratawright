@@ -1055,6 +1055,9 @@ uint32_t TrackManagerImpl::getPitchPointsInClip(ClipID clipId, ::MIDIPitchPoint*
 
 void TrackManagerImpl::setProjectSampleRate(uint32_t sampleRate) {
     projectSampleRate_ = sampleRate;
+    if (builder_) {
+        builder_->setSampleRate(sampleRate);
+    }
     for (auto& pair : tracks_) {
         for (auto& arrPair : pair.second.arrangements) {
             if (arrPair.second.playlist) {
@@ -1062,6 +1065,10 @@ void TrackManagerImpl::setProjectSampleRate(uint32_t sampleRate) {
             }
         }
     }
+}
+
+void TrackManagerImpl::setProjectBufferSize(uint32_t bufferSize) {
+    projectBufferSize_ = bufferSize;
 }
 
 void TrackManagerImpl::compileTimelineSnapshot() {
@@ -1108,13 +1115,13 @@ void TrackManagerImpl::compileTimelineSnapshot() {
             sRegion.sourceBpm = rInfo.region.sourceBpm;
             sRegion.fadeInSamples = rInfo.region.fadeInSamples;
             sRegion.fadeOutSamples = rInfo.region.fadeOutSamples;
-            uint32_t srcSampleRate = 44100;
+            uint32_t srcSampleRate = projectSampleRate_;
             uint64_t durationProjectFrames = rInfo.region.sourceLength;
             if (rInfo.region.type == RegionType::AUDIO && sourceManager_) {
                 composition::AudioSourceDescriptor desc;
                 if (sourceManager_->getSource(rInfo.region.sourceId, desc)) {
-                    srcSampleRate = desc.sampleRate;
-                    if (desc.sampleRate > 0) {
+                    srcSampleRate = desc.sampleRate > 0 ? desc.sampleRate : projectSampleRate_;
+                    if (desc.sampleRate > 0 && projectSampleRate_ > 0) {
                         double srRatio = static_cast<double>(projectSampleRate_) / static_cast<double>(desc.sampleRate);
                         double playbackRatio = rInfo.region.playbackRatio > 0.0f ? static_cast<double>(rInfo.region.playbackRatio) : 1.0;
                         durationProjectFrames = static_cast<uint64_t>(static_cast<double>(rInfo.region.sourceLength) * srRatio * playbackRatio);
@@ -2305,6 +2312,9 @@ void TrackManagerImpl::insertTrackPluginInternal(TrackID id, uint32_t slotIndex,
                 pluginState->reset();
                 auto instance = pluginManager_->instantiatePlugin(plugDesc);
                 if (instance) {
+                    if (projectSampleRate_ > 0) {
+                        instance->prepare(static_cast<double>(projectSampleRate_), projectBufferSize_);
+                    }
                     pluginState->pluginInstance = instance.release();
                     
                     if (stateId != 0) {
@@ -2567,6 +2577,9 @@ void TrackManagerImpl::insertTrackInstrumentInternal(TrackID id, uint32_t plugin
     
     auto instance = pluginManager_->instantiatePlugin(plugDesc);
     if (!instance) return;
+    if (projectSampleRate_ > 0) {
+        instance->prepare(static_cast<double>(projectSampleRate_), projectBufferSize_);
+    }
     
     void* rawInstance = instance.release();
     

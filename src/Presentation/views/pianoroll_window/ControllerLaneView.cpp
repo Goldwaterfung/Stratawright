@@ -1,5 +1,6 @@
 // src/Presentation/views/pianoroll_window/ControllerLaneView.cpp
 #include "ControllerLaneView.h"
+#include "Middle Bridge/timeline/itimeline_controller.h"
 #include "Presentation/views/theme.h"
 #include <QPainter>
 #include <QPaintEvent>
@@ -141,7 +142,9 @@ void ControllerLaneView::mousePressEvent(QMouseEvent* event) {
     uint8_t val = static_cast<uint8_t>(std::clamp(valRatio * 127.0, 0.0, 127.0));
 
     // Remove existing CC points in close range to prevent overlapping clutter
-    uint64_t range = 44100 / 10; // ~100ms tolerance range
+    double sr = timeline_ ? timeline_->getSampleRate() : 48000.0;
+    if (sr <= 0.0) sr = 48000.0;
+    uint64_t range = static_cast<uint64_t>(sr * 0.1); // ~100ms tolerance range
     uint64_t startRange = frame > range ? frame - range : 0;
     controller_->removeCCPointsInRange(controllerNumber_, startRange, frame + range);
 
@@ -158,7 +161,9 @@ void ControllerLaneView::mouseMoveEvent(QMouseEvent* event) {
         double valRatio = (h - pos.y()) / (h - 10.0);
         uint8_t val = static_cast<uint8_t>(std::clamp(valRatio * 127.0, 0.0, 127.0));
 
-        uint64_t range = 44100 / 12; 
+        double moveSr = timeline_ ? timeline_->getSampleRate() : 48000.0;
+        if (moveSr <= 0.0) moveSr = 48000.0;
+        uint64_t range = static_cast<uint64_t>(moveSr * (1.0 / 12.0)); 
         uint64_t startRange = frame > range ? frame - range : 0;
         controller_->removeCCPointsInRange(controllerNumber_, startRange, frame + range);
 

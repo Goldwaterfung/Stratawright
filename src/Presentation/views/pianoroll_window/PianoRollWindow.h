@@ -63,7 +63,7 @@ private:
     ControllerLaneView* controllerView_ = nullptr;
 
     uint64_t viewStartFrame_ = 0;
-    uint64_t viewEndFrame_ = 44100 * 4;
+    uint64_t viewEndFrame_ = 192000;
 
     TrackID currentTrackId_ = TrackID::invalid();
     bridge::RegionID currentRegionId_ = bridge::RegionID::invalid();

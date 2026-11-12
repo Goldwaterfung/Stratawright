@@ -549,6 +549,12 @@ TrackID TrackLifecycleController::cloneTrack(TrackID sourceId) {
                 if (found) {
                     auto instance = ctx_.pluginManager->instantiatePlugin(plugDesc);
                     if (instance) {
+                        double sr = (ctx_.sessionManager && ctx_.sessionManager->getActiveSession()) ? 
+                                    static_cast<double>(ctx_.sessionManager->getActiveSession()->getMetadata().sampleRate) : 0.0;
+                        if (sr > 0.0) {
+                            uint32_t bs = ctx_.hardwareFacade ? ctx_.hardwareFacade->getCurrentConfig().bufferSize : 0;
+                            instance->prepare(sr, bs);
+                        }
                         auto* dstPlugin = instance.get();
                         std::vector<uint8_t> buffer = srcPlugin->getState();
                         if (!buffer.empty()) {

@@ -35,6 +35,13 @@ void AudioEngineImpl::setOfflineExportActive(bool active) {
 void AudioEngineImpl::prepare(double sampleRate, uint32_t maxBlockSize, Layer1::WorkgroupHandle workgroup) {
     sampleRate_.store(sampleRate);
     maxBlockSize_.store(maxBlockSize);
+
+    if (clock_) {
+        clock_->setSampleRate(sampleRate);
+    }
+    if (tempoService_) {
+        tempoService_->setSampleRate(sampleRate);
+    }
     
     if (butlerThread_) {
         butlerThread_->setSampleRate(static_cast<float>(sampleRate));
@@ -316,7 +323,14 @@ void AudioEngineImpl::onBufferSizeChanged(uint32_t newBufferSize) {
 }
 
 void AudioEngineImpl::onSampleRateChanged(uint32_t newSampleRate) {
-    sampleRate_.store(static_cast<double>(newSampleRate));
+    double rate = static_cast<double>(newSampleRate);
+    sampleRate_.store(rate);
+    if (clock_) {
+        clock_->setSampleRate(rate);
+    }
+    if (tempoService_) {
+        tempoService_->setSampleRate(rate);
+    }
 }
 
 void AudioEngineImpl::onXrun() {

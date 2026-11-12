@@ -174,6 +174,9 @@ private:
     bool connectDSPToComposition();
     bool connectMediaToPresentation();
 
+    uint32_t getInitialSampleRate() const;
+    uint32_t getInitialBufferSize() const;
+
     // --- Concrete Layer Instances (Phase 1) ---
     // Layer 1
     std::unique_ptr<Layer1::IAudioDriver> audioDriver_;

@@ -159,7 +159,12 @@ public:
                         info.supportedSampleRates[info.numSampleRates++] = rate;
                     }
                 }
-                info.preferredBufferSize = AudioDefaults::BUFFER_SIZE;
+                REFERENCE_TIME defaultPeriod = 0, minPeriod = 0;
+                if (SUCCEEDED(audioClient->GetDevicePeriod(&defaultPeriod, &minPeriod)) && format->nSamplesPerSec > 0) {
+                    info.preferredBufferSize = static_cast<uint32_t>((defaultPeriod * format->nSamplesPerSec) / 10000000ULL);
+                } else {
+                    info.preferredBufferSize = 0;
+                }
                 CoTaskMemFree(format);
             }
             audioClient->Release();

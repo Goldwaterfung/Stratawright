@@ -589,7 +589,10 @@ uint32_t TimelineController::getMarkersInRange(uint64_t startFrame, uint64_t end
         std::vector<composition::MarkerInfo> tempMarkers(maxCount);
         uint32_t count = session->getMarkerManager()->getMarkersInRange(startFrame, endFrame, tempMarkers.data(), maxCount);
         double sampleRate = static_cast<double>(session->getMetadata().sampleRate);
-        if (sampleRate <= 0.0) sampleRate = 44100.0;
+        if (sampleRate <= 0.0 && tempoService_) {
+            sampleRate = tempoService_->getSampleRate();
+        }
+        if (sampleRate <= 0.0) sampleRate = 1.0; // Prevent divide by zero
         
         for (uint32_t i = 0; i < count; ++i) {
             outMarkers[i].uuid = tempMarkers[i].uuid;

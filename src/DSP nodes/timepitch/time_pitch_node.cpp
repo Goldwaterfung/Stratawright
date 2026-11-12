@@ -20,15 +20,16 @@ NodeID TimePitchFactory::createNode() {
     auto id = BaseNodeFactory::createNode();
     if (id.isValid()) {
         if (auto* s = s_registry.get(id)) {
-            s->reset();
+            float sr = getSampleRate();
+            s->reset(sr);
             
             // Default options for high-quality real-time warping
             int options = RubberBandStretcher::OptionProcessRealTime | 
                           RubberBandStretcher::OptionEngineFiner |
                           RubberBandStretcher::OptionTransientsCrisp;
             
-            // Initializing with stereo and 44.1k (will be updated in first process call)
-            s->stretcher = new RubberBandStretcher(44100, 2, options);
+            size_t initialRate = sr > 0.0f ? static_cast<size_t>(sr) : 48000;
+            s->stretcher = new RubberBandStretcher(initialRate, 2, options);
             s->isActive = true;
         }
     }

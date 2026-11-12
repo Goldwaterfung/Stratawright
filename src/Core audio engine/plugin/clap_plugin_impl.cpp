@@ -152,6 +152,23 @@ bool CLAPPluginImpl::getInfo(PluginInfo &outInfo) const {
   return true;
 }
 
+void CLAPPluginImpl::prepare(double sampleRate, uint32_t maxBlockSize) {
+  if (!plugin || sampleRate <= 0.0) return;
+  if (m_isActive) {
+    plugin->deactivate(plugin);
+    m_isActive = false;
+  }
+  if (maxBlockSize > 0) {
+    m_currentMaxBlockSize = maxBlockSize;
+  }
+  uint32_t bs = maxBlockSize > 0 ? maxBlockSize : m_currentMaxBlockSize;
+  if (bs > 0) {
+    plugin->activate(plugin, sampleRate, bs, bs);
+    m_isActive = true;
+  }
+  m_currentSampleRate = static_cast<float>(sampleRate);
+}
+
 void CLAPPluginImpl::processAudio(float *const *inputs, uint32_t numInputs,
                                   float *const *outputs, uint32_t numOutputs,
                                   uint32_t numSamples, const EventData *events,

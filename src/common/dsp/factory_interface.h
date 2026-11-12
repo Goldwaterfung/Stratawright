@@ -35,6 +35,12 @@ public:
      * @brief Returns the current latency of a specific node in samples.
      */
     virtual uint32_t getLatency(NodeID nodeId) const = 0;
+
+    /**
+     * @brief Configure or query the processing sample rate for node creation and DSP configuration.
+     */
+    virtual void setSampleRate(float sampleRate) { (void)sampleRate; }
+    virtual float getSampleRate() const { return 0.0f; }
 };
 
 } // namespace DSP

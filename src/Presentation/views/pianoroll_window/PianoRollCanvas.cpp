@@ -144,9 +144,7 @@ uint64_t PianoRollCanvas::snapFrame(uint64_t frame) const {
         const uint64_t snappedTicks = (ticks - low < high - ticks) ? low : high;
         return timeline_->ticksToSamples(snappedTicks);
     }
-    // Fallback if no timeline: 16th note default fallback
-    uint64_t gridSamples = 44100 / 4; // roughly 16th note at 120 bpm
-    return (frame / gridSamples) * gridSamples;
+    return frame;
 }
 
 void PianoRollCanvas::paintEvent(QPaintEvent* /*event*/) {
@@ -252,8 +250,7 @@ void PianoRollCanvas::drawGrid(QPainter& p) {
             // Fallback if no timeline
             double barWidthPx = 160.0; // target width for beat markers
             double framesPerLine = totalFrames * barWidthPx / (canvasWidth - KEY_WIDTH);
-            double gridStep = 44100.0; // 1 second chunks for base beat
-            while (gridStep < framesPerLine) gridStep *= 2.0;
+            double gridStep = std::max(1.0, framesPerLine);
 
             uint64_t firstLine = (viewStartFrame_ / static_cast<uint64_t>(gridStep) + 1) * static_cast<uint64_t>(gridStep);
             p.setPen(QPen(QColor(0x2C, 0x30, 0x3B, 180), 1.0));
@@ -477,7 +474,7 @@ void PianoRollCanvas::mousePressEvent(QMouseEvent* event) {
         if (activeTool_ == PianoRollTool::Draw) {
             uint64_t snappedStart = snapFrame(xToFrame(pos.x()));
             // Draw note: 16th note length by default
-            uint64_t noteLen = 44100 / 4; // ~16th note at 120 bpm
+            uint64_t noteLen = 0;
             if (timeline_) {
                 uint32_t tpb = timeline_->getTicksPerBeat();
                 uint64_t startTicks = timeline_->samplesToTicks(snappedStart);
@@ -486,6 +483,9 @@ void PianoRollCanvas::mousePressEvent(QMouseEvent* event) {
                 if (endSample > snappedStart) {
                     noteLen = endSample - snappedStart;
                 }
+            }
+            if (noteLen == 0) {
+                noteLen = snapResolutionTicks_ > 0 ? snapResolutionTicks_ : 120;
             }
             uint8_t pitch = yToPitch(pos.y());
 
@@ -567,11 +567,11 @@ void PianoRollCanvas::mouseMoveEvent(QMouseEvent* event) {
         uint64_t curFrame = xToFrame(pos.x());
         int64_t frameDelta = static_cast<int64_t>(curFrame) - static_cast<int64_t>(dragStartFrame_);
 
-        uint64_t minDuration = 44100 / 16;
+        uint64_t minDuration = 1;
         if (timeline_) {
             uint32_t tpb = timeline_->getTicksPerBeat();
             uint64_t startTicks = timeline_->samplesToTicks(dragOrigStartFrame_);
-            uint64_t endTicks = startTicks + (tpb / 16); // 1/16 of a beat (64th note)
+            uint64_t endTicks = startTicks + std::max(1u, tpb / 16); // 1/16 of a beat (64th note)
             uint64_t endSample = timeline_->ticksToSamples(endTicks);
             if (endSample > dragOrigStartFrame_) {
                 minDuration = endSample - dragOrigStartFrame_;

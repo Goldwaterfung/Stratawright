@@ -2,8 +2,11 @@
 
 #include "state_registry.h"
 #include "factory_interface.h"
+#include <atomic>
 
 namespace DSP {
+
+inline std::atomic<float> g_globalDspSampleRate{0.0f};
 
 /**
  * @brief Base class for node factories to reduce boilerplate.
@@ -37,6 +40,14 @@ public:
 
     uint32_t getLatency(NodeID /*nodeId*/) const override {
         return 0; // Default implementation
+    }
+
+    void setSampleRate(float sampleRate) override {
+        g_globalDspSampleRate.store(sampleRate, std::memory_order_relaxed);
+    }
+
+    float getSampleRate() const override {
+        return g_globalDspSampleRate.load(std::memory_order_relaxed);
     }
 };
 

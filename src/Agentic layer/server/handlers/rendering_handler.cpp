@@ -82,8 +82,11 @@ ExecutionResult RenderingHandler::handleCommand(
         uint32_t bd = ParsedArgs::parseUint32(args.getOption("--bit-depth", "24")).value_or(24);
         config.bitDepth = static_cast<uint8_t>(bd == 16 || bd == 24 || bd == 32 ? bd : 24);
 
-        uint32_t defaultSr = timelineController ? static_cast<uint32_t>(timelineController->getSampleRate()) : 48000;
+        uint32_t defaultSr = timelineController ? static_cast<uint32_t>(timelineController->getSampleRate()) : 0;
         config.sampleRate = ParsedArgs::parseUint32(args.getOption("--sample-rate", "")).value_or(defaultSr);
+        if (config.sampleRate == 0) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Sample rate must be specified or determined dynamically from the timeline.");
+        }
 
         std::string_view ditherOpt = args.getOption("--dither", "on");
         config.enableDither = (ditherOpt == "on" || ditherOpt == "true" || args.hasFlag("--dither"));
@@ -165,8 +168,11 @@ ExecutionResult RenderingHandler::handleCommand(
         uint32_t bd = ParsedArgs::parseUint32(args.getOption("--bit-depth", "24")).value_or(24);
         config.bitDepth = static_cast<uint8_t>(bd == 16 || bd == 24 || bd == 32 ? bd : 24);
 
-        uint32_t defaultSr = timelineController ? static_cast<uint32_t>(timelineController->getSampleRate()) : 48000;
+        uint32_t defaultSr = timelineController ? static_cast<uint32_t>(timelineController->getSampleRate()) : 0;
         config.sampleRate = ParsedArgs::parseUint32(args.getOption("--sample-rate", "")).value_or(defaultSr);
+        if (config.sampleRate == 0) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Sample rate must be specified or determined dynamically from the timeline.");
+        }
 
         std::string_view ditherOpt = args.getOption("--dither", "on");
         config.enableDither = (ditherOpt == "on" || ditherOpt == "true" || args.hasFlag("--dither"));

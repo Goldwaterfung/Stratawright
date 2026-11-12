@@ -26,6 +26,7 @@ public:
   void setButlerThread(IButlerThread* butler) { m_butler = butler; }
 
   bool getInfo(PluginInfo &outInfo) const override;
+  void prepare(double sampleRate, uint32_t maxBlockSize) override;
 
   void processAudio(float *const *inputs, uint32_t numInputs,
                     float *const *outputs, uint32_t numOutputs,

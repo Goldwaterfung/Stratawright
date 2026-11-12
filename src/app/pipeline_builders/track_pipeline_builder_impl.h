@@ -38,6 +38,12 @@ public:
 
     ~TrackPipelineBuilderImpl() override = default;
 
+    void setSampleRate(uint32_t sampleRate) override {
+        if (m_delegatingBuilder) {
+            m_delegatingBuilder->setSampleRate(sampleRate);
+        }
+    }
+
     // Implement ITrackPipelineBuilder interface
     composition::TrackPipelineDescriptor buildPipeline(
         const composition::TrackCreateInfo& info,

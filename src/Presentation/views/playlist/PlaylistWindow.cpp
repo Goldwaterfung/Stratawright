@@ -1919,8 +1919,13 @@ void PlaylistWindow::onInsertBlankMidiClip() {
     if (!m_ctrl.arrangement || !m_ctrl.timeline) return;
     TrackID targetTrack = TrackID{1, 0};
     uint64_t frame = m_ctrl.timeline->getCurrentFrame();
-    uint64_t duration = m_ctrl.timeline->ticksToSamples(1920); // 4 bars default
-    if (duration == 0) duration = 44100 * 4;
+    uint64_t ticksPerBeat = m_ctrl.timeline->getTicksPerBeat();
+    uint64_t duration = m_ctrl.timeline->ticksToSamples(ticksPerBeat * 4 * 4); // 4 bars default
+    if (duration == 0) {
+        double sr = m_ctrl.timeline->getSampleRate();
+        if (sr <= 0.0) sr = 48000.0;
+        duration = static_cast<uint64_t>(sr * 4.0);
+    }
     m_ctrl.arrangement->insertMidiClip(targetTrack, frame, duration);
     if (m_canvas) m_canvas->update();
 }

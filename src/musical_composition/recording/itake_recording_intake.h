@@ -22,7 +22,7 @@ struct RawTake {
     uint64_t hardwareStartSample = 0;
     uint64_t hardwareEndSample = 0;
     uint64_t mediaId = 0;
-    uint32_t sampleRate = 44100;
+    uint32_t sampleRate = 0;
     uint32_t channelCount = 2;
 };
 

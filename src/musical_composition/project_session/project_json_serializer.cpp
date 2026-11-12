@@ -415,7 +415,7 @@ bool ProjectJsonSerializer::deserialize(
         const auto& meta = root["metadata"];
         outState.metadata.projectName = meta.value("projectName", "");
         outState.metadata.author = meta.value("author", "");
-        outState.metadata.sampleRate = meta.value("sampleRate", 44100u);
+        outState.metadata.sampleRate = meta.value("sampleRate", 0u);
         outState.metadata.initialTempoBPM = meta.value("initialTempoBPM", 120.0f);
         outState.metadata.timeSignatureNumerator = meta.value("timeSignatureNumerator", static_cast<uint8_t>(4));
         outState.metadata.timeSignatureDenominator = meta.value("timeSignatureDenominator", static_cast<uint8_t>(4));
@@ -433,7 +433,7 @@ bool ProjectJsonSerializer::deserialize(
             srcState.nameId = src.value("nameId", 0u);
             srcState.totalLengthSamples = src.value("totalLengthSamples", 0uLL);
             srcState.channelCount = src.value("channelCount", 2u);
-            srcState.sampleRate = src.value("sampleRate", 44100u);
+            srcState.sampleRate = src.value("sampleRate", outState.metadata.sampleRate);
             srcState.mediaId = src.value("mediaId", 0u);
             srcState.filePath = src.value("filePath", "");
             srcState.relativeFilePath = src.value("relativeFilePath", "");

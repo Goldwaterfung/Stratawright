@@ -13,6 +13,10 @@ struct AudioDeviceDescriptor {
     uint32_t maxOutputChannels = 0;
     bool isDefaultInput = false;
     bool isDefaultOutput = false;
+    uint32_t defaultSampleRate = 0;
+    uint32_t supportedSampleRates[16] = {0};
+    uint32_t numSampleRates = 0;
+    uint32_t preferredBufferSize = 0;
 };
 
 struct HardwareConfig {
@@ -20,8 +24,8 @@ struct HardwareConfig {
     uint32_t outputDeviceIndex = 0xFFFFFFFF;
     uint32_t numInputChannels = 2;
     uint32_t numOutputChannels = 2;
-    uint32_t sampleRate = 48000;
-    uint32_t bufferSize = 256;
+    uint32_t sampleRate = 0;
+    uint32_t bufferSize = 0;
 };
 
 struct MidiPortDescriptor {

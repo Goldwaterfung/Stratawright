@@ -55,6 +55,9 @@ This script will:
 
 # Release build with tests
 ./scripts/build.sh release --test
+
+# Package build
+./scripts/build.sh release --package
 ```
 
 #### Windows (Command Prompt / PowerShell):

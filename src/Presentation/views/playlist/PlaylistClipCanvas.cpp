@@ -1411,11 +1411,16 @@ void PlaylistClipCanvas::mouseDoubleClickEvent(QMouseEvent* event)
 
             if (!onSubLane && (track.type == composition::TrackType::MIDI || track.type == composition::TrackType::INSTRUMENT)) {
                 uint64_t insertFrame = snapFrame(xToFrame(pos.x()));
-                uint64_t duration = 44100 * 4; // default fallback
+                uint64_t duration = 0;
                 if (m_timeline) {
                     uint64_t tickStart = m_timeline->samplesToTicks(insertFrame);
                     uint64_t ticksPerBeat = m_timeline->getTicksPerBeat();
                     duration = m_timeline->ticksToSamples(tickStart + ticksPerBeat * 4) - insertFrame;
+                }
+                if (duration == 0) {
+                    double sr = m_timeline ? m_timeline->getSampleRate() : 48000.0;
+                    if (sr <= 0.0) sr = 48000.0;
+                    duration = static_cast<uint64_t>(sr * 2.0); // 2 seconds default (4 beats at 120 bpm)
                 }
                 m_arrangement->insertMidiClip(track.trackId, insertFrame, duration);
                 update();
@@ -2491,7 +2496,8 @@ void PlaylistClipCanvas::contextMenuEvent(QContextMenuEvent* event)
                         track.type,
                         frameAtClick,
                         m_arrangement,
-                        this
+                        this,
+                        m_timeline
                     );
 
                     if (hasCompHighlight() && m_compHighlightLane == 0
@@ -2863,7 +2869,17 @@ void PlaylistClipCanvas::dropEvent(QDropEvent* event)
             return;
         }
         if (m_arrangement) {
-            uint64_t defaultMidiDuration = 44100 * 4; // 4 bars
+            uint64_t defaultMidiDuration = 0;
+            if (m_timeline) {
+                uint64_t tickStart = m_timeline->samplesToTicks(dropFrame);
+                uint64_t ticksPerBeat = m_timeline->getTicksPerBeat();
+                defaultMidiDuration = m_timeline->ticksToSamples(tickStart + ticksPerBeat * 4) - dropFrame;
+            }
+            if (defaultMidiDuration == 0) {
+                double sr = m_timeline ? m_timeline->getSampleRate() : 48000.0;
+                if (sr <= 0.0) sr = 48000.0;
+                defaultMidiDuration = static_cast<uint64_t>(sr * 2.0); // 2 seconds default
+            }
             m_arrangement->insertMidiClip(
                 targetTrack, dropFrame, defaultMidiDuration);
             update();

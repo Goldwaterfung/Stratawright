@@ -75,7 +75,13 @@ std::shared_ptr<Layer2::SPSCQueue<float, 524288>> RecordingController::prepareTr
         return nullptr;
     }
 
-    uint32_t sampleRate = audioEngine_ ? static_cast<uint32_t>(audioEngine_->getSampleRate()) : 44100;
+    uint32_t sampleRate = 0;
+    if (audioEngine_ && audioEngine_->getSampleRate() > 0.0) {
+        sampleRate = static_cast<uint32_t>(audioEngine_->getSampleRate());
+    } else if (sessionManager_ && sessionManager_->getActiveSession()) {
+        sampleRate = sessionManager_->getActiveSession()->getMetadata().sampleRate;
+    }
+    if (sampleRate == 0) return nullptr;
 
     auto writer = codecFactory_->createWriter(filePath, sampleRate, static_cast<uint16_t>(numChannels), 32);
     if (!writer) return nullptr;
@@ -207,7 +213,13 @@ void RecordingController::onRecordingPassComplete(const RecordingPassCompleteEve
         take.hardwareStartSample = actualStart;
         take.hardwareEndSample = event.endSample;
         take.mediaId = result.mediaId.toRaw();
-        take.sampleRate = audioEngine_ ? static_cast<uint32_t>(audioEngine_->getSampleRate()) : 44100;
+        uint32_t recSampleRate = 0;
+        if (audioEngine_ && audioEngine_->getSampleRate() > 0.0) {
+            recSampleRate = static_cast<uint32_t>(audioEngine_->getSampleRate());
+        } else if (sessionManager_ && sessionManager_->getActiveSession()) {
+            recSampleRate = sessionManager_->getActiveSession()->getMetadata().sampleRate;
+        }
+        take.sampleRate = recSampleRate;
         take.channelCount = 2; // Can hardcode for now, or extract from somewhere
         
         composition::RecordingConfig config;

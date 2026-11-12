@@ -250,7 +250,8 @@ QMenu* PlaylistContextMenu::buildForArrangementLane(
     composition::TrackType trackType,
     uint64_t frameAtClick,
     bridge::IArrangementController* arrangement,
-    QWidget* parent)
+    QWidget* parent,
+    bridge::ITimelineController* timeline)
 {
     auto* menu = new QMenu(parent);
 
@@ -281,9 +282,19 @@ QMenu* PlaylistContextMenu::buildForArrangementLane(
     // --- Action 2: Insert MIDI Clip ---
     if (trackType == composition::TrackType::MIDI || trackType == composition::TrackType::INSTRUMENT) {
         QAction* insertMidiAct = menu->addAction(QStringLiteral("Insert MIDI Clip"));
-        QObject::connect(insertMidiAct, &QAction::triggered, [arrangement, trackId, frameAtClick]() {
+        QObject::connect(insertMidiAct, &QAction::triggered, [arrangement, trackId, frameAtClick, timeline]() {
             if (!arrangement) return;
-            uint64_t defaultDuration = 44100 * 4;
+            uint64_t defaultDuration = 0;
+            if (timeline) {
+                uint64_t tickStart = timeline->samplesToTicks(frameAtClick);
+                uint64_t ticksPerBeat = timeline->getTicksPerBeat();
+                defaultDuration = timeline->ticksToSamples(tickStart + ticksPerBeat * 4) - frameAtClick;
+            }
+            if (defaultDuration == 0) {
+                double sr = timeline ? timeline->getSampleRate() : 48000.0;
+                if (sr <= 0.0) sr = 48000.0;
+                defaultDuration = static_cast<uint64_t>(sr * 2.0); // 2 seconds default (4 beats at 120 bpm)
+            }
             arrangement->insertMidiClip(trackId, frameAtClick, defaultDuration);
         });
     } else {

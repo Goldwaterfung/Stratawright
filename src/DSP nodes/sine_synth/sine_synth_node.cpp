@@ -65,7 +65,8 @@ void processSineSynth(
     auto* s = VALIDATE_STATE(s_registry, nodeId);
     if (!s || !outputs || numSamples == 0) return;
 
-    float sample_rate = context ? static_cast<float>(context->sampleRate) : 44100.0f;
+    if (!context || context->sampleRate <= 0.0f) return;
+    float sample_rate = context->sampleRate;
     EventScanner scanner(events, numEvents);
 
     for (uint32_t i = 0; i < numSamples; ++i) {

@@ -279,6 +279,11 @@ OpenResult CoreAudioDriver::openStream(const StreamConfig& config) {
         err = AudioUnitSetProperty(pImpl->audioUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &devID, sizeof(AudioDeviceID));
     }
 
+    if (config.bufferSize > 0) {
+        UInt32 requestedBufferSize = config.bufferSize;
+        AudioUnitSetProperty(pImpl->audioUnit, kAudioDevicePropertyBufferFrameSize, kAudioUnitScope_Global, 0, &requestedBufferSize, sizeof(requestedBufferSize));
+    }
+
     // 4. Set Stream Format (Planar Float32)
     AudioStreamBasicDescription streamFormat;
     streamFormat.mSampleRate = config.sampleRate;
@@ -347,8 +352,45 @@ OpenResult CoreAudioDriver::openStream(const StreamConfig& config) {
 
     pImpl->registerListeners();
 
+    // Query actual negotiated stream format
+    AudioStreamBasicDescription negotiatedAsbd{};
+    UInt32 asbdSize = sizeof(negotiatedAsbd);
+    if (AudioUnitGetProperty(pImpl->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &negotiatedAsbd, &asbdSize) == noErr) {
+        if (negotiatedAsbd.mSampleRate > 0.0) {
+            pImpl->currentConfig.sampleRate = static_cast<uint32_t>(negotiatedAsbd.mSampleRate);
+        }
+    }
+
+    UInt32 negotiatedBufferSize = 0;
+    UInt32 bufSizeProp = sizeof(negotiatedBufferSize);
+    if (AudioUnitGetProperty(pImpl->audioUnit, kAudioDevicePropertyBufferFrameSize, kAudioUnitScope_Global, 0, &negotiatedBufferSize, &bufSizeProp) == noErr) {
+        if (negotiatedBufferSize > 0) {
+            pImpl->currentConfig.bufferSize = negotiatedBufferSize;
+        }
+    }
+
+    uint32_t activeBufferSize = pImpl->currentConfig.bufferSize > 0 ? pImpl->currentConfig.bufferSize : config.bufferSize;
+    if (activeBufferSize > 0) {
+        for (uint32_t i = 0; i < pImpl->outputPlanarData.size(); ++i) {
+            pImpl->outputPlanarData[i].resize(activeBufferSize);
+            pImpl->outputPlanarBuffers[i] = pImpl->outputPlanarData[i].data();
+        }
+        for (uint32_t i = 0; i < pImpl->inputPlanarData.size(); ++i) {
+            pImpl->inputPlanarData[i].resize(activeBufferSize);
+            pImpl->inputPlanarBuffers[i] = pImpl->inputPlanarData[i].data();
+            if (pImpl->inputBufferList) {
+                pImpl->inputBufferList->mBuffers[i].mDataByteSize = activeBufferSize * sizeof(float);
+                pImpl->inputBufferList->mBuffers[i].mData = pImpl->inputPlanarBuffers[i];
+            }
+        }
+    }
+
     pImpl->currentState = StreamState::OPEN;
     return OpenResult{.success = true};
+}
+
+IAudioDriver::StreamConfig CoreAudioDriver::getStreamConfig() const {
+    return pImpl->currentConfig;
 }
 
 bool CoreAudioDriver::startStream() {
@@ -447,7 +489,7 @@ DeviceInfo CoreAudioDriver::getDeviceInfo(uint32_t deviceIndex) const {
     if (AudioObjectGetPropertyData(devID, &addr, 0, nullptr, &size, &sampleRate) == noErr) {
         info.defaultSampleRate = static_cast<uint32_t>(sampleRate);
     } else {
-        info.defaultSampleRate = AudioDefaults::SAMPLE_RATE;
+        info.defaultSampleRate = 0;
     }
     
     // Get Supported Sample Rates
@@ -464,12 +506,26 @@ DeviceInfo CoreAudioDriver::getDeviceInfo(uint32_t deviceIndex) const {
         }
     }
     
-    if (info.numSampleRates == 0) {
+    if (info.defaultSampleRate == 0 && info.numSampleRates > 0) {
+        info.defaultSampleRate = info.supportedSampleRates[0];
+    } else if (info.numSampleRates == 0 && info.defaultSampleRate > 0) {
         info.numSampleRates = 1;
         info.supportedSampleRates[0] = info.defaultSampleRate;
     }
     
-    info.preferredBufferSize = AudioDefaults::BUFFER_SIZE; // Standard default
+    // Query actual nominal buffer frame size from device
+    AudioObjectPropertyAddress bufAddr = {
+        kAudioDevicePropertyBufferFrameSize,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMain
+    };
+    UInt32 nominalBuffer = 0;
+    size = sizeof(nominalBuffer);
+    if (AudioObjectGetPropertyData(devID, &bufAddr, 0, nullptr, &size, &nominalBuffer) == noErr && nominalBuffer > 0) {
+        info.preferredBufferSize = nominalBuffer;
+    } else {
+        info.preferredBufferSize = 0;
+    }
     
     // Check if default
     AudioDeviceID defaultOutID = kAudioDeviceUnknown;

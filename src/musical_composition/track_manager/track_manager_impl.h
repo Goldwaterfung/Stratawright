@@ -128,6 +128,7 @@ public:
 
     void compileTimelineSnapshot() override;
     void setProjectSampleRate(uint32_t sampleRate) override;
+    void setProjectBufferSize(uint32_t bufferSize) override;
     void recalculateTimeCaches(Layer2::ITempoService* tempoService) override;
 
     // IMidiClipDataProvider Overrides
@@ -260,7 +261,8 @@ private:
     std::atomic<RTSequencerList*> rtSequencersActive_{nullptr};
     
     TimelineSnapshot pendingCompileSnapshot_;
-    uint32_t projectSampleRate_ = 44100;
+    uint32_t projectSampleRate_ = 0;
+    uint32_t projectBufferSize_ = 0;
     std::vector<IPlaylist::RegionInfo> compilationScratch_;
     
     void syncRTSequencerList();

@@ -223,7 +223,8 @@ bool AUPluginImpl::getInfo(PluginInfo &outInfo) const {
   Float64 latencySeconds = 0.0;
   UInt32 latencySize = sizeof(latencySeconds);
   if (AudioUnitGetProperty(auInstance, kAudioUnitProperty_Latency, kAudioUnitScope_Global, 0, &latencySeconds, &latencySize) == noErr) {
-      outInfo.latencySamples = static_cast<uint32_t>(latencySeconds * 44100.0);
+      Float64 effectiveRate = asbd.mSampleRate > 0.0 ? asbd.mSampleRate : 0.0;
+      outInfo.latencySamples = static_cast<uint32_t>(latencySeconds * effectiveRate);
   }
 
   AudioComponent component = AudioComponentInstanceGetComponent(auInstance);
@@ -238,6 +239,27 @@ bool AUPluginImpl::getInfo(PluginInfo &outInfo) const {
 #else
   (void)outInfo;
   return false;
+#endif
+}
+
+void AUPluginImpl::prepare(double sampleRate, uint32_t maxBlockSize) {
+#ifdef __APPLE__
+  if (!auInstance || sampleRate <= 0.0) return;
+  AudioStreamBasicDescription asbd;
+  std::memset(&asbd, 0, sizeof(asbd));
+  UInt32 size = sizeof(asbd);
+  if (AudioUnitGetProperty(auInstance, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, &size) == noErr) {
+    asbd.mSampleRate = sampleRate;
+    AudioUnitSetProperty(auInstance, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof(asbd));
+    AudioUnitSetProperty(auInstance, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof(asbd));
+  }
+  if (maxBlockSize > 0) {
+    UInt32 mb = maxBlockSize;
+    AudioUnitSetProperty(auInstance, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &mb, sizeof(mb));
+  }
+#else
+  (void)sampleRate;
+  (void)maxBlockSize;
 #endif
 }
 

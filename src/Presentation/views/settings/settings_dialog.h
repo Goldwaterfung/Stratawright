@@ -33,10 +33,15 @@ private Q_SLOTS:
     void onTelemetryTick();
     void onInputDeviceChanged(int index);
     void onOutputDeviceChanged(int index);
+    void onSampleRateChanged(int index);
+    void onBufferSizeChanged(int index);
 
 private:
     void setupUI();
     void loadCurrentConfig();
+    void updateSampleRatesForDevice(uint32_t deviceIndex, uint32_t preferredRate = 0);
+    void updateBufferSizesForDevice(uint32_t deviceIndex, uint32_t preferredBufferSize = 0, uint32_t currentSampleRate = 0);
+    void updateEstimatedLatency();
     void refreshTelemetry();
     void showError(const QString& message);
     void clearError();

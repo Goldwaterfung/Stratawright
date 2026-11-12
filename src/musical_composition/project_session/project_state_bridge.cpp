@@ -503,6 +503,9 @@ bool ProjectStateBridge::restore(
                 if (descFound) {
                     auto plugin = pluginManager->instantiatePlugin(desc);
                     if (plugin) {
+                        if (state.metadata.sampleRate > 0) {
+                            plugin->prepare(static_cast<double>(state.metadata.sampleRate), 0);
+                        }
                         plugin->loadState(track.instrument.stateBlob.data(), track.instrument.stateBlob.size());
                         auto* tmImpl = dynamic_cast<TrackManagerImpl*>(trackManager);
                         if (tmImpl) {
@@ -551,6 +554,9 @@ bool ProjectStateBridge::restore(
                 if (descFound) {
                     auto plugin = pluginManager->instantiatePlugin(desc);
                     if (plugin) {
+                        if (state.metadata.sampleRate > 0) {
+                            plugin->prepare(static_cast<double>(state.metadata.sampleRate), 0);
+                        }
                         plugin->loadState(pState.stateBlob.data(), pState.stateBlob.size());
                         trackManager->completeTrackPluginInsertion(restoredId, slotIdx, plugin.release(), desc);
                         auto* tmImpl = dynamic_cast<TrackManagerImpl*>(trackManager);

@@ -289,7 +289,8 @@ void processInstrumentSlotState(
             }
         } else if (!isFullyBypassed) {
             // Fallback to internal sine synth when no external plugin is hosted
-            float sample_rate = context ? static_cast<float>(context->sampleRate) : 44100.0f;
+            float sample_rate = (context && context->sampleRate > 0.0f) ? context->sampleRate : 0.0f;
+            if (sample_rate <= 0.0f) return;
             EventScanner fbScanner(s->rtScratchEvents, activeEvents);
 
             for (uint32_t i = 0; i < len; ++i) {

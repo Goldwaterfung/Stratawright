@@ -56,7 +56,7 @@ private:
     TrackID trackId_;
     ICommandHistory* history_;
     IAudioRegionSourceManager* sourceManager_;
-    uint32_t projectSampleRate_ = 44100;
+    uint32_t projectSampleRate_ = 0;
 
     std::vector<RegionEntry> regions_;
 

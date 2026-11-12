@@ -42,12 +42,14 @@ void processInstrumentTrack(
     }
 
     // 2. Dynamic Sample Rate Adaptation
-    float sampleRate = (context && context->sampleRate > 0.0f) ? context->sampleRate : 44100.0f;
-    s->channelStrip.gainSmoother.setSampleRate(sampleRate);
-    s->channelStrip.panSmoother.setSampleRate(sampleRate);
-    for (uint32_t i = 0; i < MAX_TRACK_SENDS; ++i) {
-        s->sends[i].gainSmoother.setSampleRate(sampleRate);
-        s->sends[i].panSmoother.setSampleRate(sampleRate);
+    if (context && context->sampleRate > 0.0f) {
+        float sampleRate = context->sampleRate;
+        s->channelStrip.gainSmoother.setSampleRate(sampleRate);
+        s->channelStrip.panSmoother.setSampleRate(sampleRate);
+        for (uint32_t i = 0; i < MAX_TRACK_SENDS; ++i) {
+            s->sends[i].gainSmoother.setSampleRate(sampleRate);
+            s->sends[i].panSmoother.setSampleRate(sampleRate);
+        }
     }
 
     // 3. Buffer Port Hygiene: Zero all output ports (including send ports 2..9)

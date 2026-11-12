@@ -51,10 +51,13 @@ public:
 
   ~TrackPipelineBuilderBase() override = default;
 
+  void setSampleRate(uint32_t sampleRate) override { sampleRate_ = sampleRate; }
+
   void destroyPipeline(const composition::TrackPipelineDescriptor &pipeline,
                        IDSPKernel *kernel) override;
 
 protected:
+  uint32_t sampleRate_ = 0;
   DSP::LatencyFactory *latencyF_;
   DSP::ChannelStripFactory *csF_;
   DSP::PannerFactory *panF_;
@@ -170,12 +173,19 @@ public:
   void destroyPipeline(const composition::TrackPipelineDescriptor &pipeline,
                        IDSPKernel *kernel) override;
 
+  void setSampleRate(uint32_t sampleRate) override {
+    sampleRate_ = sampleRate;
+    audioBuilder_.setSampleRate(sampleRate);
+    instrumentBuilder_.setSampleRate(sampleRate);
+  }
+
   const std::vector<std::shared_ptr<Layer3::IStreamingBuffer>> &
   getActiveBuffers() const {
     return audioBuilder_.getActiveBuffers();
   }
 
 private:
+  uint32_t sampleRate_ = 0;
   AudioTrackPipelineBuilder audioBuilder_;
   InstrumentTrackPipelineBuilder instrumentBuilder_;
   DSP::AudioSequencerFactory *audioSequencerF_;

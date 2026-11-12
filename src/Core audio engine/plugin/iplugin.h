@@ -32,6 +32,14 @@ public:
   virtual bool getInfo(PluginInfo &outInfo) const = 0;
 
   //==========================================================================
+  // Host Configuration (NRT Safe)
+  //==========================================================================
+  virtual void prepare(double sampleRate, uint32_t maxBlockSize) {
+    (void)sampleRate;
+    (void)maxBlockSize;
+  }
+
+  //==========================================================================
   // Audio Processing (RT-Safe, Wait-Free)
   //==========================================================================
 

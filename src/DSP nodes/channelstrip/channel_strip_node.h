@@ -76,7 +76,7 @@ public:
         auto id = BaseNodeFactory::createNode();
         if (id.isValid()) {
             if (auto* state = getRegistry().get(id)) {
-                state->reset(44100.0f); // Default SR, should be updated by kernel
+                state->reset(getSampleRate());
             }
         }
         return id;

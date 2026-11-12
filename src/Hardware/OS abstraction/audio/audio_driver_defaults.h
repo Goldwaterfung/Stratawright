@@ -12,12 +12,16 @@ namespace AudioDefaults {
 
     /**
      * Standard Sample Rate used as a fallback or default.
+     * @deprecated Hardcoded sample rates are forbidden. Query device info or stream config dynamically.
      */
+    [[deprecated("Hardcoded sample rate is forbidden; query device info or stream config instead")]]
     constexpr uint32_t SAMPLE_RATE = 44100;
 
     /**
      * Preferred Buffer Size (frames per buffer).
+     * @deprecated Hardcoded buffer size is forbidden; query device info or stream config instead.
      */
+    [[deprecated("Hardcoded buffer size is forbidden; query device info or stream config instead")]]
     constexpr uint32_t BUFFER_SIZE = 512;
 
     /**
